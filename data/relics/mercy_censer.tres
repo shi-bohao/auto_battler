@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_censer"]
+
+[resource]
+script = ExtResource("1_censer")
+relic_id = "mercy_censer"
+relic_name = "Mercy Censer"
+relic_name_cn = "慈悲香炉"
+description = "At battle start, all player units gain +20% healing power and +20% shield power for this battle."
+description_cn = "战斗开始时，玩家全队本场战斗治疗强度 +20%，护盾强度 +20%。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 0.20

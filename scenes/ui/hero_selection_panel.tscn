@@ -1,0 +1,183 @@
+[gd_scene format=3]
+
+[node name="HeroSelectionPanel Panel" type="Panel"]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -460.0
+offset_top = -480.0
+offset_right = 460.0
+offset_bottom = 480.0
+
+[node name="Title" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 20.0
+offset_right = 888.0
+offset_bottom = 56.0
+horizontal_alignment = 1
+
+[node name="DetailScroll" type="ScrollContainer" parent="."]
+visible = false
+offset_left = 24.0
+offset_top = 70.0
+offset_right = 896.0
+offset_bottom = 692.0
+follow_focus = true
+horizontal_scroll_mode = 0
+
+[node name="DetailContent" type="Control" parent="DetailScroll"]
+mouse_filter = 0
+offset_right = 872.0
+offset_bottom = 560.0
+
+[node name="PortraitFrame" type="ColorRect" parent="DetailScroll/DetailContent"]
+offset_left = 18.0
+offset_top = 12.0
+offset_right = 154.0
+offset_bottom = 152.0
+color = Color(0.12, 0.16, 0.22, 1)
+
+[node name="PortraitPlaceholder" type="Label" parent="DetailScroll/DetailContent/PortraitFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="UnitName" type="Label" parent="DetailScroll/DetailContent"]
+offset_left = 170.0
+offset_top = 12.0
+offset_right = 854.0
+offset_bottom = 42.0
+
+[node name="UnitMeta" type="Label" parent="DetailScroll/DetailContent"]
+offset_left = 170.0
+offset_top = 44.0
+offset_right = 854.0
+offset_bottom = 68.0
+
+[node name="BaseStatsTitle" type="Label" parent="DetailScroll/DetailContent"]
+offset_left = 18.0
+offset_top = 166.0
+offset_right = 854.0
+offset_bottom = 192.0
+text = "基础属性"
+
+[node name="BaseStatsGrid" type="GridContainer" parent="DetailScroll/DetailContent"]
+offset_left = 18.0
+offset_top = 196.0
+offset_right = 854.0
+offset_bottom = 350.0
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 2
+columns = 4
+
+[node name="SkillSectionTitle" type="Label" parent="DetailScroll/DetailContent"]
+offset_left = 18.0
+offset_top = 362.0
+offset_right = 854.0
+offset_bottom = 386.0
+text = "技能"
+
+[node name="PassiveSkillButton" type="Button" parent="DetailScroll/DetailContent"]
+offset_left = 18.0
+offset_top = 392.0
+offset_right = 426.0
+offset_bottom = 432.0
+text = "-"
+
+[node name="ActiveSkillButton" type="Button" parent="DetailScroll/DetailContent"]
+offset_left = 446.0
+offset_top = 392.0
+offset_right = 854.0
+offset_bottom = 432.0
+text = "-"
+
+[node name="HeroUpgradeTitle" type="Label" parent="DetailScroll/DetailContent"]
+offset_left = 18.0
+offset_top = 444.0
+offset_right = 854.0
+offset_bottom = 468.0
+text = "英雄强化"
+
+[node name="HeroUpgradeGrid" type="GridContainer" parent="DetailScroll/DetailContent"]
+offset_left = 18.0
+offset_top = 474.0
+offset_right = 854.0
+offset_bottom = 538.0
+theme_override_constants/h_separation = 14
+theme_override_constants/v_separation = 6
+columns = 3
+
+[node name="PlaceholderLabel" type="Label" parent="."]
+offset_left = 32.0
+offset_top = 70.0
+offset_right = 888.0
+offset_bottom = 692.0
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InfoPopup" type="Panel" parent="."]
+visible = false
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 480.0
+offset_bottom = 200.0
+z_index = 10
+
+[node name="InfoPopupText" type="RichTextLabel" parent="InfoPopup"]
+bbcode_enabled = true
+offset_left = 14.0
+offset_top = 12.0
+offset_right = 466.0
+offset_bottom = 188.0
+scroll_active = true
+
+[node name="ArrowRow" type="HBoxContainer" parent="."]
+offset_left = 400.0
+offset_top = 706.0
+offset_right = 520.0
+offset_bottom = 744.0
+alignment = 1
+theme_override_constants/separation = 12
+
+[node name="LeftArrow" type="Button" parent="ArrowRow"]
+custom_minimum_size = Vector2(40.0, 38.0)
+focus_mode = 0
+
+[node name="PageIndicator" type="Label" parent="ArrowRow"]
+custom_minimum_size = Vector2(80.0, 38.0)
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="RightArrow" type="Button" parent="ArrowRow"]
+custom_minimum_size = Vector2(40.0, 38.0)
+focus_mode = 0
+
+[node name="PortraitContainer" type="HBoxContainer" parent="."]
+offset_left = 280.0
+offset_top = 756.0
+offset_right = 640.0
+offset_bottom = 756.0
+alignment = 1
+theme_override_constants/separation = 28
+
+[node name="ButtonRow" type="HBoxContainer" parent="."]
+offset_left = 300.0
+offset_top = 886.0
+offset_right = 620.0
+offset_bottom = 886.0
+alignment = 1
+theme_override_constants/separation = 24
+
+[node name="ReturnButton" type="Button" parent="ButtonRow"]
+custom_minimum_size = Vector2(120.0, 44.0)
+
+[node name="ConfirmButton" type="Button" parent="ButtonRow"]
+custom_minimum_size = Vector2(120.0, 44.0)
+disabled = true

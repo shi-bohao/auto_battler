@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_bulwark"]
+
+[resource]
+script = ExtResource("1_bulwark")
+relic_id = "bulwark_rune"
+relic_name = "Bulwark Rune"
+relic_name_cn = "壁垒符文"
+description = "At battle start, player frontline units gain +8% damage reduction and +15% status resistance for this battle."
+description_cn = "战斗开始时，玩家前排单位本场战斗伤害减免 +8%，状态抗性 +15%。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 0.08

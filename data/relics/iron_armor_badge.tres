@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_badge"]
+
+[resource]
+script = ExtResource("1_badge")
+relic_id = "iron_armor_badge"
+relic_name = "Iron Armor Badge"
+relic_name_cn = "铁甲徽章"
+description = "At battle start, all player units gain 30 shield."
+description_cn = "战斗开始时，玩家全队获得 30 护盾。"
+rarity = "COMMON"
+trigger_type = "BATTLE_START"
+value = 30.0

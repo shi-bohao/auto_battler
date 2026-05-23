@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_warrior"]
+
+[resource]
+script = ExtResource("1_warrior")
+unit_name = "Warrior"
+unit_name_cn = "战士"
+description_cn = "前排承伤，依靠减伤和护盾保护队伍。"
+unit_type = "warrior"
+role = "tank"
+bond_tags = Array[String](["iron_wall"])
+rarity = "COMMON"
+price = 2
+max_hp = 180
+attack_damage = 10
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.1
+attack_range = 55.0
+search_range = 999.0
+move_speed = 75.0
+passive_id = "armor"
+active_skill_id = "guard_barrier"
+max_mana = 100
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

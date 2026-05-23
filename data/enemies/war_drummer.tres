@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_war_drummer"]
+
+[resource]
+script = ExtResource("1_war_drummer")
+unit_name = "War Drummer"
+unit_name_cn = "战鼓手"
+description_cn = "团队增幅敌人，提升敌方攻击并提供护盾。"
+unit_type = "enemy_war_drummer"
+role = "support"
+price = 0
+max_hp = 120
+attack_damage = 8
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 5
+attack_interval = 1.4
+attack_range = 115.0
+search_range = 999.0
+move_speed = 90.0
+passive_id = "enemy_war_rhythm"
+active_skill_id = "enemy_drum_shield"
+max_mana = 95
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 420.0
+projectile_visual_type = "magic"

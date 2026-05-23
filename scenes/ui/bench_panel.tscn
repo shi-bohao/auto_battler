@@ -1,0 +1,70 @@
+[gd_scene format=3]
+
+[node name="BenchPanel Panel" type="Panel"]
+visible = false
+offset_left = 24.0
+offset_top = 144.0
+offset_right = 420.0
+offset_bottom = 704.0
+
+[node name="BenchTitle Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 10.0
+offset_right = 220.0
+offset_bottom = 33.0
+text = "阵容"
+
+[node name="BenchCloseButton Button" type="Button" parent="."]
+offset_left = 296.0
+offset_top = 8.0
+offset_right = 380.0
+offset_bottom = 36.0
+text = "关闭"
+
+[node name="ActiveCount Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 34.0
+offset_right = 180.0
+offset_bottom = 57.0
+text = "上场：3 / 10"
+
+[node name="TotalUnits Label" type="Label" parent="."]
+offset_left = 190.0
+offset_top = 34.0
+offset_right = 340.0
+offset_bottom = 57.0
+text = "拥有：3 / 25"
+
+[node name="ActiveTitle Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 62.0
+offset_right = 140.0
+offset_bottom = 85.0
+text = "上场"
+
+[node name="ActiveUnitsScroll ScrollContainer" type="ScrollContainer" parent="."]
+offset_left = 16.0
+offset_top = 86.0
+offset_right = 340.0
+offset_bottom = 218.0
+
+[node name="ActiveUnitsVBox VBoxContainer" type="VBoxContainer" parent="ActiveUnitsScroll ScrollContainer"]
+offset_right = 324.0
+offset_bottom = 132.0
+
+[node name="BenchTitle2 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 226.0
+offset_right = 140.0
+offset_bottom = 249.0
+text = "备战"
+
+[node name="BenchUnitsScroll ScrollContainer" type="ScrollContainer" parent="."]
+offset_left = 16.0
+offset_top = 250.0
+offset_right = 340.0
+offset_bottom = 368.0
+
+[node name="BenchUnitsVBox VBoxContainer" type="VBoxContainer" parent="BenchUnitsScroll ScrollContainer"]
+offset_right = 324.0
+offset_bottom = 118.0

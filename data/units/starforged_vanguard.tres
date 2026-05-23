@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_starforged_vanguard"]
+
+[resource]
+script = ExtResource("1_starforged_vanguard")
+unit_name = "Starforged Vanguard"
+unit_name_cn = "星铸禁卫"
+description_cn = "升星流前排核心，场上高星单位越多，承伤能力越强。"
+unit_type = "starforged_vanguard"
+role = "tank"
+bond_tags = Array[String](["iron_wall"])
+rarity = "EPIC"
+price = 8
+max_hp = 300
+attack_damage = 11
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 35
+attack_interval = 1.35
+attack_range = 55.0
+search_range = 999.0
+move_speed = 55.0
+passive_id = "starforged_body"
+active_skill_id = "astral_bulwark"
+max_mana = 115
+mana_regen_per_second = 8.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

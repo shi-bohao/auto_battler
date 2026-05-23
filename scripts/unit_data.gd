@@ -1,0 +1,43 @@
+class_name UnitData
+extends Resource
+
+@export var unit_name: String = "单位"
+@export var unit_name_cn: String = ""
+@export var description_cn: String = ""
+@export var unit_type: String = "unit"
+@export_enum("tank", "damage", "support") var role: String = "damage"
+@export var bond_tags: Array[String] = []
+@export var star: int = 1
+@export_enum("COMMON", "FINE", "RARE", "EPIC", "LEGENDARY", "MYTHIC") var rarity: String = "COMMON"
+@export var price: int = 2
+@export var max_hp: int = 100
+@export var attack_damage: int = 10
+@export var crit_chance: float = 0.0
+@export var crit_damage_multiplier: float = 1.5
+@export var defense: int = 0
+@export var skill_power: float = 0.0
+@export var healing_power: float = 0.0
+@export var shield_power: float = 0.0
+@export var defense_penetration: int = 0
+@export var life_steal: float = 0.0
+@export var damage_reduction: float = 0.0
+@export var damage_taken_multiplier: float = 1.0
+@export var initial_mana: float = 0.0
+@export var mana_on_attack: float = 0.0
+@export var mana_on_hit_taken: float = 0.0
+@export var status_resistance: float = 0.0
+@export var dodge_chance: float = 0.0
+@export var attack_interval: float = 1.0
+@export var attack_range: float = 80.0
+@export var search_range: float = 999.0
+@export var move_speed: float = 120.0
+@export var passive_id: String = ""
+@export var active_skill_id: String = ""
+@export var max_mana: int = 0
+@export var mana_regen_per_second: float = 0.0
+@export_enum("NEAREST", "LOWEST_HP") var target_mode: String = "NEAREST"
+@export var retarget_interval: float = 0.4
+@export var lowest_hp_switch_threshold: float = 0.1
+@export_enum("melee", "projectile") var basic_attack_type: String = "melee"
+@export var projectile_speed: float = 500.0
+@export_enum("arrow", "bolt", "magic", "holy", "flask", "bomb", "dark", "curse") var projectile_visual_type: String = "arrow"

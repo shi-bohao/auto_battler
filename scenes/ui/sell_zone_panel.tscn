@@ -1,0 +1,34 @@
+[gd_scene format=3]
+
+[node name="SellZonePanel ColorRect" type="Panel"]
+visible = false
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = -236.0
+offset_right = 236.0
+offset_bottom = -32.0
+mouse_filter = 2
+
+[node name="SellZoneTitle Label" type="Label" parent="."]
+offset_left = 12.0
+offset_top = 18.0
+offset_right = 188.0
+offset_bottom = 50.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.92, 0.84, 1)
+theme_override_font_sizes/font_size = 20
+text = "出售"
+horizontal_alignment = 1
+
+[node name="SellZoneHint Label" type="Label" parent="."]
+offset_left = 12.0
+offset_top = 58.0
+offset_right = 188.0
+offset_bottom = 112.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 0.86, 0.78, 1)
+theme_override_font_sizes/font_size = 14
+text = "拖拽单位到这里"
+horizontal_alignment = 1
+vertical_alignment = 1

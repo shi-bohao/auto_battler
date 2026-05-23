@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_plague_caster"]
+
+[resource]
+script = ExtResource("1_plague_caster")
+unit_name = "Plague Caster"
+unit_name_cn = "瘟疫术士"
+description_cn = "持续伤害输出，使用毒素削弱敌人。"
+unit_type = "plague_caster"
+role = "damage"
+bond_tags = Array[String](["venom"])
+rarity = "FINE"
+price = 4
+max_hp = 110
+attack_damage = 26
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.25
+attack_range = 130.0
+search_range = 999.0
+move_speed = 85.0
+passive_id = "poison_blade"
+active_skill_id = "toxic_cloud"
+max_mana = 85
+mana_regen_per_second = 15.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 430.0
+projectile_visual_type = "dark"

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bard"]
+
+[resource]
+script = ExtResource("1_bard")
+unit_name = "Bard"
+unit_name_cn = "吟游诗人"
+description_cn = "团队增幅辅助，为友军提供护盾和攻击强化。"
+unit_type = "bard"
+role = "support"
+bond_tags = Array[String](["divine"])
+rarity = "COMMON"
+price = 2
+max_hp = 105
+attack_damage = 9
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.15
+attack_range = 115.0
+search_range = 999.0
+move_speed = 100.0
+passive_id = "battle_song"
+active_skill_id = "inspiring_song"
+max_mana = 95
+mana_regen_per_second = 11.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 420.0
+projectile_visual_type = "holy"

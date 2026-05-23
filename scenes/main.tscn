@@ -1,0 +1,188 @@
+[gd_scene format=3 uid="uid://dp2knpga43l6i"]
+
+[ext_resource type="Script" uid="uid://cq8qhyldiqbik" path="res://scripts/main.gd" id="1_0wfyh"]
+[ext_resource type="PackedScene" uid="uid://4lvvgerhv7xi" path="res://scenes/unit.tscn" id="1_o5qli"]
+[ext_resource type="Script" path="res://scripts/battle_board.gd" id="2_board"]
+[ext_resource type="Resource" path="res://data/units/warrior.tres" id="3_warrior"]
+[ext_resource type="Resource" path="res://data/units/archer.tres" id="4_archer"]
+[ext_resource type="Resource" path="res://data/units/assassin.tres" id="5_assassin"]
+[ext_resource type="Resource" path="res://data/units/tank.tres" id="6_tank"]
+[ext_resource type="Resource" path="res://data/units/mage.tres" id="7_mage"]
+[ext_resource type="Resource" path="res://data/units/priest.tres" id="8_priest"]
+[ext_resource type="Resource" path="res://data/units/bard.tres" id="9_bard"]
+[ext_resource type="Resource" path="res://data/units/forest_druid.tres" id="10_forest_druid"]
+[ext_resource type="Resource" path="res://data/units/plague_caster.tres" id="11_plague_caster"]
+[ext_resource type="Resource" path="res://data/units/guardian_captain.tres" id="12_guardian_captain"]
+[ext_resource type="Resource" path="res://data/units/wind_chanter.tres" id="13_wind_chanter"]
+[ext_resource type="Resource" path="res://data/units/greatsword_knight.tres" id="14_greatsword_knight"]
+[ext_resource type="Resource" path="res://data/units/bomb_thrower.tres" id="15_bomb_thrower"]
+[ext_resource type="Resource" path="res://data/units/cleric.tres" id="16_cleric"]
+[ext_resource type="Resource" path="res://data/units/alchemist.tres" id="17_alchemist"]
+[ext_resource type="Resource" path="res://data/units/necromancer.tres" id="18_necromancer"]
+[ext_resource type="Resource" path="res://data/units/puppet_warlock.tres" id="19_puppet_warlock"]
+[ext_resource type="PackedScene" path="res://scenes/ui/reward_panel.tscn" id="14_reward_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/shop_panel.tscn" id="15_shop_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/bench_panel.tscn" id="16_bench_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/unit_detail_panel.tscn" id="17_unit_detail_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/relic_bar_panel.tscn" id="18_relic_bar_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/relic_detail_panel.tscn" id="19_relic_detail_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/sell_zone_panel.tscn" id="20_sell_zone_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/encounter_info_panel.tscn" id="21_encounter_info_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stats_panel.tscn" id="22_stats_panel"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/battle/battle_background.png" id="23_battle_background"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/battle/battle_board.png" id="24_battle_board"]
+[ext_resource type="PackedScene" path="res://scenes/ui/hero_selection_panel.tscn" id="36_hero_selection_panel"]
+
+[node name="Main Node2D" type="Node2D" unique_id=275014805]
+script = ExtResource("1_0wfyh")
+unit_scene = ExtResource("1_o5qli")
+warrior_data = ExtResource("3_warrior")
+archer_data = ExtResource("4_archer")
+assassin_data = ExtResource("5_assassin")
+tank_data = ExtResource("6_tank")
+mage_data = ExtResource("7_mage")
+priest_data = ExtResource("8_priest")
+bard_data = ExtResource("9_bard")
+forest_druid_data = ExtResource("10_forest_druid")
+plague_caster_data = ExtResource("11_plague_caster")
+guardian_captain_data = ExtResource("12_guardian_captain")
+wind_chanter_data = ExtResource("13_wind_chanter")
+greatsword_knight_data = ExtResource("14_greatsword_knight")
+bomb_thrower_data = ExtResource("15_bomb_thrower")
+cleric_data = ExtResource("16_cleric")
+alchemist_data = ExtResource("17_alchemist")
+necromancer_data = ExtResource("18_necromancer")
+puppet_warlock_data = ExtResource("19_puppet_warlock")
+
+[node name="BoardBackground Node2D" type="Node2D" parent="."]
+script = ExtResource("2_board")
+background_texture = ExtResource("23_battle_background")
+board_texture = ExtResource("24_battle_board")
+
+[node name="UI CanvasLayer" type="CanvasLayer" parent="." unique_id=943261619]
+
+[node name="GoldFrame TextureRect" type="Panel" parent="UI CanvasLayer"]
+visible = false
+offset_left = 184.0
+offset_top = 92.0
+offset_right = 344.0
+offset_bottom = 146.0
+mouse_filter = 2
+
+[node name="ResultLabel Label" type="Label" parent="UI CanvasLayer" unique_id=305923114]
+offset_left = 24.0
+offset_top = 20.0
+offset_right = 240.0
+offset_bottom = 43.0
+text = "就绪"
+
+[node name="RoundLabel Label" type="Label" parent="UI CanvasLayer"]
+offset_left = 260.0
+offset_top = 20.0
+offset_right = 560.0
+offset_bottom = 43.0
+text = "第 1 / 30 轮  敌人倍率 x1.00"
+
+[node name="HeroExpPanel Panel" type="Panel" parent="UI CanvasLayer"]
+visible = false
+offset_left = 24.0
+offset_top = 50.0
+offset_right = 500.0
+offset_bottom = 84.0
+mouse_filter = 2
+
+[node name="HeroExpName Label" type="Label" parent="UI CanvasLayer/HeroExpPanel Panel"]
+offset_left = 10.0
+offset_top = 7.0
+offset_right = 170.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.9, 0.82, 0.62, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.015, 0.02, 1)
+theme_override_constants/outline_size = 2
+text = "英雄 Lv.1"
+
+[node name="HeroExpBar ProgressBar" type="ProgressBar" parent="UI CanvasLayer/HeroExpPanel Panel"]
+offset_left = 176.0
+offset_top = 9.0
+offset_right = 390.0
+offset_bottom = 25.0
+max_value = 50.0
+show_percentage = false
+
+[node name="HeroExpValue Label" type="Label" parent="UI CanvasLayer/HeroExpPanel Panel"]
+offset_left = 398.0
+offset_top = 7.0
+offset_right = 466.0
+offset_bottom = 29.0
+theme_override_colors/font_color = Color(0.82, 0.92, 1, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.015, 0.02, 1)
+theme_override_constants/outline_size = 2
+horizontal_alignment = 2
+text = "0 / 50"
+
+[node name="GoldLabel Label" type="Label" parent="UI CanvasLayer"]
+offset_left = 228.0
+offset_top = 108.0
+offset_right = 344.0
+offset_bottom = 132.0
+theme_override_colors/font_color = Color(0.98, 0.78, 0.43, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.015, 0.02, 1)
+theme_override_constants/outline_size = 3
+text = "金币：8"
+
+[node name="StartButton Button" type="Button" parent="UI CanvasLayer" unique_id=1787123294]
+visible = false
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -342.0
+offset_top = -130.0
+offset_right = -24.0
+offset_bottom = -32.0
+text = "开始战斗"
+
+[node name="MenuButton Button" type="Button" parent="UI CanvasLayer" unique_id=598529387]
+visible = false
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -174.0
+offset_top = 22.0
+offset_right = -24.0
+offset_bottom = 88.0
+text = "菜单"
+
+[node name="ShopButton Button" type="Button" parent="UI CanvasLayer"]
+offset_left = 24.0
+offset_top = 92.0
+offset_right = 174.0
+offset_bottom = 158.0
+text = "商店"
+
+[node name="BenchButton Button" type="Button" parent="UI CanvasLayer"]
+visible = false
+offset_left = 136.0
+offset_top = 96.0
+offset_right = 236.0
+offset_bottom = 128.0
+text = "阵容"
+
+[node name="SellZonePanel ColorRect" parent="UI CanvasLayer" instance=ExtResource("20_sell_zone_panel")]
+
+[node name="EncounterInfoPanel Panel" parent="UI CanvasLayer" instance=ExtResource("21_encounter_info_panel")]
+
+[node name="ShopPanel Panel" parent="UI CanvasLayer" instance=ExtResource("15_shop_panel")]
+
+[node name="BenchPanel Panel" parent="UI CanvasLayer" instance=ExtResource("16_bench_panel")]
+
+[node name="StatsPanel RichTextLabel" parent="UI CanvasLayer" instance=ExtResource("22_stats_panel")]
+
+[node name="RewardPanel Panel" parent="UI CanvasLayer" instance=ExtResource("14_reward_panel")]
+
+[node name="HeroSelectionPanel Panel" parent="UI CanvasLayer" instance=ExtResource("36_hero_selection_panel")]
+
+[node name="UnitDetailPanel Panel" parent="UI CanvasLayer" instance=ExtResource("17_unit_detail_panel")]
+
+[node name="RelicBarPanel Panel" parent="UI CanvasLayer" instance=ExtResource("18_relic_bar_panel")]
+
+[node name="RelicDetailPanel Panel" parent="UI CanvasLayer" instance=ExtResource("19_relic_detail_panel")]

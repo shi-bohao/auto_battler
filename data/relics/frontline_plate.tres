@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_plate"]
+
+[resource]
+script = ExtResource("1_plate")
+relic_id = "frontline_plate"
+relic_name = "Frontline Plate"
+relic_name_cn = "前线护板"
+description = "At battle start, player frontline units gain +15 defense and 20 shield."
+description_cn = "战斗开始时，玩家前排单位获得 +15 防御和 20 护盾。"
+rarity = "COMMON"
+trigger_type = "BATTLE_START"
+value = 15.0

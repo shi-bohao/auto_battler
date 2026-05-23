@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_harp"]
+
+[resource]
+script = ExtResource("1_harp")
+relic_id = "resonance_harp"
+relic_name = "Resonance Harp"
+relic_name_cn = "共鸣竖琴"
+description = "At battle start, if a player bard is fielded, all player units gain +18% attack damage."
+description_cn = "战斗开始时，如果场上有玩家吟游诗人，玩家全队攻击力 +18%。"
+rarity = "EPIC"
+trigger_type = "BATTLE_START"
+value = 0.18

@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_archer"]
+
+[resource]
+script = ExtResource("1_archer")
+unit_name = "Archer"
+unit_name_cn = "弓手"
+description_cn = "后排远程输出，安全距离下持续造成伤害。"
+unit_type = "archer"
+role = "damage"
+bond_tags = Array[String](["hunter"])
+rarity = "COMMON"
+price = 2
+max_hp = 80
+attack_damage = 22
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.2
+attack_range = 150.0
+search_range = 999.0
+move_speed = 95.0
+passive_id = "long_shot"
+active_skill_id = "piercing_arrow"
+max_mana = 70
+mana_regen_per_second = 14.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 600.0
+projectile_visual_type = "arrow"

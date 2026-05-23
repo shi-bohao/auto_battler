@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_mirage"]
+
+[resource]
+script = ExtResource("1_mirage")
+relic_id = "mirage_cloak"
+relic_name = "Mirage Cloak"
+relic_name_cn = "幻影披风"
+description = "At battle start, player backline units gain +10% dodge chance and +10% status resistance for this battle."
+description_cn = "战斗开始时，玩家后排单位本场战斗闪避 +10%，状态抗性 +10%。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 0.10

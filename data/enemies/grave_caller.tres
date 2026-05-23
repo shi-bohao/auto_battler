@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_grave"]
+
+[resource]
+script = ExtResource("1_grave")
+unit_name = "Grave Caller"
+unit_name_cn = "唤墓者"
+description_cn = "召唤型敌方辅助，主动技能召唤骷髅加入战斗。"
+unit_type = "enemy_grave_caller"
+role = "support"
+price = 0
+max_hp = 135
+attack_damage = 12
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 4
+attack_interval = 1.35
+attack_range = 125.0
+search_range = 999.0
+move_speed = 100.0
+passive_id = "enemy_grave_command"
+active_skill_id = "enemy_raise_skeletons"
+max_mana = 90
+mana_regen_per_second = 12.0
+target_mode = "NEAREST"
+basic_attack_type = "projectile"
+projectile_speed = 430.0
+projectile_visual_type = "dark"

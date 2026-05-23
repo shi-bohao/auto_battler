@@ -1,0 +1,433 @@
+class_name UnitScalingService
+extends RefCounted
+
+const MAX_STAR: int = 3
+
+
+func create_scaled_unit_data(roster_item: Dictionary, hp_multiplier: float, attack_multiplier: float) -> Resource:
+	var base_data: Resource = roster_item["unit_data"] as Resource
+	var configured_data: Resource = base_data.duplicate(true) as Resource
+	var star: int = int(roster_item.get("star", 1))
+	var unit_type: String = str(roster_item.get("unit_id", ""))
+	var star_growth: Dictionary = get_star_growth(unit_type, star)
+	var base_max_hp: int = int(base_data.get("max_hp"))
+	var base_attack_damage: int = int(base_data.get("attack_damage"))
+	var base_defense: int = _get_int_property(base_data, "defense", 0)
+	var base_attack_interval: float = _get_float_property(base_data, "attack_interval", 1.0)
+	var base_move_speed: float = _get_float_property(base_data, "move_speed", 120.0)
+	var base_crit_chance: float = _get_float_property(base_data, "crit_chance", 0.0)
+	var base_crit_damage_multiplier: float = _get_float_property(base_data, "crit_damage_multiplier", 1.5)
+	var boosted_max_hp: int = maxi(1, int(round(float(base_max_hp) * hp_multiplier * float(star_growth["max_hp_multiplier"]))))
+	var boosted_attack_damage: int = maxi(1, int(round(float(base_attack_damage) * attack_multiplier * float(star_growth["attack_damage_multiplier"]))))
+	var boosted_defense: int = maxi(0, base_defense + int(star_growth["defense_bonus"]))
+	var boosted_attack_interval: float = maxf(0.1, base_attack_interval * float(star_growth["attack_interval_multiplier"]))
+	var boosted_move_speed: float = maxf(1.0, base_move_speed * float(star_growth["move_speed_multiplier"]))
+	var boosted_crit_chance: float = clampf(base_crit_chance + float(star_growth["crit_chance_bonus"]), 0.0, 1.0)
+	var boosted_crit_damage_multiplier: float = maxf(1.0, base_crit_damage_multiplier + float(star_growth["crit_damage_multiplier_bonus"]))
+	var display_name: String = str(roster_item.get("display_name", "Unit")) + " " + _get_star_text(star)
+
+	configured_data.set("max_hp", boosted_max_hp)
+	configured_data.set("attack_damage", boosted_attack_damage)
+	configured_data.set("defense", boosted_defense)
+	configured_data.set("attack_interval", boosted_attack_interval)
+	configured_data.set("move_speed", boosted_move_speed)
+	configured_data.set("crit_chance", boosted_crit_chance)
+	configured_data.set("crit_damage_multiplier", boosted_crit_damage_multiplier)
+	configured_data.set("star", star)
+	configured_data.set("unit_name", display_name)
+	configured_data.set("unit_name_cn", display_name)
+	return configured_data
+
+
+func get_star_growth(unit_type: String, star: int) -> Dictionary:
+	var safe_star: int = clampi(star, 1, MAX_STAR)
+
+	match unit_type:
+		"warrior":
+			return _get_warrior_star_growth(safe_star)
+		"archer":
+			return _get_archer_star_growth(safe_star)
+		"assassin":
+			return _get_assassin_star_growth(safe_star)
+		"tank":
+			return _get_tank_star_growth(safe_star)
+		"mage":
+			return _get_mage_star_growth(safe_star)
+		"priest":
+			return _get_priest_star_growth(safe_star)
+		"bard":
+			return _get_bard_star_growth(safe_star)
+		"forest_druid":
+			return _get_forest_druid_star_growth(safe_star)
+		"plague_caster":
+			return _get_plague_caster_star_growth(safe_star)
+		"guardian_captain":
+			return _get_guardian_captain_star_growth(safe_star)
+		"wind_chanter":
+			return _get_wind_chanter_star_growth(safe_star)
+		"greatsword_knight":
+			return _get_greatsword_knight_star_growth(safe_star)
+		"bomb_thrower":
+			return _get_bomb_thrower_star_growth(safe_star)
+		"cleric":
+			return _get_cleric_star_growth(safe_star)
+		"alchemist":
+			return _get_alchemist_star_growth(safe_star)
+		"necromancer":
+			return _get_necromancer_star_growth(safe_star)
+		"puppet_warlock":
+			return _get_puppet_warlock_star_growth(safe_star)
+		"soul_binder":
+			return _get_soul_binder_star_growth(safe_star)
+		"starforged_vanguard":
+			return _get_starforged_vanguard_star_growth(safe_star)
+		"arcane_artillerist":
+			return _get_arcane_artillerist_star_growth(safe_star)
+		"venom_matriarch":
+			return _get_venom_matriarch_star_growth(safe_star)
+		"dawnbell_saint":
+			return _get_dawnbell_saint_star_growth(safe_star)
+		"nightblade_captain":
+			return _get_nightblade_captain_star_growth(safe_star)
+		"bloodbound_berserker":
+			return _get_bloodbound_berserker_star_growth(safe_star)
+		"prism_weaver":
+			return _get_prism_weaver_star_growth(safe_star)
+		"summoned_skeleton":
+			return _get_summoned_skeleton_star_growth(safe_star)
+		"summoned_puppet":
+			return _get_summoned_puppet_star_growth(safe_star)
+		"summoned_soul_puppet":
+			return _get_summoned_soul_puppet_star_growth(safe_star)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_warrior_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.6, 1.25, 20, 1.0, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.4, 1.5, 45, 1.0, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_archer_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.25, 1.5, 0, 0.9, 1.0, 0.10, 0.0)
+		3:
+			return _create_star_growth(1.6, 2.1, 0, 0.75, 1.0, 0.20, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_assassin_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.3, 1.55, 0, 0.95, 1.15, 0.15, 0.25)
+		3:
+			return _create_star_growth(1.7, 2.2, 0, 0.9, 1.3, 0.30, 0.50)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_tank_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.7, 1.15, 35, 1.0, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.7, 1.35, 80, 1.0, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_mage_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.2, 1.65, 0, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.45, 2.4, 0, 0.9, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_priest_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.35, 1.25, 5, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.8, 1.55, 15, 0.9, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_bard_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.35, 1.2, 5, 0.95, 1.05, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.75, 1.45, 15, 0.9, 1.1, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_forest_druid_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.3, 1.25, 5, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.75, 1.55, 15, 0.9, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_plague_caster_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.25, 1.55, 0, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.55, 2.2, 0, 0.9, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_guardian_captain_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.65, 1.2, 30, 1.0, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.5, 1.4, 70, 1.0, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_wind_chanter_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.35, 1.2, 5, 0.95, 1.05, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.8, 1.45, 15, 0.9, 1.1, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_greatsword_knight_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.45, 1.45, 15, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(2.0, 1.9, 35, 0.9, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_bomb_thrower_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.2, 1.55, 0, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.5, 2.15, 0, 0.9, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_cleric_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.35, 1.25, 10, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.85, 1.55, 25, 0.9, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_alchemist_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.25, 1.55, 0, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.55, 2.15, 0, 0.9, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_necromancer_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.3, 1.25, 5, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.75, 1.55, 15, 0.9, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_puppet_warlock_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.25, 1.45, 5, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.6, 2.0, 15, 0.9, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_soul_binder_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.3, 1.25, 8, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.75, 1.55, 20, 0.9, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_starforged_vanguard_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.65, 1.18, 35, 1.0, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.45, 1.40, 80, 1.0, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_arcane_artillerist_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.22, 1.55, 0, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.55, 2.20, 0, 0.9, 1.0, 0.12, 0.30)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_venom_matriarch_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.25, 1.45, 6, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.65, 2.00, 18, 0.9, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_dawnbell_saint_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.35, 1.25, 12, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.9, 1.65, 30, 0.9, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_nightblade_captain_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.3, 1.5, 5, 0.92, 1.10, 0.12, 0.30)
+		3:
+			return _create_star_growth(1.75, 2.15, 15, 0.85, 1.20, 0.25, 0.65)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_bloodbound_berserker_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.45, 1.45, 12, 0.95, 1.05, 0.10, 0.20)
+		3:
+			return _create_star_growth(2.0, 2.05, 30, 0.9, 1.10, 0.20, 0.45)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_prism_weaver_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.3, 1.25, 5, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.7, 1.55, 15, 0.9, 1.0, 0.05, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_summoned_skeleton_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.45, 1.35, 6, 0.95, 1.05, 0.05, 0.0)
+		3:
+			return _create_star_growth(2.0, 1.8, 14, 0.9, 1.1, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_summoned_puppet_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.55, 1.25, 15, 0.98, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.2, 1.55, 35, 0.95, 1.05, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_summoned_soul_puppet_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.55, 1.35, 12, 0.95, 1.05, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.15, 1.75, 30, 0.9, 1.10, 0.05, 0.15)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _create_star_growth(
+	max_hp_multiplier: float,
+	attack_damage_multiplier: float,
+	defense_bonus: int,
+	attack_interval_multiplier: float,
+	move_speed_multiplier: float,
+	crit_chance_bonus: float,
+	crit_damage_multiplier_bonus: float
+) -> Dictionary:
+	return {
+		"max_hp_multiplier": max_hp_multiplier,
+		"attack_damage_multiplier": attack_damage_multiplier,
+		"defense_bonus": defense_bonus,
+		"attack_interval_multiplier": attack_interval_multiplier,
+		"move_speed_multiplier": move_speed_multiplier,
+		"crit_chance_bonus": crit_chance_bonus,
+		"crit_damage_multiplier_bonus": crit_damage_multiplier_bonus,
+	}
+
+
+func _get_int_property(resource: Resource, property_name: String, default_value: int) -> int:
+	if resource == null:
+		return default_value
+
+	var configured_value: Variant = resource.get(property_name)
+	if configured_value == null:
+		return default_value
+
+	return int(configured_value)
+
+
+func _get_float_property(resource: Resource, property_name: String, default_value: float) -> float:
+	if resource == null:
+		return default_value
+
+	var configured_value: Variant = resource.get(property_name)
+	if configured_value == null:
+		return default_value
+
+	return float(configured_value)
+
+
+func _get_star_text(star: int) -> String:
+	var star_text: String = ""
+	var safe_star: int = clampi(star, 1, MAX_STAR)
+	for _index: int in range(safe_star):
+		star_text += "*"
+	return star_text

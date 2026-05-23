@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boneweaver"]
+
+[resource]
+script = ExtResource("1_boneweaver")
+unit_name = "Boneweaver"
+unit_name_cn = "织骨者"
+description_cn = "召唤 / 亡灵 / 数量压制英雄。"
+unit_type = "hero_boneweaver"
+role = "damage"
+bond_tags = Array[String](["summon"])
+rarity = "MYTHIC"
+price = 0
+max_hp = 160
+attack_damage = 22
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 4
+attack_interval = 1.5
+attack_range = 130.0
+search_range = 999.0
+move_speed = 80.0
+passive_id = "hero_boneweaver"
+active_skill_id = "hero_bone_golem"
+max_mana = 120
+mana_regen_per_second = 12.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 420.0
+projectile_visual_type = "dark"

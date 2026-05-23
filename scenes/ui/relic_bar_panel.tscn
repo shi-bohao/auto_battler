@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[node name="RelicBarPanel Panel" type="Panel"]
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -370.0
+offset_top = 20.0
+offset_right = 370.0
+offset_bottom = 105.0
+
+[node name="RelicPrefixLabel" type="Label" parent="."]
+offset_left = 48.0
+offset_top = 31.0
+offset_right = 128.0
+offset_bottom = 59.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(0.98, 0.78, 0.43, 1)
+theme_override_colors/font_outline_color = Color(0.02, 0.015, 0.02, 1)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 20
+text = "遗物："
+
+[node name="RelicBarHBox HBoxContainer" type="HBoxContainer" parent="."]
+offset_left = 128.0
+offset_top = 27.0
+offset_right = 696.0
+offset_bottom = 62.0
+theme_override_constants/separation = 6

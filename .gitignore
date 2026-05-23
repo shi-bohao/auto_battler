@@ -1,0 +1,11 @@
+# Godot 4+ specific ignores
+.godot/
+.godot_user/
+/android/
+
+# Local check logs
+*.log
+
+# Local editor/agent settings
+.claude/
+.vscode/

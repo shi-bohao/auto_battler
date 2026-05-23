@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bone_dragon"]
+
+[resource]
+script = ExtResource("1_bone_dragon")
+unit_name = "Bone Dragon"
+unit_name_cn = "骨龙"
+description_cn = "远程范围输出型召唤物，攻击可造成溅射伤害。"
+unit_type = "summoned_bone_dragon"
+role = "damage"
+rarity = "COMMON"
+price = 0
+max_hp = 100
+attack_damage = 30
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 5
+attack_interval = 1.5
+attack_range = 140.0
+search_range = 999.0
+move_speed = 80.0
+passive_id = "summoned_dragon_breath"
+active_skill_id = "summoned_dragon_barrage"
+max_mana = 120
+mana_regen_per_second = 12.0
+target_mode = "NEAREST"

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_banner"]
+
+[resource]
+script = ExtResource("1_banner")
+relic_id = "battle_banner"
+relic_name = "Battle Banner"
+relic_name_cn = "战斗旌旗"
+description = "At battle start, all player units gain +10% attack damage for this battle."
+description_cn = "战斗开始时，玩家全队本场战斗攻击力 +10%。"
+rarity = "COMMON"
+trigger_type = "BATTLE_START"
+value = 0.1

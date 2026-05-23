@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_venom_matriarch"]
+
+[resource]
+script = ExtResource("1_venom_matriarch")
+unit_name = "Venom Matriarch"
+unit_name_cn = "剧毒女王"
+description_cn = "剧毒叠层流核心，提高玩家单位施毒效率，并通过主动技能引爆毒层造成爆发。"
+unit_type = "venom_matriarch"
+role = "damage"
+bond_tags = Array[String](["venom"])
+rarity = "EPIC"
+price = 8
+max_hp = 120
+attack_damage = 22
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 5
+attack_interval = 1.25
+attack_range = 135.0
+search_range = 999.0
+move_speed = 85.0
+passive_id = "venom_brood"
+active_skill_id = "feast_of_venom"
+max_mana = 100
+mana_regen_per_second = 13.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 430.0
+projectile_visual_type = "curse"

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_binder"]
+
+[resource]
+script = ExtResource("1_binder")
+unit_name = "Puppet Binder"
+unit_name_cn = "傀儡缚师"
+description_cn = "精英标记型敌人，标记低生命目标；目标死亡后为敌方召唤傀儡。"
+unit_type = "enemy_puppet_binder"
+role = "support"
+price = 0
+max_hp = 210
+attack_damage = 18
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 10
+attack_interval = 1.25
+attack_range = 130.0
+search_range = 999.0
+move_speed = 105.0
+passive_id = "enemy_kill_summons_skeletons"
+active_skill_id = "enemy_puppet_mark"
+max_mana = 90
+mana_regen_per_second = 13.0
+target_mode = "LOWEST_HP"
+basic_attack_type = "projectile"
+projectile_speed = 430.0
+projectile_visual_type = "curse"

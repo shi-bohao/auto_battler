@@ -1,0 +1,186 @@
+[gd_scene format=3]
+
+[node name="ShopPanel Panel" type="Panel"]
+visible = false
+offset_left = 24.0
+offset_top = 144.0
+offset_right = 724.0
+offset_bottom = 960.0
+
+[node name="ShopTitle Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 180.0
+offset_bottom = 35.0
+text = "商店"
+
+[node name="ShopGold Label" type="Label" parent="."]
+offset_left = 108.0
+offset_top = 12.0
+offset_right = 248.0
+offset_bottom = 35.0
+text = "金币：8"
+
+[node name="ShopCloseButton Button" type="Button" parent="."]
+offset_left = 604.0
+offset_top = 8.0
+offset_right = 688.0
+offset_bottom = 36.0
+text = "关闭"
+
+[node name="ShopItem1 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 52.0
+offset_right = 552.0
+offset_bottom = 110.0
+text = "战士\n2 金币 - 前排承伤"
+
+[node name="ShopBuyButton1 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 64.0
+offset_right = 656.0
+offset_bottom = 98.0
+text = "购买"
+
+[node name="ShopItem2 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 122.0
+offset_right = 552.0
+offset_bottom = 180.0
+text = "弓手\n2 金币 - 远程输出"
+
+[node name="ShopBuyButton2 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 134.0
+offset_right = 656.0
+offset_bottom = 168.0
+text = "购买"
+
+[node name="ShopItem3 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 192.0
+offset_right = 552.0
+offset_bottom = 250.0
+text = "刺客\n2 金币 - 收割输出"
+
+[node name="ShopBuyButton3 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 204.0
+offset_right = 656.0
+offset_bottom = 238.0
+text = "购买"
+
+[node name="ShopItem4 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 262.0
+offset_right = 552.0
+offset_bottom = 320.0
+text = "单位\n价格：2 金币"
+
+[node name="ShopBuyButton4 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 274.0
+offset_right = 656.0
+offset_bottom = 308.0
+text = "购买"
+
+[node name="ShopItem5 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 332.0
+offset_right = 552.0
+offset_bottom = 390.0
+text = "单位\n价格：2 金币"
+
+[node name="ShopBuyButton5 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 344.0
+offset_right = 656.0
+offset_bottom = 378.0
+text = "购买"
+
+[node name="ShopItem6 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 402.0
+offset_right = 552.0
+offset_bottom = 460.0
+text = "新单位\n等待刷新"
+
+[node name="ShopBuyButton6 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 414.0
+offset_right = 656.0
+offset_bottom = 448.0
+text = "购买"
+
+[node name="ShopItem7 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 472.0
+offset_right = 552.0
+offset_bottom = 530.0
+text = "新单位\n等待刷新"
+
+[node name="ShopBuyButton7 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 484.0
+offset_right = 656.0
+offset_bottom = 518.0
+text = "购买"
+
+[node name="ShopItem8 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 542.0
+offset_right = 552.0
+offset_bottom = 600.0
+text = "遗物\n价格：2 金币"
+
+[node name="ShopBuyButton8 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 554.0
+offset_right = 656.0
+offset_bottom = 588.0
+text = "购买"
+
+[node name="ShopItem9 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 612.0
+offset_right = 552.0
+offset_bottom = 670.0
+text = "遗物\n价格：2 金币"
+
+[node name="ShopBuyButton9 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 624.0
+offset_right = 656.0
+offset_bottom = 658.0
+text = "购买"
+
+[node name="ShopItem10 Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 682.0
+offset_right = 552.0
+offset_bottom = 740.0
+text = "遗物\n价格：2 金币"
+
+[node name="ShopBuyButton10 Button" type="Button" parent="."]
+disabled = true
+offset_left = 568.0
+offset_top = 694.0
+offset_right = 656.0
+offset_bottom = 728.0
+text = "购买"
+
+[node name="RefreshShopButton Button" type="Button" parent="."]
+offset_left = 16.0
+offset_top = 760.0
+offset_right = 210.0
+offset_bottom = 794.0
+text = "刷新 - 1 金币"

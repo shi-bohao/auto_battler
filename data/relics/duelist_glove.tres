@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_duelist"]
+
+[resource]
+script = ExtResource("1_duelist")
+relic_id = "duelist_glove"
+relic_name = "Duelist Glove"
+relic_name_cn = "决斗手套"
+description = "Player assassins deal extra 35% non-critical attack damage to targets below 50% HP on attack hit."
+description_cn = "玩家刺客攻击命中低于 50% 生命的目标时，追加 35% 攻击力的额外伤害。"
+rarity = "RARE"
+trigger_type = "ON_ATTACK"
+value = 0.35

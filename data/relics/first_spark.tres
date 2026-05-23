@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_first"]
+
+[resource]
+script = ExtResource("1_first")
+relic_id = "first_spark"
+relic_name = "First Spark"
+relic_name_cn = "初始火花"
+description = "At battle start, all player units gain 50 initial mana."
+description_cn = "战斗开始时，玩家全队获得 50 初始魔力，不超过魔力上限。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 50.0

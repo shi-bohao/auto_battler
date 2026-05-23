@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_priest"]
+
+[resource]
+script = ExtResource("1_priest")
+unit_name = "Priest"
+unit_name_cn = "牧师"
+description_cn = "治疗辅助，持续抬高队伍生存能力。"
+unit_type = "priest"
+role = "support"
+bond_tags = Array[String](["divine"])
+rarity = "COMMON"
+price = 2
+max_hp = 95
+attack_damage = 12
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.25
+attack_range = 120.0
+search_range = 999.0
+move_speed = 90.0
+passive_id = "benevolence"
+active_skill_id = "holy_light"
+max_mana = 75
+mana_regen_per_second = 13.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 420.0
+projectile_visual_type = "holy"

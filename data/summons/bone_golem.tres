@@ -1,0 +1,27 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bone_golem"]
+
+[resource]
+script = ExtResource("1_bone_golem")
+unit_name = "Bone Golem"
+unit_name_cn = "骨巨人"
+description_cn = "近战肉盾型召唤物，拥有高生命和防御。"
+unit_type = "summoned_bone_golem"
+role = "tank"
+rarity = "COMMON"
+price = 0
+max_hp = 200
+attack_damage = 18
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 20
+attack_interval = 1.3
+attack_range = 48.0
+search_range = 999.0
+move_speed = 85.0
+passive_id = "summoned_golem_body"
+active_skill_id = "summoned_golem_smash"
+max_mana = 100
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"

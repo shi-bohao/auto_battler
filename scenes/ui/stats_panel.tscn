@@ -1,0 +1,9 @@
+[gd_scene format=3]
+
+[node name="StatsPanel RichTextLabel" type="RichTextLabel"]
+mouse_filter = 2
+offset_left = 24.0
+offset_top = 104.0
+offset_right = 760.0
+offset_bottom = 660.0
+text = ""

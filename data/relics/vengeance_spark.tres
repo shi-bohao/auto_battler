@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_vengeance"]
+
+[resource]
+script = ExtResource("1_vengeance")
+relic_id = "vengeance_spark"
+relic_name = "Vengeance Spark"
+relic_name_cn = "复仇火花"
+description = "When a player unit dies, deal 50 relic damage to the nearest enemy."
+description_cn = "玩家单位死亡时，对最近敌人造成 50 点遗物伤害。"
+rarity = "RARE"
+trigger_type = "ON_DEATH"
+value = 50.0

@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_bell"]
+
+[resource]
+script = ExtResource("1_bell")
+relic_id = "healing_bell"
+relic_name = "Healing Bell"
+relic_name_cn = "治愈铃"
+description = "At battle start, player priests gain +40% active skill healing for this battle."
+description_cn = "战斗开始时，玩家牧师本场战斗主动技能治疗量 +40%。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 0.4

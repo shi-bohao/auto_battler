@@ -1,0 +1,42 @@
+[gd_scene format=3]
+
+[node name="RelicDetailPanel Panel" type="Panel"]
+visible = false
+offset_left = 1040.0
+offset_top = 104.0
+offset_right = 1440.0
+offset_bottom = 628.0
+
+[node name="RelicDetailTitle Label" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 280.0
+offset_bottom = 36.0
+text = "遗物详情"
+
+[node name="RelicDetailCloseButton Button" type="Button" parent="."]
+offset_left = 308.0
+offset_top = 8.0
+offset_right = 384.0
+offset_bottom = 36.0
+text = "关闭"
+
+[node name="RelicListScroll ScrollContainer" type="ScrollContainer" parent="."]
+offset_left = 16.0
+offset_top = 48.0
+offset_right = 164.0
+offset_bottom = 508.0
+
+[node name="RelicListVBox VBoxContainer" type="VBoxContainer" parent="RelicListScroll ScrollContainer"]
+offset_right = 148.0
+offset_bottom = 460.0
+theme_override_constants/separation = 6
+
+[node name="RelicInfo RichTextLabel" type="RichTextLabel" parent="."]
+bbcode_enabled = true
+mouse_filter = 2
+offset_left = 180.0
+offset_top = 48.0
+offset_right = 384.0
+offset_bottom = 508.0
+text = ""

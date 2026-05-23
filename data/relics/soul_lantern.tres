@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_soul_lantern"]
+
+[resource]
+script = ExtResource("1_soul_lantern")
+relic_id = "soul_lantern"
+relic_name = "Soul Lantern"
+relic_name_cn = "收魂灯"
+description = "When a player unit kills an enemy, it restores 25 mana."
+description_cn = "玩家单位击杀敌人后，恢复 25 魔力。"
+rarity = "RARE"
+trigger_type = "ON_KILL"
+value = 25.0

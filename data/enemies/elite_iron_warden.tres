@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_elite_iron_warden"]
+
+[resource]
+script = ExtResource("1_elite_iron_warden")
+unit_name = "Elite Iron Warden"
+unit_name_cn = "精英铁壁守卫"
+description_cn = "精英承伤敌人，能强化敌方队伍的防线。"
+unit_type = "enemy_elite_iron_warden"
+role = "tank"
+price = 0
+max_hp = 420
+attack_damage = 12
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 45
+attack_interval = 1.2
+attack_range = 55.0
+search_range = 999.0
+move_speed = 60.0
+passive_id = "enemy_iron_body"
+active_skill_id = "enemy_fortify_allies"
+max_mana = 110
+mana_regen_per_second = 9.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

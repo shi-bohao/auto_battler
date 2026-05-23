@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_victory_drum"]
+
+[resource]
+script = ExtResource("1_victory_drum")
+relic_id = "victory_drum"
+relic_name = "Victory Drum"
+relic_name_cn = "凯歌战鼓"
+description = "When a player unit kills an enemy, all surviving player units gain 12 shield."
+description_cn = "玩家单位击杀敌人后，所有存活的玩家单位获得 12 护盾。"
+rarity = "EPIC"
+trigger_type = "ON_KILL"
+value = 12.0

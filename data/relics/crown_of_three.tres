@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_three"]
+
+[resource]
+script = ExtResource("1_three")
+relic_id = "crown_of_three"
+relic_name = "Crown of Three"
+relic_name_cn = "三星冠冕"
+description = "At battle start, player 3-star units gain +45% attack damage and +40% mana regen."
+description_cn = "战斗开始时，玩家 3 星单位攻击力 +45%，魔力回复速度 +40%。"
+rarity = "LEGENDARY"
+trigger_type = "BATTLE_START"
+value = 0.45

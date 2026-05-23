@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_guardian_captain"]
+
+[resource]
+script = ExtResource("1_guardian_captain")
+unit_name = "Guardian Captain"
+unit_name_cn = "守护队长"
+description_cn = "防御指挥型前排，为友军提供限时防御增益。"
+unit_type = "guardian_captain"
+role = "tank"
+bond_tags = Array[String](["iron_wall"])
+rarity = "FINE"
+price = 4
+max_hp = 260
+attack_damage = 13
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 32
+attack_interval = 1.2
+attack_range = 55.0
+search_range = 999.0
+move_speed = 70.0
+passive_id = "defensive_command"
+active_skill_id = "iron_order"
+max_mana = 90
+mana_regen_per_second = 11.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

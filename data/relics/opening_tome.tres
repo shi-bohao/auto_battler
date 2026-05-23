@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_tome"]
+
+[resource]
+script = ExtResource("1_tome")
+relic_id = "opening_tome"
+relic_name = "Opening Tome"
+relic_name_cn = "开场秘典"
+description = "At battle start, all player units gain +20 initial mana for this battle and immediately restore the same amount, capped by max mana."
+description_cn = "战斗开始时，玩家全队本场战斗初始魔力 +20，并立刻恢复等量魔力，不超过魔力上限。"
+rarity = "FINE"
+trigger_type = "BATTLE_START"
+value = 20.0

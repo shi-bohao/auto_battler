@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_blood"]
+
+[resource]
+script = ExtResource("1_blood")
+relic_id = "blood_pendant"
+relic_name = "Blood Pendant"
+relic_name_cn = "鲜血吊坠"
+description = "When a player unit kills an enemy, it heals 35 HP."
+description_cn = "玩家单位击杀敌人后，恢复 35 生命。"
+rarity = "RARE"
+trigger_type = "ON_KILL"
+value = 35.0

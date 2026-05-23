@@ -1,0 +1,18 @@
+[gd_scene format=3]
+
+[node name="EncounterInfoPanel Panel" type="Panel"]
+offset_left = 1692.0
+offset_top = 204.0
+offset_right = 1904.0
+offset_bottom = 384.0
+
+[node name="EncounterInfo RichTextLabel" type="RichTextLabel" parent="."]
+bbcode_enabled = true
+mouse_filter = 2
+offset_left = 12.0
+offset_top = 10.0
+offset_right = 200.0
+offset_bottom = 170.0
+text = ""
+theme_override_colors/default_color = Color(0.98, 0.78, 0.43, 1)
+theme_override_font_sizes/normal_font_size = 18

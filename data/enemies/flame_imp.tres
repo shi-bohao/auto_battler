@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_flame_imp"]
+
+[resource]
+script = ExtResource("1_flame_imp")
+unit_name = "Flame Imp"
+unit_name_cn = "烈焰小鬼"
+description_cn = "法术爆发敌人，技能能制造瞬时伤害压力。"
+unit_type = "enemy_flame_imp"
+role = "damage"
+price = 0
+max_hp = 75
+attack_damage = 24
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.45
+attack_range = 130.0
+search_range = 999.0
+move_speed = 95.0
+passive_id = "enemy_flame_focus"
+active_skill_id = "enemy_firebolt"
+max_mana = 80
+mana_regen_per_second = 15.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 450.0
+projectile_visual_type = "magic"

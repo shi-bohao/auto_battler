@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bloodbound_berserker"]
+
+[resource]
+script = ExtResource("1_bloodbound_berserker")
+unit_name = "Bloodbound Berserker"
+unit_name_cn = "血契狂战"
+description_cn = "吸血与低血量爆发核心，生命越低输出越高。"
+unit_type = "bloodbound_berserker"
+role = "damage"
+bond_tags = Array[String](["hunter"])
+rarity = "RARE"
+price = 6
+max_hp = 190
+attack_damage = 24
+crit_chance = 0.08
+crit_damage_multiplier = 1.6
+defense = 8
+attack_interval = 1.05
+attack_range = 60.0
+search_range = 999.0
+move_speed = 95.0
+passive_id = "bloodbound_rage"
+active_skill_id = "blood_debt_slash"
+max_mana = 90
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

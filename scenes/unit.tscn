@@ -1,0 +1,65 @@
+[gd_scene format=3 uid="uid://4lvvgerhv7xi"]
+
+[ext_resource type="Script" uid="uid://ba18oqwd8htmf" path="res://scripts/unit.gd" id="1_o7ajc"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_background"]
+bg_color = Color(0.12, 0.015, 0.015, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hp_fill"]
+bg_color = Color(0.9, 0.08, 0.08, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mana_background"]
+bg_color = Color(0.015, 0.035, 0.13, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0, 0, 0, 1)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mana_fill"]
+bg_color = Color(0.12, 0.36, 1, 1)
+
+[node name="Unit Node2D" type="Node2D" unique_id=1943998161]
+script = ExtResource("1_o7ajc")
+
+[node name="Body ColorRect" type="ColorRect" parent="." unique_id=310154155]
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="HPBar ProgressBar" type="ProgressBar" parent="." unique_id=1532539628]
+offset_left = -4.0
+offset_top = -18.0
+offset_right = 44.0
+offset_bottom = -11.0
+theme_override_styles/background = SubResource("StyleBoxFlat_hp_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_hp_fill")
+show_percentage = false
+
+[node name="ManaBar ProgressBar" type="ProgressBar" parent="."]
+offset_left = -4.0
+offset_top = -10.0
+offset_right = 44.0
+offset_bottom = -4.0
+theme_override_styles/background = SubResource("StyleBoxFlat_mana_background")
+theme_override_styles/fill = SubResource("StyleBoxFlat_mana_fill")
+show_percentage = false
+
+[node name="InfoLabel Label" type="Label" parent="."]
+z_index = 2
+offset_left = -50.0
+offset_top = -42.0
+offset_right = 90.0
+offset_bottom = -22.0
+mouse_filter = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 14
+text = "单位 *"
+horizontal_alignment = 1
+vertical_alignment = 1

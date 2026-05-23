@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_hunter"]
+
+[resource]
+script = ExtResource("1_hunter")
+relic_id = "hunter_mark"
+relic_name = "Hunter Mark"
+relic_name_cn = "猎手印记"
+description = "Player archers deal an extra 75% attack damage every 3 attacks."
+description_cn = "玩家弓手每 3 次攻击追加 75% 攻击力的额外伤害。"
+rarity = "RARE"
+trigger_type = "ON_ATTACK"
+value = 0.75

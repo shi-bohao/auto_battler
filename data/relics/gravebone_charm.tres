@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_gravebone"]
+
+[resource]
+script = ExtResource("1_gravebone")
+relic_id = "gravebone_charm"
+relic_name = "Gravebone Charm"
+relic_name_cn = "骸骨坠饰"
+description = "When a non-summoned player unit dies, summon 1 Skeleton. This relic can keep up to 3 Skeletons active at once."
+description_cn = "友方非召唤单位死亡时，在其位置召唤 1 个骷髅；该遗物最多同时维持 3 个骷髅，召唤物死亡不会触发。"
+rarity = "RARE"
+trigger_type = "ON_DEATH"
+value = 3.0

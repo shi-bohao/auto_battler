@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_lens"]
+
+[resource]
+script = ExtResource("1_lens")
+relic_id = "mage_lens"
+relic_name = "Mage Lens"
+relic_name_cn = "法师透镜"
+description = "At battle start, player mages gain +35% active skill damage for this battle."
+description_cn = "战斗开始时，玩家法师本场战斗主动技能伤害 +35%。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 0.35

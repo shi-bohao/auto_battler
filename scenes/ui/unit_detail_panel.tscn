@@ -1,0 +1,147 @@
+[gd_scene format=3]
+
+[node name="UnitDetailPanel Panel" type="Panel"]
+visible = false
+offset_left = 1360.0
+offset_top = 86.0
+offset_right = 1880.0
+offset_bottom = 934.0
+
+[node name="UnitDetailTitle Label" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 12.0
+offset_right = 390.0
+offset_bottom = 38.0
+text = "单位详情"
+
+[node name="UnitDetailCloseButton Button" type="Button" parent="."]
+offset_left = 428.0
+offset_top = 8.0
+offset_right = 502.0
+offset_bottom = 38.0
+text = "关闭"
+
+[node name="PortraitFrame ColorRect" type="ColorRect" parent="."]
+offset_left = 18.0
+offset_top = 52.0
+offset_right = 154.0
+offset_bottom = 202.0
+color = Color(0.12, 0.16, 0.22, 1)
+
+[node name="PortraitPlaceholder Label" type="Label" parent="PortraitFrame ColorRect"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+text = "立绘
+占位"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="UnitName Label" type="Label" parent="."]
+offset_left = 170.0
+offset_top = 52.0
+offset_right = 502.0
+offset_bottom = 80.0
+theme_override_font_sizes/font_size = 24
+text = "单位名称"
+
+[node name="UnitMeta Label" type="Label" parent="."]
+offset_left = 170.0
+offset_top = 82.0
+offset_right = 502.0
+offset_bottom = 108.0
+text = "定位 / 稀有度 / 星级"
+
+[node name="BaseStatsTitle Label" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 214.0
+offset_right = 502.0
+offset_bottom = 238.0
+theme_override_font_sizes/font_size = 17
+text = "基础属性"
+
+[node name="BaseStatsGrid GridContainer" type="GridContainer" parent="."]
+offset_left = 18.0
+offset_top = 242.0
+offset_right = 502.0
+offset_bottom = 468.0
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 2
+columns = 3
+
+[node name="SkillSectionTitle Label" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 480.0
+offset_right = 502.0
+offset_bottom = 506.0
+theme_override_font_sizes/font_size = 17
+text = "技能"
+
+[node name="PassiveSkillLabel Label" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 512.0
+offset_right = 249.0
+offset_bottom = 534.0
+theme_override_font_sizes/font_size = 15
+text = "被动技能"
+
+[node name="ActiveSkillLabel Label" type="Label" parent="."]
+offset_left = 269.0
+offset_top = 512.0
+offset_right = 502.0
+offset_bottom = 534.0
+theme_override_font_sizes/font_size = 15
+text = "主动技能"
+
+[node name="PassiveSkillButton Button" type="Button" parent="."]
+offset_left = 18.0
+offset_top = 538.0
+offset_right = 249.0
+offset_bottom = 582.0
+text = "-"
+
+[node name="ActiveSkillButton Button" type="Button" parent="."]
+offset_left = 269.0
+offset_top = 538.0
+offset_right = 502.0
+offset_bottom = 582.0
+text = "-"
+
+[node name="HeroUpgradeTitle Label" type="Label" parent="."]
+visible = false
+offset_left = 18.0
+offset_top = 594.0
+offset_right = 502.0
+offset_bottom = 618.0
+text = "英雄强化"
+
+[node name="HeroUpgradeText RichTextLabel" type="RichTextLabel" parent="."]
+visible = false
+bbcode_enabled = true
+offset_left = 18.0
+offset_top = 620.0
+offset_right = 502.0
+offset_bottom = 688.0
+text = ""
+fit_content = false
+scroll_active = true
+
+[node name="SkillDetailTitle Label" type="Label" parent="."]
+offset_left = 18.0
+offset_top = 702.0
+offset_right = 502.0
+offset_bottom = 728.0
+text = "技能详情"
+
+[node name="UnitDetailText RichTextLabel" type="RichTextLabel" parent="."]
+bbcode_enabled = true
+offset_left = 18.0
+offset_top = 734.0
+offset_right = 502.0
+offset_bottom = 826.0
+text = ""
+fit_content = false
+scroll_active = true

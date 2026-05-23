@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_last"]
+
+[resource]
+script = ExtResource("1_last")
+relic_id = "last_stand"
+relic_name = "Last Stand"
+relic_name_cn = "背水一战"
+description = "When a player unit dies, all surviving player units gain 60 shield."
+description_cn = "玩家单位死亡时，其他存活玩家单位获得 60 护盾。"
+rarity = "EPIC"
+trigger_type = "ON_DEATH"
+value = 60.0

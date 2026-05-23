@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_necro"]
+
+[resource]
+script = ExtResource("1_necro")
+unit_name = "Necromancer"
+unit_name_cn = "亡灵法师"
+description_cn = "召唤构筑核心，通过主动技能唤起骷髅协助作战。"
+unit_type = "necromancer"
+role = "support"
+bond_tags = Array[String](["summon"])
+rarity = "RARE"
+price = 6
+max_hp = 105
+attack_damage = 15
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 3
+attack_interval = 1.35
+attack_range = 130.0
+search_range = 999.0
+move_speed = 105.0
+passive_id = "grave_command"
+active_skill_id = "raise_skeletons"
+max_mana = 90
+mana_regen_per_second = 13.0
+target_mode = "NEAREST"
+basic_attack_type = "projectile"
+projectile_speed = 430.0
+projectile_visual_type = "dark"

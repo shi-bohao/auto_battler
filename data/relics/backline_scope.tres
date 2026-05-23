@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_scope"]
+
+[resource]
+script = ExtResource("1_scope")
+relic_id = "backline_scope"
+relic_name = "Backline Scope"
+relic_name_cn = "后排瞄镜"
+description = "At battle start, player backline units gain +12% attack damage for this battle."
+description_cn = "战斗开始时，玩家后排单位本场战斗攻击力 +12%。"
+rarity = "COMMON"
+trigger_type = "BATTLE_START"
+value = 0.12

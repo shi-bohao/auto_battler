@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_elite_shadow_reaper"]
+
+[resource]
+script = ExtResource("1_elite_shadow_reaper")
+unit_name = "Elite Shadow Reaper"
+unit_name_cn = "精英影刃收割者"
+description_cn = "精英收割敌人，擅长威胁低血量单位。"
+unit_type = "enemy_elite_shadow_reaper"
+role = "damage"
+price = 0
+max_hp = 180
+attack_damage = 32
+crit_chance = 0.18
+crit_damage_multiplier = 1.8
+defense = 5
+attack_interval = 0.85
+attack_range = 65.0
+search_range = 999.0
+move_speed = 155.0
+passive_id = "enemy_reaper_execute"
+active_skill_id = "enemy_shadow_cleave"
+max_mana = 90
+mana_regen_per_second = 13.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

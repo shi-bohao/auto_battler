@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_guardian"]
+
+[resource]
+script = ExtResource("1_guardian")
+relic_id = "guardian_oath"
+relic_name = "Guardian Oath"
+relic_name_cn = "守护誓约"
+description = "At battle start, the player unit with the highest defense gains 70 shield and +25 defense."
+description_cn = "战斗开始时，玩家防御最高的单位获得 70 护盾和 +25 防御。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 70.0

@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_iron_oath_commander"]
+
+[resource]
+script = ExtResource("1_iron_oath_commander")
+unit_name = "Iron Oath Commander"
+unit_name_cn = "铁誓统帅"
+description_cn = "防御 / 前排 / 护盾构筑英雄。"
+unit_type = "hero_iron_oath_commander"
+role = "tank"
+bond_tags = Array[String](["iron_wall"])
+rarity = "MYTHIC"
+price = 0
+max_hp = 320
+attack_damage = 18
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 35
+attack_interval = 1.2
+attack_range = 60.0
+search_range = 999.0
+move_speed = 70.0
+passive_id = "hero_iron_oath_commander"
+active_skill_id = "hero_commanding_order"
+max_mana = 120
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

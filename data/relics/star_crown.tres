@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_star"]
+
+[resource]
+script = ExtResource("1_star")
+relic_id = "star_crown"
+relic_name = "Star Crown"
+relic_name_cn = "星冠"
+description = "At battle start, player units with 2 or more stars gain +25% attack damage and +18 defense."
+description_cn = "战斗开始时，玩家 2 星及以上单位攻击力 +25%，防御 +18。"
+rarity = "EPIC"
+trigger_type = "BATTLE_START"
+value = 0.25

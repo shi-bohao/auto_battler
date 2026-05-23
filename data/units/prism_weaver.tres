@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_prism_weaver"]
+
+[resource]
+script = ExtResource("1_prism_weaver")
+unit_name = "Prism Weaver"
+unit_name_cn = "棱镜术师"
+description_cn = "技能流辅助单位，随机增强主动技能伤害，并短时间强化关键输出单位。"
+unit_type = "prism_weaver"
+role = "support"
+bond_tags = Array[String](["arcane"])
+rarity = "RARE"
+price = 6
+max_hp = 115
+attack_damage = 13
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 2
+attack_interval = 1.25
+attack_range = 130.0
+search_range = 999.0
+move_speed = 90.0
+passive_id = "prism_refraction"
+active_skill_id = "focus_beam"
+max_mana = 95
+mana_regen_per_second = 12.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 450.0
+projectile_visual_type = "magic"

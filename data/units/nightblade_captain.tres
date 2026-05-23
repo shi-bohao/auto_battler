@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_nightblade_captain"]
+
+[resource]
+script = ExtResource("1_nightblade_captain")
+unit_name = "Nightblade Captain"
+unit_name_cn = "夜刃统领"
+description_cn = "暴击收割流中后期核心，强化刺客和弓手的暴击能力，并在击杀窗口中提供回蓝与暴伤。"
+unit_type = "nightblade_captain"
+role = "damage"
+bond_tags = Array[String](["hunter"])
+rarity = "EPIC"
+price = 8
+max_hp = 150
+attack_damage = 28
+crit_chance = 0.18
+crit_damage_multiplier = 1.8
+defense = 5
+attack_interval = 0.95
+attack_range = 75.0
+search_range = 999.0
+move_speed = 145.0
+passive_id = "nightblade_order"
+active_skill_id = "reaping_command"
+max_mana = 85
+mana_regen_per_second = 13.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

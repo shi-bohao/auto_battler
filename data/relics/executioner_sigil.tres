@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_executioner"]
+
+[resource]
+script = ExtResource("1_executioner")
+relic_id = "executioner_sigil"
+relic_name = "Executioner Sigil"
+relic_name_cn = "处刑徽记"
+description = "When a player unit kills an enemy, it gains +12% attack damage for this battle."
+description_cn = "玩家单位击杀敌人后，本场战斗攻击力提高 12%。"
+rarity = "EPIC"
+trigger_type = "ON_KILL"
+value = 0.12

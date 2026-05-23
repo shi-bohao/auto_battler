@@ -1,0 +1,26 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bone"]
+
+[resource]
+script = ExtResource("1_bone")
+unit_name = "Bone Carrier"
+unit_name_cn = "运骨者"
+description_cn = "死亡触发型敌方前排，死亡时召唤骷髅继续拖延战线。"
+unit_type = "enemy_bone_carrier"
+role = "tank"
+price = 0
+max_hp = 240
+attack_damage = 7
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 16
+attack_interval = 1.35
+attack_range = 50.0
+search_range = 999.0
+move_speed = 95.0
+passive_id = "enemy_death_summons_skeletons"
+active_skill_id = "enemy_harden"
+max_mana = 105
+mana_regen_per_second = 8.0
+target_mode = "NEAREST"

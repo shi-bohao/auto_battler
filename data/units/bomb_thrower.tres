@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bomb_thrower"]
+
+[resource]
+script = ExtResource("1_bomb_thrower")
+unit_name = "Bomb Thrower"
+unit_name_cn = "爆弹投手"
+description_cn = "远程范围输出单位，周期性爆炸普攻和爆破齐射能覆盖多个敌人。"
+unit_type = "bomb_thrower"
+role = "damage"
+bond_tags = Array[String](["hunter", "arcane"])
+rarity = "RARE"
+price = 2
+max_hp = 75
+attack_damage = 20
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.45
+attack_range = 145.0
+search_range = 999.0
+move_speed = 80.0
+passive_id = "unstable_bomb"
+active_skill_id = "explosive_barrage"
+max_mana = 90
+mana_regen_per_second = 12.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 380.0
+projectile_visual_type = "bomb"

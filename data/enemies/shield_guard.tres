@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_shield_guard"]
+
+[resource]
+script = ExtResource("1_shield_guard")
+unit_name = "Shield Guard"
+unit_name_cn = "盾卫"
+description_cn = "基础前排敌人，通过护盾拖延战斗。"
+unit_type = "enemy_shield_guard"
+role = "tank"
+price = 0
+max_hp = 210
+attack_damage = 8
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 18
+attack_interval = 1.25
+attack_range = 50.0
+search_range = 999.0
+move_speed = 60.0
+passive_id = "enemy_shield_wall"
+active_skill_id = "enemy_guard_stance"
+max_mana = 100
+mana_regen_per_second = 8.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

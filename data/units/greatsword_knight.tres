@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_greatsword_knight"]
+
+[resource]
+script = ExtResource("1_greatsword_knight")
+unit_name = "Greatsword Knight"
+unit_name_cn = "巨剑骑士"
+description_cn = "近战半肉范围劈砍单位，普攻和主动技能都能打击成片敌人。"
+unit_type = "greatsword_knight"
+role = "tank"
+bond_tags = Array[String](["iron_wall", "hunter"])
+rarity = "RARE"
+price = 2
+max_hp = 150
+attack_damage = 18
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 10
+attack_interval = 1.15
+attack_range = 60.0
+search_range = 999.0
+move_speed = 85.0
+passive_id = "cleaving_edge"
+active_skill_id = "sweeping_slash"
+max_mana = 85
+mana_regen_per_second = 11.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

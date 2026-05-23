@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_fang"]
+
+[resource]
+script = ExtResource("1_fang")
+relic_id = "broken_fang"
+relic_name = "Broken Fang"
+relic_name_cn = "断牙"
+description = "At battle start, player archers and assassins gain +55% crit damage for this battle."
+description_cn = "战斗开始时，玩家弓手和刺客本场战斗暴击伤害 +55%。"
+rarity = "RARE"
+trigger_type = "BATTLE_START"
+value = 0.55

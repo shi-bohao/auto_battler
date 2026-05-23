@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_dark_acolyte"]
+
+[resource]
+script = ExtResource("1_dark_acolyte")
+unit_name = "Dark Acolyte"
+unit_name_cn = "黑暗侍僧"
+description_cn = "普通治疗辅助敌人，为受伤敌人恢复生命。"
+unit_type = "enemy_dark_acolyte"
+role = "support"
+price = 0
+max_hp = 100
+attack_damage = 10
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.35
+attack_range = 120.0
+search_range = 999.0
+move_speed = 85.0
+passive_id = "enemy_dark_blessing"
+active_skill_id = "enemy_dark_heal"
+max_mana = 80
+mana_regen_per_second = 12.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 420.0
+projectile_visual_type = "dark"

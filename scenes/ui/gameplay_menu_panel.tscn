@@ -1,0 +1,54 @@
+[gd_scene format=3]
+
+[node name="GameplayMenuDialog" type="Panel"]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="GameplayMenuCard" type="Panel" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -210.0
+offset_top = -170.0
+offset_right = 210.0
+offset_bottom = 170.0
+
+[node name="Content" type="VBoxContainer" parent="GameplayMenuCard"]
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 34.0
+offset_top = 30.0
+offset_right = -34.0
+offset_bottom = -30.0
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="GameplayMenuCard/Content"]
+theme_override_colors/font_color = Color(0.96, 0.88, 0.66, 1)
+theme_override_font_sizes/font_size = 30
+text = "菜单"
+horizontal_alignment = 1
+
+[node name="MainMenuButton" type="Button" parent="GameplayMenuCard/Content"]
+custom_minimum_size = Vector2(220, 46)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "主菜单"
+
+[node name="RestartButton" type="Button" parent="GameplayMenuCard/Content"]
+custom_minimum_size = Vector2(220, 46)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 19
+text = "重开"
+
+[node name="ContinueButton" type="Button" parent="GameplayMenuCard/Content"]
+custom_minimum_size = Vector2(220, 42)
+size_flags_horizontal = 4
+theme_override_font_sizes/font_size = 18
+text = "继续"

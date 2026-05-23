@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_wind_chanter"]
+
+[resource]
+script = ExtResource("1_wind_chanter")
+unit_name = "Wind Chanter"
+unit_name_cn = "风语者"
+description_cn = "节奏辅助，提高全队攻速和魔力回复。"
+unit_type = "wind_chanter"
+role = "support"
+bond_tags = Array[String](["arcane"])
+rarity = "FINE"
+price = 4
+max_hp = 125
+attack_damage = 13
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 4
+attack_interval = 1.2
+attack_range = 120.0
+search_range = 999.0
+move_speed = 100.0
+passive_id = "wind_rhythm"
+active_skill_id = "haste_song"
+max_mana = 85
+mana_regen_per_second = 14.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 450.0
+projectile_visual_type = "magic"

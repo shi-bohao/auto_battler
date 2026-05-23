@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_mage"]
+
+[resource]
+script = ExtResource("1_mage")
+unit_name = "Mage"
+unit_name_cn = "法师"
+description_cn = "技能爆发输出，使用火球打击低血量目标。"
+unit_type = "mage"
+role = "damage"
+bond_tags = Array[String](["arcane"])
+rarity = "COMMON"
+price = 2
+max_hp = 70
+attack_damage = 26
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.45
+attack_range = 135.0
+search_range = 999.0
+move_speed = 85.0
+passive_id = "arcane_focus"
+active_skill_id = "fireball"
+max_mana = 90
+mana_regen_per_second = 15.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 480.0
+projectile_visual_type = "magic"

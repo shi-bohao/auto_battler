@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_warlock"]
+
+[resource]
+script = ExtResource("1_warlock")
+unit_name = "Puppet Warlock"
+unit_name_cn = "傀儡术士"
+description_cn = "标记型召唤单位，主动技能标记敌人，目标死亡后召唤傀儡。"
+unit_type = "puppet_warlock"
+role = "damage"
+bond_tags = Array[String](["summon"])
+rarity = "RARE"
+price = 6
+max_hp = 115
+attack_damage = 18
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 2
+attack_interval = 1.3
+attack_range = 130.0
+search_range = 999.0
+move_speed = 105.0
+passive_id = "puppet_contract"
+active_skill_id = "puppet_mark"
+max_mana = 85
+mana_regen_per_second = 14.0
+target_mode = "LOWEST_HP"
+basic_attack_type = "projectile"
+projectile_speed = 430.0
+projectile_visual_type = "curse"
