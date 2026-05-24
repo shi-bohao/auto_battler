@@ -18,6 +18,7 @@ var selected_skill_type: String = SKILL_TYPE_NONE
 
 var portrait_frame: ColorRect = null
 var portrait_placeholder: Label = null
+var portrait_texture_rect: TextureRect = null
 var unit_name_label: Label = null
 var unit_meta_label: Label = null
 var base_stats_grid: GridContainer = null
@@ -101,6 +102,7 @@ func _bind_ui_nodes() -> void:
 
 	portrait_frame = panel.get_node_or_null("PortraitFrame ColorRect") as ColorRect
 	portrait_placeholder = panel.get_node_or_null("PortraitFrame ColorRect/PortraitPlaceholder Label") as Label
+	portrait_texture_rect = panel.get_node_or_null("PortraitFrame ColorRect/PortraitTexture TextureRect") as TextureRect
 	unit_name_label = panel.get_node_or_null("UnitName Label") as Label
 	unit_meta_label = panel.get_node_or_null("UnitMeta Label") as Label
 	base_stats_grid = panel.get_node_or_null("BaseStatsGrid GridContainer") as GridContainer
@@ -180,7 +182,13 @@ func _refresh_panel_content() -> void:
 	if portrait_frame != null:
 		portrait_frame.color = _get_portrait_color(selected_unit)
 
+	var portrait_texture: Texture2D = _get_unit_portrait_texture(selected_unit)
+	if portrait_texture_rect != null:
+		portrait_texture_rect.texture = portrait_texture
+		portrait_texture_rect.visible = portrait_texture != null
+
 	if portrait_placeholder != null:
+		portrait_placeholder.visible = portrait_texture == null
 		portrait_placeholder.text = _get_portrait_placeholder_text(selected_unit)
 
 	_refresh_base_stats(selected_unit)
@@ -350,6 +358,20 @@ func _get_portrait_placeholder_text(unit: Unit) -> String:
 		return display_name.substr(0, 1) + "\n立绘占位"
 
 	return "立绘\n占位"
+
+
+func _get_unit_portrait_texture(unit: Unit) -> Texture2D:
+	if unit == null or not is_instance_valid(unit):
+		return null
+
+	if unit.portrait_texture != null:
+		return unit.portrait_texture
+	if unit.icon_texture != null:
+		return unit.icon_texture
+	if unit.board_sprite != null:
+		return unit.board_sprite
+
+	return null
 
 
 func _get_passive_skill_display_name(unit: Unit) -> String:

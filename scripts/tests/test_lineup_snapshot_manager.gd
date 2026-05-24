@@ -53,6 +53,7 @@ func _test_build_parse_restore_snapshot() -> void:
 	roster_manager.apply_team_attack_bonus(0.10)
 	roster_manager.add_unit_by_id("mage")
 	_set_first_active_unit_layout(roster_manager)
+	roster_manager.add_permanent_stat_bonus_by_roster_id(int(roster_manager.active_roster[0].get("roster_id", -1)), "max_hp", 15.0)
 	relic_manager.add_relic(BLOOD_PENDANT)
 	relic_manager.add_relic(SOUL_LANTERN)
 	economy_manager.gold = 42
@@ -86,7 +87,9 @@ func _test_build_parse_restore_snapshot() -> void:
 	_expect_int(restored_active_roster.size(), 4, "Restored active roster size should match snapshot.")
 	if not restored_active_roster.is_empty():
 		var first_unit: Dictionary = restored_active_roster[0]
+		var permanent_bonuses: Dictionary = first_unit.get("permanent_stat_bonuses", {}) as Dictionary
 		_expect_int(int(first_unit.get("star", 0)), 2, "Restored unit star should match snapshot.")
+		_expect_float(float(permanent_bonuses.get("max_hp", 0.0)), 15.0, "Restored unit permanent max HP bonus should match snapshot.")
 		_expect_vector2i(first_unit.get("saved_cell", Vector2i(-1, -1)) as Vector2i, Vector2i(2, 1), "Restored saved cell should match snapshot.")
 
 

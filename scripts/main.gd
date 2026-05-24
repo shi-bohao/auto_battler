@@ -166,10 +166,12 @@ func _ready() -> void:
 	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager)
 	reward_manager.setup(relic_manager, roster_manager)
 	battle_manager.setup(self, unit_scene, stats_manager, relic_manager, battle_board, Callable(self, "_on_prepare_unit_drop_requested"), hero_manager, bond_manager)
+	battle_manager.set_roster_manager(roster_manager)
 	battle_manager.battle_ended.connect(_on_battle_ended)
 	battle_manager.overtime_started.connect(_on_overtime_started)
 	if battle_board != null and battle_board.has_signal("layout_changed"):
 		battle_board.layout_changed.connect(_on_battle_board_layout_changed)
+	menu_button.z_index = 80
 	start_button.pressed.connect(_on_start_button_pressed)
 	menu_button.pressed.connect(_on_menu_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
@@ -857,6 +859,7 @@ func _enter_prepare_state() -> void:
 	var enemy_unit_configs: Array[Dictionary] = encounter_manager.get_enemy_unit_configs(run_controller.current_round)
 	var bench_unit_configs: Array[Dictionary] = roster_manager.get_bench_unit_configs(battle_board)
 	battle_manager.setup(self, unit_scene, stats_manager, relic_manager, battle_board, Callable(self, "_on_prepare_unit_drop_requested"), hero_manager, bond_manager)
+	battle_manager.set_roster_manager(roster_manager)
 	battle_manager.set_enemy_relic_manager(_create_mirror_enemy_relic_manager_for_current_round())
 	battle_manager.spawn_battle(player_unit_configs, enemy_unit_configs, bench_unit_configs)
 	_refresh_bond_panel()
@@ -2310,4 +2313,3 @@ func _get_current_encounter_type() -> String:
 		return ""
 
 	return str(encounter["encounter_type"])
-

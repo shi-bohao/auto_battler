@@ -13,6 +13,7 @@ const RELIC_ID_LAST_STAND: String = "last_stand"
 const RELIC_ID_SOUL_EMBER: String = "soul_ember"
 const RELIC_ID_DUELIST_GLOVE: String = "duelist_glove"
 const RELIC_ID_GRAVEBONE_CHARM: String = "gravebone_charm"
+const RELIC_ID_VITALITY_TROPHY: String = "vitality_trophy"
 
 var relic_manager_ref: WeakRef = null
 var relic_effect_resolver: Variant = null
@@ -36,6 +37,9 @@ func trigger_battle_start_relics(player_units: Array[Unit]) -> void:
 		if _get_relic_trigger_type(relic_data) != RELIC_TRIGGER_BATTLE_START:
 			continue
 
+		if relic_effect_resolver.has_method("is_always_on_relic") and relic_effect_resolver.is_always_on_relic(relic_data):
+			continue
+
 		relic_effect_resolver.apply_battle_start_relic(relic_data, player_units)
 
 
@@ -50,7 +54,7 @@ func trigger_attack_relics(attacker: Unit, target: Unit) -> void:
 		relic_effect_resolver.try_apply_duelist_glove_relic(attacker, target)
 
 
-func trigger_kill_relics(attacker: Unit, target: Unit) -> void:
+func trigger_kill_relics(attacker: Unit, target: Unit, roster_manager: Variant = null, hero_manager: Variant = null) -> void:
 	if not _is_owner_unit(attacker):
 		return
 
@@ -65,6 +69,9 @@ func trigger_kill_relics(attacker: Unit, target: Unit) -> void:
 
 	if _has_relic_id(RELIC_ID_VICTORY_DRUM):
 		relic_effect_resolver.apply_victory_drum_relic(attacker)
+
+	if _has_relic_id(RELIC_ID_VITALITY_TROPHY):
+		relic_effect_resolver.apply_vitality_trophy_relic(attacker, roster_manager, hero_manager)
 
 
 func trigger_death_relics(dead_unit: Unit, enemy_units: Array[Unit], is_battle_active: bool, player_units: Array[Unit]) -> void:

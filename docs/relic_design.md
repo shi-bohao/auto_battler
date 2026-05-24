@@ -66,45 +66,72 @@ Restart 时调用：
 
 ## 3. 当前遗物池
 
-当前可获得遗物共 33 个。
+当前可获得遗物共 34 个。
 
 | 遗物 | 中文名 | `relic_id` | 稀有度 | 触发 | `value` | 效果摘要 |
 | --- | --- | --- | --- | --- | --- | --- |
-| Battle Banner | 战斗旌旗 | `battle_banner` | `COMMON` | `BATTLE_START` | `0.1` | 玩家全队本场攻击力 +10% |
+| Battle Banner | 战斗旌旗 | `battle_banner` | `COMMON` | `AURA` | `0.1` | 光环：玩家全队攻击力 +10% |
 | Iron Armor Badge | 铁甲徽章 | `iron_armor_badge` | `COMMON` | `BATTLE_START` | `30.0` | 玩家全队获得 30 护盾 |
 | Blood Pendant | 鲜血吊坠 | `blood_pendant` | `RARE` | `ON_KILL` | `35.0` | 玩家单位击杀后恢复 35 HP |
 | Soul Lantern | 收魂灯 | `soul_lantern` | `RARE` | `ON_KILL` | `25.0` | 玩家单位击杀后恢复 25 魔力 |
 | Executioner Sigil | 处刑徽记 | `executioner_sigil` | `EPIC` | `ON_KILL` | `0.12` | 玩家单位击杀后，本场战斗攻击力提高 12% |
 | Victory Drum | 凯歌战鼓 | `victory_drum` | `EPIC` | `ON_KILL` | `12.0` | 玩家单位击杀后，所有存活玩家单位获得 12 护盾 |
+| Vitality Trophy | 生命战利品 | `vitality_trophy` | `RARE` | `ON_KILL` | `5.0` | 友方非召唤单位击杀后，本局永久获得 +5 最大生命值 |
 | Hunter Mark | 猎手印记 | `hunter_mark` | `RARE` | `ON_ATTACK` | `0.75` | 玩家弓手每 3 次普通攻击追加 75% 攻击力伤害 |
 | Vengeance Spark | 复仇火花 | `vengeance_spark` | `RARE` | `ON_DEATH` | `50.0` | 玩家单位死亡时对最近敌人造成 50 遗物伤害 |
-| Steel Formation | 钢铁阵列 | `steel_formation` | `COMMON` | `BATTLE_START` | `12.0` | 玩家全队本场防御 +12 |
-| Sharp Edge | 锐刃 | `sharp_edge` | `COMMON` | `BATTLE_START` | `0.1` | 玩家全队本场暴击率 +10%，限制在 0 到 1 |
-| Broken Fang | 断牙 | `broken_fang` | `RARE` | `BATTLE_START` | `0.55` | 玩家弓手和刺客本场暴击伤害 +55% |
-| Arcane Core | 奥术核心 | `arcane_core` | `RARE` | `BATTLE_START` | `0.25` | 玩家全队本场魔力回复速度 +25% |
+| Steel Formation | 钢铁阵列 | `steel_formation` | `COMMON` | `AURA` | `12.0` | 光环：玩家全队防御 +12 |
+| Sharp Edge | 锐刃 | `sharp_edge` | `COMMON` | `AURA` | `0.1` | 光环：玩家全队暴击率 +10%，限制在 0 到 1 |
+| Broken Fang | 断牙 | `broken_fang` | `RARE` | `AURA` | `0.55` | 光环：玩家弓手和刺客暴击伤害 +55% |
+| Arcane Core | 奥术核心 | `arcane_core` | `RARE` | `AURA` | `0.25` | 光环：玩家全队魔力回复速度 +25% |
 | First Spark | 初始火花 | `first_spark` | `RARE` | `BATTLE_START` | `50.0` | 玩家全队获得 50 初始魔力，不超过 `max_mana` |
 | Guardian Oath | 守护誓约 | `guardian_oath` | `RARE` | `BATTLE_START` | `70.0` | 玩家防御最高单位获得 70 护盾和 +25 防御 |
 | Last Stand | 背水一战 | `last_stand` | `EPIC` | `ON_DEATH` | `60.0` | 玩家单位死亡时，其他存活玩家单位获得 60 护盾 |
 | Soul Ember | 灵魂余烬 | `soul_ember` | `EPIC` | `ON_DEATH` | `45.0` | 玩家单位死亡时，其他存活玩家单位恢复 45 魔力 |
 | Gravebone Charm | 骸骨坠饰 | `gravebone_charm` | `RARE` | `ON_DEATH` | `3.0` | 友方非召唤单位死亡时召唤 1 个骷髅；最多同时维持 3 个骷髅，召唤物死亡不触发 |
 | Duelist Glove | 决斗手套 | `duelist_glove` | `RARE` | `ON_ATTACK` | `0.35` | 玩家刺客攻击低于 50% HP 的目标时追加 35% 攻击力伤害 |
-| Mage Lens | 法师透镜 | `mage_lens` | `RARE` | `BATTLE_START` | `0.35` | 玩家法师本场主动技能伤害 +35% |
-| Healing Bell | 治愈铃 | `healing_bell` | `RARE` | `BATTLE_START` | `0.4` | 玩家牧师本场主动技能治疗 +40% |
+| Mage Lens | 法师透镜 | `mage_lens` | `RARE` | `AURA` | `0.35` | 光环：玩家法师主动技能伤害 +35% |
+| Healing Bell | 治愈铃 | `healing_bell` | `RARE` | `AURA` | `0.4` | 光环：玩家牧师主动技能治疗 +40% |
 | Resonance Harp | 共鸣竖琴 | `resonance_harp` | `EPIC` | `BATTLE_START` | `0.18` | 场上有玩家游吟诗人时，玩家全队攻击力 +18% |
-| Star Crown | 星冠 | `star_crown` | `EPIC` | `BATTLE_START` | `0.25` | 玩家 2 星及以上单位攻击力 +25%，防御 +18 |
-| Crown of Three | 三星冠冕 | `crown_of_three` | `LEGENDARY` | `BATTLE_START` | `0.45` | 玩家 3 星单位攻击力 +45%，魔力回复速度 +40% |
+| Star Crown | 星冠 | `star_crown` | `EPIC` | `AURA` | `0.25` | 光环：玩家 2 星及以上单位攻击力 +25%，防御 +18 |
+| Crown of Three | 三星冠冕 | `crown_of_three` | `LEGENDARY` | `AURA` | `0.45` | 光环：玩家 3 星单位攻击力 +45%，魔力回复速度 +40% |
 | Backline Scope | 后排瞄镜 | `backline_scope` | `COMMON` | `BATTLE_START` | `0.12` | 玩家后排单位攻击力 +12% |
 | Frontline Plate | 前线护板 | `frontline_plate` | `COMMON` | `BATTLE_START` | `15.0` | 玩家前排单位防御 +15，护盾 +20 |
-| Arcane Prism | 奥术棱镜 | `arcane_prism` | `FINE` | `BATTLE_START` | `0.15` | 玩家全队本场技能强度 +15% |
-| Mercy Censer | 慈悲香炉 | `mercy_censer` | `RARE` | `BATTLE_START` | `0.20` | 玩家全队本场治疗强度 +20%，护盾强度 +20% |
-| Piercing Whetstone | 防御穿透磨石 | `piercing_whetstone` | `COMMON` | `BATTLE_START` | `8.0` | 玩家全队本场防御穿透 +8 |
-| Bloodglass Charm | 血玻璃护符 | `bloodglass_charm` | `FINE` | `BATTLE_START` | `0.08` | 玩家全队本场吸血 +8% |
+| Arcane Prism | 奥术棱镜 | `arcane_prism` | `FINE` | `AURA` | `0.15` | 光环：玩家全队技能强度 +15% |
+| Mercy Censer | 慈悲香炉 | `mercy_censer` | `RARE` | `AURA` | `0.20` | 光环：玩家全队治疗强度 +20%，护盾强度 +20% |
+| Piercing Whetstone | 防御穿透磨石 | `piercing_whetstone` | `COMMON` | `AURA` | `8.0` | 光环：玩家全队防御穿透 +8 |
+| Bloodglass Charm | 血玻璃护符 | `bloodglass_charm` | `FINE` | `AURA` | `0.08` | 光环：玩家全队吸血 +8% |
 | Bulwark Rune | 壁垒符文 | `bulwark_rune` | `RARE` | `BATTLE_START` | `0.08` | 玩家前排单位本场伤害减免 +8%，状态抗性 +15% |
 | Opening Tome | 开场秘典 | `opening_tome` | `FINE` | `BATTLE_START` | `20.0` | 玩家全队本场初始魔力 +20，并立刻恢复等量魔力 |
-| Dynamo Needle | 充能针 | `dynamo_needle` | `RARE` | `BATTLE_START` | `4.0` | 玩家全队本场普攻回魔 +4，受击回魔 +4 |
+| Dynamo Needle | 充能针 | `dynamo_needle` | `RARE` | `AURA` | `4.0` | 光环：玩家全队普攻回魔 +4，受击回魔 +4 |
 | Mirage Cloak | 幻影披风 | `mirage_cloak` | `RARE` | `BATTLE_START` | `0.10` | 玩家后排单位本场闪避 +10%，状态抗性 +10% |
 
 ## 4. 触发类型说明
+
+### AURA
+
+用于常驻光环类遗物。单位在备战阶段生成、进入战斗或战斗中被召唤出来时，都会根据当前拥有的光环遗物获得对应运行时属性加成。
+
+当前遗物：
+- `battle_banner`
+- `steel_formation`
+- `sharp_edge`
+- `broken_fang`
+- `arcane_core`
+- `mage_lens`
+- `healing_bell`
+- `star_crown`
+- `crown_of_three`
+- `arcane_prism`
+- `mercy_censer`
+- `piercing_whetstone`
+- `bloodglass_charm`
+- `dynamo_needle`
+
+实现要点：
+- 光环直接作用于当前运行时单位，不永久修改原始 `UnitData`。
+- 新生成的玩家单位和玩家召唤物会在生成后立刻应用当前光环。
+- 已接入光环的遗物不会再通过 `BATTLE_START` 入口重复叠加。
+- 每个运行时单位会记录已应用的光环 `meta`，避免同一光环重复应用。
 
 ### BATTLE_START
 
@@ -142,6 +169,7 @@ Restart 时调用：
 - `soul_lantern`
 - `executioner_sigil`
 - `victory_drum`
+- `vitality_trophy`
 
 实现要点：
 
@@ -149,6 +177,7 @@ Restart 时调用：
 - 治疗量不超过 `max_hp`。
 - 魔力恢复不超过 `max_mana`。
 - 击杀者攻击力增益只修改本场运行时属性，战斗结束后随单位刷新重置。
+- `Vitality Trophy` 会把永久最大生命值写回阵容项或当前英雄状态，召唤物击杀不触发。
 - 全队类效果只作用于当前存活的玩家单位。
 
 ### ON_DEATH
@@ -227,6 +256,13 @@ Restart 时调用：
 
 ## 8. 简单验证清单
 
+### AURA
+
+1. 获得任意 `AURA` 遗物。
+2. 在备战阶段查看玩家单位详情，确认对应运行时属性已经提高。
+3. 开始战斗后确认 `BATTLE_START` 入口不会让同一光环重复叠加。
+4. 战斗中召唤友方召唤物，确认新生成单位也会获得当前光环。
+
 ### BATTLE_START
 
 1. 通过调试或奖励获得一个战斗开始类遗物。
@@ -243,11 +279,12 @@ Restart 时调用：
 
 ### ON_KILL
 
-1. 获得 `Blood Pendant`、`Soul Lantern`、`Executioner Sigil` 或 `Victory Drum`。
+1. 获得 `Blood Pendant`、`Soul Lantern`、`Executioner Sigil`、`Victory Drum` 或 `Vitality Trophy`。
 2. 让玩家单位击杀敌人。
 3. 检查击杀者恢复生命或魔力时不超过上限。
 4. 检查 `Executioner Sigil` 的攻击力提升只影响本场战斗。
 5. 检查 `Victory Drum` 只给存活玩家单位添加护盾。
+6. 检查 `Vitality Trophy` 会把击杀者最大生命永久写回本局阵容，且召唤物击杀不触发。
 
 ### ON_DEATH
 

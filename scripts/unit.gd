@@ -59,6 +59,11 @@ const ATTACK_PAYLOAD_SCRIPT: Script = preload("res://scripts/combat/attack_paylo
 @export_enum("melee", "projectile") var basic_attack_type: String = "melee"
 @export var projectile_speed: float = 500.0
 @export_enum("arrow", "bolt", "magic", "holy", "flask", "bomb", "dark", "curse") var projectile_visual_type: String = "arrow"
+@export var board_sprite: Texture2D = null
+@export var portrait_texture: Texture2D = null
+@export var icon_texture: Texture2D = null
+@export var art_scale: float = 1.0
+@export var art_offset: Vector2 = Vector2.ZERO
 
 var unit_id: int = -1
 var roster_id: int = -1
@@ -97,8 +102,13 @@ var unit_targeting: Variant = UNIT_TARGETING_SCRIPT.new()
 var unit_skill: Variant = UNIT_SKILL_SCRIPT.new()
 var effect_controller: Variant = UNIT_EFFECT_CONTROLLER_SCRIPT.new()
 var combat_resolver: Variant = COMBAT_RESOLVER_SCRIPT.new()
+var visual_base_position: Vector2 = Vector2(20.0, 20.0)
+var visual_motion_time: float = 0.0
 
 @onready var body: ColorRect = $"Body ColorRect"
+@onready var visual_root: Node2D = $"VisualRoot"
+@onready var visual_animation_root: Node2D = $"VisualRoot/AnimationRoot"
+@onready var board_sprite_node: Sprite2D = $"VisualRoot/AnimationRoot/BoardSprite"
 @onready var hp_bar: ProgressBar = $"HPBar ProgressBar"
 @onready var mana_bar: ProgressBar = $"ManaBar ProgressBar"
 @onready var info_label: Label = $"InfoLabel Label"
@@ -126,6 +136,7 @@ func _ready() -> void:
 	_update_mana_bar()
 	update_info_display()
 	unit_skill.reset_mana(self)
+	refresh_unit_art()
 
 
 func _input(event: InputEvent) -> void:
@@ -151,6 +162,7 @@ func _process(delta: float) -> void:
 
 	if not _is_valid_target(current_target):
 		unit_state = UnitState.IDLE
+		_update_visual_motion(battle_delta)
 		return
 
 	if _is_current_target_in_range():
@@ -161,6 +173,7 @@ func _process(delta: float) -> void:
 		_move_toward_current_target(battle_delta)
 
 	_check_targeting_stuck(battle_delta)
+	_update_visual_motion(battle_delta)
 
 
 func set_enemy_units(units: Array[Unit]) -> void:
@@ -219,6 +232,7 @@ func stop_battle() -> void:
 	clear_status_effects()
 	current_target = null
 	unit_state = UnitState.IDLE
+	_reset_visual_motion()
 
 
 func finish_battle() -> void:
@@ -271,6 +285,64 @@ func restore_mana(amount: float, source: Unit = null) -> float:
 	if unit_skill != null and unit_skill.has_method("notify_mana_restored"):
 		unit_skill.notify_mana_restored(self, restored_mana, stat_source)
 	return restored_mana
+
+
+func apply_runtime_stat_bonus(stat_name: String, amount: float, should_fill_current_hp: bool = false) -> void:
+	if stat_name.strip_edges() == "" or is_zero_approx(amount):
+		return
+
+	match stat_name:
+		"max_hp":
+			var hp_bonus: int = int(round(amount))
+			if hp_bonus == 0:
+				return
+			max_hp = maxi(1, max_hp + hp_bonus)
+			if should_fill_current_hp:
+				hp = clampi(hp + hp_bonus, 0, max_hp)
+			else:
+				hp = clampi(hp, 0, max_hp)
+			_update_hp_bar()
+		"attack_damage":
+			attack_damage = maxi(1, int(round(float(attack_damage) + amount)))
+		"defense":
+			defense = maxi(0, int(round(float(defense) + amount)))
+		"defense_penetration":
+			defense_penetration = maxi(0, int(round(float(defense_penetration) + amount)))
+		"crit_chance":
+			crit_chance = clampf(crit_chance + amount, 0.0, 1.0)
+		"crit_damage_multiplier":
+			crit_damage_multiplier = maxf(1.0, crit_damage_multiplier + amount)
+		"life_steal":
+			life_steal = clampf(life_steal + amount, 0.0, 1.0)
+		"damage_reduction":
+			damage_reduction = clampf(damage_reduction + amount, 0.0, 1.0)
+		"damage_taken_multiplier":
+			damage_taken_multiplier = maxf(0.05, damage_taken_multiplier + amount)
+		"status_resistance":
+			status_resistance = clampf(status_resistance + amount, 0.0, 1.0)
+		"dodge_chance":
+			dodge_chance = clampf(dodge_chance + amount, 0.0, 1.0)
+		"attack_interval":
+			attack_interval = maxf(0.05, attack_interval + amount)
+		"move_speed":
+			move_speed = maxf(1.0, move_speed + amount)
+		"skill_power":
+			skill_power += amount
+		"healing_power":
+			healing_power += amount
+		"shield_power":
+			shield_power += amount
+		"initial_mana":
+			initial_mana = maxf(0.0, initial_mana + amount)
+			_update_mana_bar()
+		"mana_on_attack":
+			mana_on_attack = maxf(0.0, mana_on_attack + amount)
+		"mana_on_hit_taken":
+			mana_on_hit_taken = maxf(0.0, mana_on_hit_taken + amount)
+		"mana_regen_per_second":
+			mana_regen_per_second = maxf(0.0, mana_regen_per_second + amount)
+
+	update_info_display()
 
 
 func apply_status_effect(effect_data: Dictionary) -> StatusEffect:
@@ -418,6 +490,71 @@ func _spawn_basic_attack_projectile(target: Unit, payload: Variant) -> void:
 	if not battle_root.has_method("spawn_basic_attack_projectile"):
 		return
 	battle_root.spawn_basic_attack_projectile(self, target, payload)
+
+
+func refresh_unit_art() -> void:
+	if visual_root == null or board_sprite_node == null or body == null:
+		return
+
+	visual_base_position = Vector2(20.0, 20.0) + art_offset
+	visual_root.position = visual_base_position
+	visual_animation_root.scale = Vector2.ONE
+	board_sprite_node.modulate = Color.WHITE
+
+	if board_sprite != null:
+		board_sprite_node.texture = board_sprite
+		board_sprite_node.visible = true
+		var texture_size: Vector2 = board_sprite.get_size()
+		var max_dimension: float = maxf(texture_size.x, texture_size.y)
+		var fit_scale: float = 1.0
+		if max_dimension > 0.0:
+			fit_scale = 96.0 / max_dimension
+		board_sprite_node.scale = Vector2.ONE * fit_scale * maxf(0.05, art_scale)
+		body.modulate.a = 0.0
+	else:
+		board_sprite_node.texture = null
+		board_sprite_node.visible = false
+		body.modulate.a = 1.0
+
+
+func has_board_art() -> bool:
+	return board_sprite_node != null and board_sprite_node.texture != null
+
+
+func get_feedback_target() -> Node2D:
+	if has_board_art() and visual_animation_root != null:
+		return visual_animation_root
+
+	return self
+
+
+func get_flash_target() -> CanvasItem:
+	if has_board_art() and board_sprite_node != null:
+		return board_sprite_node
+
+	return body
+
+
+func _update_visual_motion(delta: float) -> void:
+	if visual_root == null:
+		return
+
+	if unit_state == UnitState.MOVING and has_board_art():
+		visual_motion_time += delta
+		visual_root.position = visual_base_position + Vector2(0.0, sin(visual_motion_time * 14.0) * 1.5)
+		return
+
+	if visual_root.position != visual_base_position:
+		var t: float = clampf(delta * 12.0, 0.0, 1.0)
+		visual_root.position = visual_root.position.lerp(visual_base_position, t)
+
+
+func _reset_visual_motion() -> void:
+	visual_motion_time = 0.0
+	if visual_root != null:
+		visual_root.position = visual_base_position
+	if visual_animation_root != null:
+		visual_animation_root.scale = Vector2.ONE
 
 
 func _apply_basic_attack_attribute_rewards(actual_damage: int) -> void:

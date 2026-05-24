@@ -153,6 +153,29 @@ func apply_unit_data(unit: Variant, unit_data: Resource) -> void:
 	if configured_projectile_visual_type != null and str(configured_projectile_visual_type).strip_edges() != "":
 		unit.projectile_visual_type = str(configured_projectile_visual_type)
 
+	var configured_board_sprite: Variant = unit_data.get("board_sprite")
+	if configured_board_sprite is Texture2D:
+		unit.board_sprite = configured_board_sprite
+
+	var configured_portrait_texture: Variant = unit_data.get("portrait_texture")
+	if configured_portrait_texture is Texture2D:
+		unit.portrait_texture = configured_portrait_texture
+
+	var configured_icon_texture: Variant = unit_data.get("icon_texture")
+	if configured_icon_texture is Texture2D:
+		unit.icon_texture = configured_icon_texture
+
+	var configured_art_scale: Variant = unit_data.get("art_scale")
+	if configured_art_scale != null:
+		unit.art_scale = maxf(0.05, float(configured_art_scale))
+
+	var configured_art_offset: Variant = unit_data.get("art_offset")
+	if configured_art_offset is Vector2:
+		unit.art_offset = configured_art_offset
+
+	if unit.has_method("refresh_unit_art"):
+		unit.refresh_unit_art()
+
 
 func _convert_legacy_target_strategy(strategy: String) -> String:
 	if strategy.to_lower() == "lowest_hp":

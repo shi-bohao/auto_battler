@@ -1,9 +1,15 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=5 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boneweaver"]
+[ext_resource type="Texture2D" path="res://assets/game/units/heroes/boneweaver_board_icon.png" id="2_icon"]
+[ext_resource type="Texture2D" path="res://assets/game/units/heroes/boneweaver_portrait.png" id="3_portrait"]
+[ext_resource type="Texture2D" path="res://assets/game/units/heroes/boneweaver_avatar.png" id="4_avatar"]
 
 [resource]
 script = ExtResource("1_boneweaver")
+board_sprite = ExtResource("2_icon")
+portrait_texture = ExtResource("3_portrait")
+icon_texture = ExtResource("4_avatar")
 unit_name = "Boneweaver"
 unit_name_cn = "织骨者"
 description_cn = "召唤 / 亡灵 / 数量压制英雄。"

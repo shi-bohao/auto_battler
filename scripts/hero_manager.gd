@@ -34,6 +34,7 @@ var hero_level: int = 0
 var hero_experience: int = 0
 var selected_upgrade_ids: Array[String] = []
 var base_stat_upgrade_counts: Dictionary = {}
+var permanent_stat_bonuses: Dictionary = {}
 var pending_upgrade_options: Array[Dictionary] = []
 var last_level_up_round: int = 0
 var last_experience_round: int = 0
@@ -53,6 +54,7 @@ func reset_hero() -> void:
 	hero_experience = 0
 	selected_upgrade_ids.clear()
 	base_stat_upgrade_counts.clear()
+	permanent_stat_bonuses.clear()
 	pending_upgrade_options.clear()
 	last_level_up_round = 0
 	last_experience_round = 0
@@ -91,6 +93,7 @@ func select_hero(hero_id: String) -> bool:
 	hero_experience = 0
 	selected_upgrade_ids.clear()
 	base_stat_upgrade_counts.clear()
+	permanent_stat_bonuses.clear()
 	pending_upgrade_options.clear()
 	last_level_up_round = 0
 	last_experience_round = 0
@@ -125,6 +128,7 @@ func get_state_snapshot() -> Dictionary:
 		"hero_experience_to_next_level": get_experience_to_next_level(),
 		"selected_upgrade_ids": selected_upgrade_ids.duplicate(),
 		"base_stat_upgrade_counts": base_stat_upgrade_counts.duplicate(),
+		"permanent_stat_bonuses": permanent_stat_bonuses.duplicate(true),
 		"pending_upgrade_options": pending_upgrade_options.duplicate(true),
 		"last_level_up_round": last_level_up_round,
 		"last_experience_round": last_experience_round,
@@ -132,6 +136,18 @@ func get_state_snapshot() -> Dictionary:
 		"saved_hero_cell": saved_hero_cell,
 		"saved_hero_position": saved_hero_position,
 	}
+
+
+func add_permanent_stat_bonus(stat_name: String, amount: float) -> bool:
+	if selected_hero == null or stat_name.strip_edges() == "" or is_zero_approx(amount):
+		return false
+
+	permanent_stat_bonuses[stat_name] = float(permanent_stat_bonuses.get(stat_name, 0.0)) + amount
+	return true
+
+
+func get_permanent_stat_bonuses() -> Dictionary:
+	return permanent_stat_bonuses.duplicate(true)
 
 
 func get_selected_upgrade_ids() -> Array[String]:
@@ -234,6 +250,7 @@ func create_hero_battle_unit_data() -> Resource:
 	_apply_level_growth(configured_data)
 	_apply_unit_data_upgrades(configured_data)
 	_apply_base_stat_upgrades(configured_data)
+	_apply_permanent_stat_bonuses(configured_data)
 	configured_data.set("unit_name", _build_hero_display_name())
 	configured_data.set("unit_name_cn", _build_hero_display_name())
 	configured_data.set("star", 1)
@@ -617,6 +634,40 @@ func _apply_base_stat_upgrades(unit_data: Resource) -> void:
 	if mana_regen_count > 0:
 		var mana_regen_multiplier: float = pow(1.12, float(mana_regen_count))
 		unit_data.set("mana_regen_per_second", maxf(0.0, float(unit_data.get("mana_regen_per_second")) * mana_regen_multiplier))
+
+
+func _apply_permanent_stat_bonuses(unit_data: Resource) -> void:
+	if unit_data == null:
+		return
+
+	for stat_name_value: Variant in permanent_stat_bonuses.keys():
+		var stat_name: String = str(stat_name_value).strip_edges()
+		if stat_name == "":
+			continue
+
+		var current_value: Variant = unit_data.get(stat_name)
+		if current_value == null:
+			continue
+
+		var amount: float = float(permanent_stat_bonuses.get(stat_name_value, 0.0))
+		if is_zero_approx(amount):
+			continue
+
+		match stat_name:
+			"max_hp", "attack_damage":
+				unit_data.set(stat_name, maxi(1, int(round(float(current_value) + amount))))
+			"defense", "defense_penetration":
+				unit_data.set(stat_name, maxi(0, int(round(float(current_value) + amount))))
+			"crit_chance", "life_steal", "damage_reduction", "status_resistance", "dodge_chance":
+				unit_data.set(stat_name, clampf(float(current_value) + amount, 0.0, 1.0))
+			"crit_damage_multiplier":
+				unit_data.set(stat_name, maxf(1.0, float(current_value) + amount))
+			"attack_interval", "damage_taken_multiplier":
+				unit_data.set(stat_name, maxf(0.05, float(current_value) + amount))
+			"move_speed":
+				unit_data.set(stat_name, maxf(1.0, float(current_value) + amount))
+			_:
+				unit_data.set(stat_name, float(current_value) + amount)
 
 
 func _apply_runtime_upgrades(unit: Unit) -> void:

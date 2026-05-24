@@ -173,6 +173,7 @@ func _build_roster_area_snapshot(roster: Array[Dictionary], area: String) -> Arr
 			"display_name": str(roster_item.get("display_name", unit_id)),
 			"star": int(roster_item.get("star", 1)),
 			"base_price": int(roster_item.get("base_price", 0)),
+			"permanent_stat_bonuses": roster_item.get("permanent_stat_bonuses", {}).duplicate(true),
 			"has_saved_cell": bool(roster_item.get("has_saved_cell", false)),
 			"saved_cell": _vector2i_to_dictionary(saved_cell),
 			"has_saved_position": bool(roster_item.get("has_saved_position", false)),

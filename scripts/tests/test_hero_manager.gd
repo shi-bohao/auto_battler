@@ -21,7 +21,7 @@ func _init() -> void:
 
 func _test_hero_selection_and_reset() -> void:
 	var hero_manager: Variant = HERO_MANAGER_SCRIPT.new()
-	_expect_int(hero_manager.get_available_heroes().size(), 3, "HeroManager should expose three heroes.")
+	_expect_int(hero_manager.get_available_heroes().size(), 4, "HeroManager should expose four heroes.")
 	_expect_bool(hero_manager.has_selected_hero(), false, "HeroManager should start without a selected hero.")
 	_expect_bool(hero_manager.select_hero("iron_oath_commander"), true, "Hero selection should accept a known hero.")
 	_expect_string(hero_manager.get_selected_hero_id(), "iron_oath_commander", "Selected hero id should be saved.")

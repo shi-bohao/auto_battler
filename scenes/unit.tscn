@@ -31,6 +31,14 @@ script = ExtResource("1_o7ajc")
 offset_right = 40.0
 offset_bottom = 40.0
 
+[node name="VisualRoot" type="Node2D" parent="."]
+position = Vector2(20, 20)
+
+[node name="AnimationRoot" type="Node2D" parent="VisualRoot"]
+
+[node name="BoardSprite" type="Sprite2D" parent="VisualRoot/AnimationRoot"]
+texture_filter = 1
+
 [node name="HPBar ProgressBar" type="ProgressBar" parent="." unique_id=1532539628]
 offset_left = -4.0
 offset_top = -18.0

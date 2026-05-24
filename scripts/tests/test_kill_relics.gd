@@ -3,6 +3,22 @@ extends SceneTree
 const SOUL_LANTERN: Resource = preload("res://data/relics/soul_lantern.tres")
 const EXECUTIONER_SIGIL: Resource = preload("res://data/relics/executioner_sigil.tres")
 const VICTORY_DRUM: Resource = preload("res://data/relics/victory_drum.tres")
+const BATTLE_BANNER: Resource = preload("res://data/relics/battle_banner.tres")
+const VITALITY_TROPHY: Resource = preload("res://data/relics/vitality_trophy.tres")
+
+
+class FakeRosterManager:
+	extends RefCounted
+
+	var bonuses: Dictionary = {}
+
+	func add_permanent_stat_bonus_by_roster_id(roster_id: int, stat_name: String, amount: float) -> bool:
+		var key: String = str(roster_id) + ":" + stat_name
+		bonuses[key] = float(bonuses.get(key, 0.0)) + amount
+		return true
+
+	func get_bonus(roster_id: int, stat_name: String) -> float:
+		return float(bonuses.get(str(roster_id) + ":" + stat_name, 0.0))
 
 var failures: Array[String] = []
 var created_units: Array[Unit] = []
@@ -12,6 +28,8 @@ func _init() -> void:
 	_test_soul_lantern_restores_mana()
 	_test_executioner_sigil_increases_attack_damage()
 	_test_victory_drum_shields_alive_allies()
+	_test_vitality_trophy_stores_permanent_max_hp()
+	_test_always_on_relics_apply_once()
 	_test_kill_relics_can_trigger_together()
 	_cleanup_units()
 
@@ -63,6 +81,35 @@ func _test_victory_drum_shields_alive_allies() -> void:
 	_expect_int(attacker.shield, 12, "Victory Drum should shield the attacker.")
 	_expect_int(ally.shield, 12, "Victory Drum should shield alive allies.")
 	_expect_int(dead_ally.shield, 0, "Victory Drum should not shield dead allies.")
+
+
+func _test_vitality_trophy_stores_permanent_max_hp() -> void:
+	var relic_manager: RelicManager = _create_relic_manager([VITALITY_TROPHY])
+	var roster_manager: FakeRosterManager = FakeRosterManager.new()
+	var attacker: Unit = _create_player_unit("Vitality Killer")
+	attacker.roster_id = 7
+	attacker.roster_area = "active"
+	attacker.max_hp = 100
+	attacker.hp = 60
+
+	relic_manager.trigger_kill_relics(attacker, _create_enemy_unit(), roster_manager, null)
+
+	_expect_int(attacker.max_hp, 105, "Vitality Trophy should increase runtime max HP.")
+	_expect_int(attacker.hp, 65, "Vitality Trophy should preserve current HP ratio by adding the same HP amount.")
+	_expect_float(roster_manager.get_bonus(7, "max_hp"), 5.0, "Vitality Trophy should store max HP on the roster item.")
+
+
+func _test_always_on_relics_apply_once() -> void:
+	var relic_manager: RelicManager = _create_relic_manager([BATTLE_BANNER])
+	var unit: Unit = _create_player_unit("Aura Unit")
+	unit.attack_damage = 100
+	var units: Array[Unit] = [unit]
+
+	relic_manager.apply_always_on_relics_to_runtime_unit(unit)
+	_expect_int(unit.attack_damage, 110, "Battle Banner should apply as an always-on aura.")
+
+	relic_manager.trigger_battle_start_relics(units)
+	_expect_int(unit.attack_damage, 110, "Always-on relics should not apply again at battle start.")
 
 
 func _test_kill_relics_can_trigger_together() -> void:

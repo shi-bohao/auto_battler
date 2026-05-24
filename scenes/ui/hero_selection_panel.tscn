@@ -49,6 +49,17 @@ grow_vertical = 2
 horizontal_alignment = 1
 vertical_alignment = 1
 
+[node name="PortraitTexture" type="TextureRect" parent="DetailScroll/DetailContent/PortraitFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+expand_mode = 1
+stretch_mode = 5
+
 [node name="UnitName" type="Label" parent="DetailScroll/DetailContent"]
 offset_left = 170.0
 offset_top = 12.0
@@ -138,40 +149,32 @@ offset_right = 466.0
 offset_bottom = 188.0
 scroll_active = true
 
-[node name="ArrowRow" type="HBoxContainer" parent="."]
-offset_left = 400.0
-offset_top = 706.0
-offset_right = 520.0
-offset_bottom = 744.0
+[node name="SelectionRow" type="HBoxContainer" parent="."]
+offset_left = 196.0
+offset_top = 744.0
+offset_right = 724.0
+offset_bottom = 876.0
 alignment = 1
-theme_override_constants/separation = 12
+theme_override_constants/separation = 20
 
-[node name="LeftArrow" type="Button" parent="ArrowRow"]
-custom_minimum_size = Vector2(40.0, 38.0)
+[node name="LeftArrow" type="Button" parent="SelectionRow"]
+custom_minimum_size = Vector2(44.0, 116.0)
 focus_mode = 0
 
-[node name="PageIndicator" type="Label" parent="ArrowRow"]
-custom_minimum_size = Vector2(80.0, 38.0)
-horizontal_alignment = 1
-vertical_alignment = 1
-
-[node name="RightArrow" type="Button" parent="ArrowRow"]
-custom_minimum_size = Vector2(40.0, 38.0)
-focus_mode = 0
-
-[node name="PortraitContainer" type="HBoxContainer" parent="."]
-offset_left = 280.0
-offset_top = 756.0
-offset_right = 640.0
-offset_bottom = 756.0
+[node name="PortraitContainer" type="HBoxContainer" parent="SelectionRow"]
+custom_minimum_size = Vector2(360.0, 128.0)
 alignment = 1
 theme_override_constants/separation = 28
 
+[node name="RightArrow" type="Button" parent="SelectionRow"]
+custom_minimum_size = Vector2(44.0, 116.0)
+focus_mode = 0
+
 [node name="ButtonRow" type="HBoxContainer" parent="."]
 offset_left = 300.0
-offset_top = 886.0
+offset_top = 890.0
 offset_right = 620.0
-offset_bottom = 886.0
+offset_bottom = 890.0
 alignment = 1
 theme_override_constants/separation = 24
 

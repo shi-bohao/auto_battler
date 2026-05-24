@@ -26,6 +26,7 @@ var detail_scroll: ScrollContainer = null
 var detail_content: Control = null
 var portrait_frame: ColorRect = null
 var portrait_placeholder: Label = null
+var portrait_texture_rect: TextureRect = null
 var unit_name_label: Label = null
 var unit_meta_label: Label = null
 var base_stats_grid: GridContainer = null
@@ -39,7 +40,6 @@ var info_popup_text: RichTextLabel = null
 var portrait_container: HBoxContainer = null
 var left_arrow: Button = null
 var right_arrow: Button = null
-var page_indicator: Label = null
 var return_button: Button = null
 var confirm_button: Button = null
 var hero_manager: Variant = null
@@ -108,6 +108,7 @@ func _resolve_nodes() -> void:
 			detail_content.gui_input.connect(_on_detail_gui_input)
 			portrait_frame = detail_content.get_node_or_null("PortraitFrame") as ColorRect
 			portrait_placeholder = detail_content.get_node_or_null("PortraitFrame/PortraitPlaceholder") as Label
+			portrait_texture_rect = detail_content.get_node_or_null("PortraitFrame/PortraitTexture") as TextureRect
 			unit_name_label = detail_content.get_node_or_null("UnitName") as Label
 			unit_meta_label = detail_content.get_node_or_null("UnitMeta") as Label
 			base_stats_grid = detail_content.get_node_or_null("BaseStatsGrid") as GridContainer
@@ -124,10 +125,9 @@ func _resolve_nodes() -> void:
 	info_popup = hero_panel.get_node_or_null("InfoPopup") as Panel
 	if info_popup != null:
 		info_popup_text = info_popup.get_node_or_null("InfoPopupText") as RichTextLabel
-	portrait_container = hero_panel.get_node_or_null("PortraitContainer") as HBoxContainer
-	left_arrow = hero_panel.get_node_or_null("ArrowRow/LeftArrow") as Button
-	right_arrow = hero_panel.get_node_or_null("ArrowRow/RightArrow") as Button
-	page_indicator = hero_panel.get_node_or_null("ArrowRow/PageIndicator") as Label
+	portrait_container = hero_panel.get_node_or_null("SelectionRow/PortraitContainer") as HBoxContainer
+	left_arrow = hero_panel.get_node_or_null("SelectionRow/LeftArrow") as Button
+	right_arrow = hero_panel.get_node_or_null("SelectionRow/RightArrow") as Button
 	return_button = hero_panel.get_node_or_null("ButtonRow/ReturnButton") as Button
 	confirm_button = hero_panel.get_node_or_null("ButtonRow/ConfirmButton") as Button
 
@@ -194,10 +194,6 @@ func _apply_styles() -> void:
 		placeholder_label.text = "请选择一位英雄"
 		placeholder_label.add_theme_font_size_override("font_size", 22)
 		placeholder_label.add_theme_color_override("font_color", Color(0.44, 0.50, 0.58, 1.0))
-
-	if page_indicator != null:
-		page_indicator.add_theme_font_size_override("font_size", 15)
-		page_indicator.add_theme_color_override("font_color", Color(0.72, 0.78, 0.86, 1.0))
 
 	if hero_upgrade_title != null:
 		hero_upgrade_title.add_theme_font_size_override("font_size", 18)
@@ -309,23 +305,28 @@ func _hide_popup() -> void:
 func _page_count() -> int:
 	if hero_options.is_empty():
 		return 1
-	return ceili(float(hero_options.size()) / float(PORTRAITS_PER_PAGE))
+	return hero_options.size()
 
 
 func _on_page_left() -> void:
-	var pages: int = _page_count()
-	if pages <= 1:
-		return
-	page_index = wrapi(page_index - 1, 0, pages)
-	_refresh_page()
+	_shift_portrait_window(-1)
 
 
 func _on_page_right() -> void:
-	var pages: int = _page_count()
-	if pages <= 1:
+	_shift_portrait_window(1)
+
+
+func _shift_portrait_window(step: int) -> void:
+	if not is_selection_enabled:
 		return
-	page_index = wrapi(page_index + 1, 0, pages)
+
+	if hero_options.is_empty():
+		return
+
+	page_index = wrapi(page_index + step, 0, hero_options.size())
+	_hide_popup()
 	_refresh_page()
+	_refresh_confirm_button()
 
 
 func _on_return_pressed() -> void:
@@ -350,10 +351,10 @@ func _refresh_page() -> void:
 	_clear_portraits()
 	_update_nav_controls()
 
-	var start: int = page_index * PORTRAITS_PER_PAGE
-	var end: int = mini(start + PORTRAITS_PER_PAGE, hero_options.size())
+	var visible_count: int = mini(PORTRAITS_PER_PAGE, hero_options.size())
 
-	for index: int in range(start, end):
+	for slot_index: int in range(visible_count):
+		var index: int = wrapi(page_index + slot_index, 0, hero_options.size())
 		var hero: Resource = hero_options[index]
 		var slot: VBoxContainer = VBoxContainer.new()
 		slot.name = "PortraitSlot" + str(index)
@@ -364,7 +365,13 @@ func _refresh_page() -> void:
 		btn.name = "PortraitButton" + str(index)
 		btn.custom_minimum_size = PORTRAIT_SIZE
 		btn.focus_mode = Control.FOCUS_NONE
-		btn.text = _get_hero_display_name(hero).substr(0, 1)
+		var hero_icon: Texture2D = _get_hero_icon_texture(hero)
+		if hero_icon != null:
+			btn.icon = hero_icon
+			btn.expand_icon = true
+			btn.text = ""
+		else:
+			btn.text = _get_hero_display_name(hero).substr(0, 1)
 		btn.add_theme_font_size_override("font_size", 36)
 		btn.add_theme_color_override("font_color", Color(0.94, 0.90, 0.78, 1.0))
 		btn.add_theme_color_override("font_hover_color", Color(1.0, 0.94, 0.80, 1.0))
@@ -391,20 +398,19 @@ func _refresh_page() -> void:
 
 
 func _update_nav_controls() -> void:
-	var pages: int = _page_count()
-	var show_arrows: bool = pages > 1
+	var show_arrows: bool = hero_options.size() > 1
 	if left_arrow != null:
 		left_arrow.visible = show_arrows
+		left_arrow.disabled = not show_arrows
 	if right_arrow != null:
 		right_arrow.visible = show_arrows
-	if page_indicator != null:
-		page_indicator.visible = show_arrows
-		if show_arrows:
-			page_indicator.text = str(page_index + 1) + " / " + str(pages)
+		right_arrow.disabled = not show_arrows
 
 
 func _recenter_portrait_row() -> void:
 	if portrait_container == null or hero_panel == null:
+		return
+	if portrait_container.get_parent() is Container:
 		return
 	portrait_container.position.x = (hero_panel.size.x - portrait_container.size.x) / 2.0
 
@@ -468,7 +474,7 @@ func _on_portrait_pressed(hero_index: int) -> void:
 
 func _refresh_portrait_styles() -> void:
 	for index: int in range(portrait_buttons.size()):
-		var global_index: int = page_index * PORTRAITS_PER_PAGE + index
+		var global_index: int = wrapi(page_index + index, 0, hero_options.size())
 		_apply_portrait_style(portrait_buttons[index], global_index == selected_hero_index)
 
 
@@ -502,7 +508,13 @@ func _refresh_hero_detail(hero: Resource) -> void:
 	if portrait_frame != null:
 		portrait_frame.color = _get_portrait_frame_color(hero)
 
+	var portrait_texture: Texture2D = _get_hero_portrait_texture(hero)
+	if portrait_texture_rect != null:
+		portrait_texture_rect.texture = portrait_texture
+		portrait_texture_rect.visible = portrait_texture != null
+
 	if portrait_placeholder != null:
+		portrait_placeholder.visible = portrait_texture == null
 		portrait_placeholder.text = _get_hero_display_name(hero).substr(0, 1) + "\n立绘占位"
 
 	if unit_name_label != null:
@@ -737,6 +749,38 @@ func _get_hero_unit_data(hero: Resource) -> Resource:
 	if hero == null:
 		return null
 	return hero.get("hero_unit_data") as Resource
+
+
+func _get_hero_portrait_texture(hero: Resource) -> Texture2D:
+	var unit_data: Resource = _get_hero_unit_data(hero)
+	if unit_data == null:
+		return null
+
+	var portrait: Variant = unit_data.get("portrait_texture")
+	if portrait is Texture2D:
+		return portrait
+
+	var icon: Variant = unit_data.get("icon_texture")
+	if icon is Texture2D:
+		return icon
+
+	return null
+
+
+func _get_hero_icon_texture(hero: Resource) -> Texture2D:
+	var unit_data: Resource = _get_hero_unit_data(hero)
+	if unit_data == null:
+		return null
+
+	var icon: Variant = unit_data.get("icon_texture")
+	if icon is Texture2D:
+		return icon
+
+	var board_sprite: Variant = unit_data.get("board_sprite")
+	if board_sprite is Texture2D:
+		return board_sprite
+
+	return null
 
 
 func _get_hero_passive_text(hero: Resource) -> String:

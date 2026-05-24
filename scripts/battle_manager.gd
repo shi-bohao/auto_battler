@@ -20,6 +20,7 @@ var enemy_relic_manager: RelicManager = null
 var battle_board: Variant = null
 var prepare_drop_handler: Callable = Callable()
 var hero_manager: Variant = null
+var roster_manager: Variant = null
 var bond_manager: Variant = BOND_MANAGER_SCRIPT.new()
 var summon_manager: Variant = SUMMON_MANAGER_SCRIPT.new()
 var summon_unit_scaling_service: Variant = UNIT_SCALING_SERVICE_SCRIPT.new()
@@ -69,6 +70,10 @@ func setup(
 
 func set_hero_manager(configured_hero_manager: Variant) -> void:
 	hero_manager = configured_hero_manager
+
+
+func set_roster_manager(configured_roster_manager: Variant) -> void:
+	roster_manager = configured_roster_manager
 
 
 func set_enemy_relic_manager(configured_enemy_relic_manager: RelicManager) -> void:
@@ -486,6 +491,7 @@ func _spawn_unit(team_id: int, unit_data: Resource, spawn_position: Vector2, dis
 		body.color = Color(0.2, 0.55, 1.0) if team_id == 1 else Color(1.0, 0.35, 0.25)
 
 	battle_root.add_child(unit)
+	_apply_always_on_relics_to_unit(unit)
 	if stats_manager != null:
 		stats_manager.register_unit(unit)
 	unit.stop_battle()
@@ -519,6 +525,7 @@ func _spawn_bench_unit(unit_data: Resource, spawn_position: Vector2, display_nam
 	body.color = Color(0.25, 0.45, 0.75, 0.75)
 
 	battle_root.add_child(unit)
+	_apply_always_on_relics_to_unit(unit)
 	unit.stop_battle()
 	unit.is_targetable = false
 	unit.set_can_drag(true)
@@ -627,7 +634,19 @@ func _on_unit_killed_target(attacker: Unit, target: Unit) -> void:
 	if attacker != null and is_instance_valid(attacker) and attacker.team_id == 2 and enemy_relic_manager != null:
 		enemy_relic_manager.trigger_kill_relics(attacker, target)
 	elif relic_manager != null:
-		relic_manager.trigger_kill_relics(attacker, target)
+		relic_manager.trigger_kill_relics(attacker, target, roster_manager, hero_manager)
+
+
+func _apply_always_on_relics_to_unit(unit: Unit) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+
+	var target_relic_manager: RelicManager = enemy_relic_manager if unit.team_id == 2 else relic_manager
+	if target_relic_manager == null:
+		return
+
+	if target_relic_manager.has_method("apply_always_on_relics_to_runtime_unit"):
+		target_relic_manager.apply_always_on_relics_to_runtime_unit(unit)
 
 
 func _check_battle_result() -> void:

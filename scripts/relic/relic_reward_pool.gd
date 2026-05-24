@@ -37,6 +37,7 @@ const OPENING_TOME_RELIC_DATA: Resource = preload("res://data/relics/opening_tom
 const DYNAMO_NEEDLE_RELIC_DATA: Resource = preload("res://data/relics/dynamo_needle.tres")
 const MIRAGE_CLOAK_RELIC_DATA: Resource = preload("res://data/relics/mirage_cloak.tres")
 const GRAVEBONE_CHARM_RELIC_DATA: Resource = preload("res://data/relics/gravebone_charm.tres")
+const VITALITY_TROPHY_RELIC_DATA: Resource = preload("res://data/relics/vitality_trophy.tres")
 
 var _relic_data_list: Array[Resource] = [
 	BATTLE_BANNER_RELIC_DATA,
@@ -72,6 +73,7 @@ var _relic_data_list: Array[Resource] = [
 	DYNAMO_NEEDLE_RELIC_DATA,
 	MIRAGE_CLOAK_RELIC_DATA,
 	GRAVEBONE_CHARM_RELIC_DATA,
+	VITALITY_TROPHY_RELIC_DATA,
 ]
 
 

@@ -8,6 +8,7 @@ const MERGE_SERVICE_SCRIPT: Script = preload("res://scripts/roster/merge_service
 
 const MAX_STAR: int = 3
 const DEFAULT_UNIT_PRICE: int = 2
+const PERMANENT_STAT_BONUSES_KEY: String = "permanent_stat_bonuses"
 
 var active_roster: Array[Dictionary] = []
 var bench_roster: Array[Dictionary] = []
@@ -239,6 +240,24 @@ func get_bench_roster() -> Array[Dictionary]:
 	for roster_item: Dictionary in bench_roster:
 		roster.append(roster_item.duplicate(true))
 	return roster
+
+
+func add_permanent_stat_bonus_by_roster_id(roster_id: int, stat_name: String, amount: float) -> bool:
+	if roster_id <= 0 or stat_name.strip_edges() == "" or is_zero_approx(amount):
+		return false
+
+	if _add_permanent_stat_bonus_to_roster(active_roster, roster_id, stat_name, amount):
+		return true
+
+	return _add_permanent_stat_bonus_to_roster(bench_roster, roster_id, stat_name, amount)
+
+
+func get_permanent_stat_bonuses_by_roster_id(roster_id: int) -> Dictionary:
+	var roster_item: Dictionary = _find_roster_item_by_id(roster_id)
+	if roster_item.is_empty():
+		return {}
+
+	return _sanitize_permanent_stat_bonuses(roster_item.get(PERMANENT_STAT_BONUSES_KEY, {}))
 
 
 func restore_lineup_snapshot(active_units: Array, bench_units: Array, global_effects: Dictionary) -> void:
@@ -501,6 +520,7 @@ func create_roster_item(unit_data: Resource, star: int = 1, base_price: int = -1
 		"display_name": get_unit_data_name(unit_data),
 		"star": safe_star,
 		"base_price": _get_unit_base_price(unit_data, base_price),
+		PERMANENT_STAT_BONUSES_KEY: {},
 		"has_saved_cell": false,
 		"saved_cell": Vector2i(-1, -1),
 		"has_saved_position": false,
@@ -550,6 +570,7 @@ func _create_roster_item_from_snapshot(unit_snapshot: Dictionary) -> Dictionary:
 		"display_name": str(unit_snapshot.get("display_name", get_unit_data_name(unit_data))),
 		"star": clampi(int(unit_snapshot.get("star", 1)), 1, MAX_STAR),
 		"base_price": int(unit_snapshot.get("base_price", _get_unit_base_price(unit_data, -1))),
+		PERMANENT_STAT_BONUSES_KEY: _sanitize_permanent_stat_bonuses(unit_snapshot.get(PERMANENT_STAT_BONUSES_KEY, {})),
 		"has_saved_cell": bool(unit_snapshot.get("has_saved_cell", false)),
 		"saved_cell": unit_snapshot.get("saved_cell", Vector2i(-1, -1)) as Vector2i,
 		"has_saved_position": bool(unit_snapshot.get("has_saved_position", false)),
@@ -572,6 +593,47 @@ func _unlock_roster_units(roster: Array[Dictionary]) -> void:
 	for roster_item: Dictionary in roster:
 		var unit_data: Resource = roster_item.get("unit_data", null) as Resource
 		unlock_unit_data(unit_data)
+
+
+func _add_permanent_stat_bonus_to_roster(roster: Array[Dictionary], roster_id: int, stat_name: String, amount: float) -> bool:
+	for roster_item: Dictionary in roster:
+		if int(roster_item.get("roster_id", -1)) != roster_id:
+			continue
+
+		var bonuses: Dictionary = _sanitize_permanent_stat_bonuses(roster_item.get(PERMANENT_STAT_BONUSES_KEY, {}))
+		bonuses[stat_name] = float(bonuses.get(stat_name, 0.0)) + amount
+		roster_item[PERMANENT_STAT_BONUSES_KEY] = bonuses
+		return true
+
+	return false
+
+
+func _find_roster_item_by_id(roster_id: int) -> Dictionary:
+	for roster_item: Dictionary in active_roster:
+		if int(roster_item.get("roster_id", -1)) == roster_id:
+			return roster_item
+
+	for roster_item: Dictionary in bench_roster:
+		if int(roster_item.get("roster_id", -1)) == roster_id:
+			return roster_item
+
+	return {}
+
+
+func _sanitize_permanent_stat_bonuses(value: Variant) -> Dictionary:
+	var bonuses: Dictionary = {}
+	if not (value is Dictionary):
+		return bonuses
+
+	var source: Dictionary = value as Dictionary
+	for stat_name_value: Variant in source.keys():
+		var stat_name: String = str(stat_name_value).strip_edges()
+		if stat_name == "":
+			continue
+
+		bonuses[stat_name] = float(source.get(stat_name_value, 0.0))
+
+	return bonuses
 
 
 func get_unit_id(unit_data: Resource) -> String:

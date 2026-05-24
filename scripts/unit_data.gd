@@ -41,3 +41,8 @@ extends Resource
 @export_enum("melee", "projectile") var basic_attack_type: String = "melee"
 @export var projectile_speed: float = 500.0
 @export_enum("arrow", "bolt", "magic", "holy", "flask", "bomb", "dark", "curse") var projectile_visual_type: String = "arrow"
+@export var board_sprite: Texture2D = null
+@export var portrait_texture: Texture2D = null
+@export var icon_texture: Texture2D = null
+@export var art_scale: float = 1.0
+@export var art_offset: Vector2 = Vector2.ZERO

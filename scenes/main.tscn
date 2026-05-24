@@ -180,9 +180,13 @@ text = "阵容"
 [node name="RewardPanel Panel" parent="UI CanvasLayer" instance=ExtResource("14_reward_panel")]
 
 [node name="HeroSelectionPanel Panel" parent="UI CanvasLayer" instance=ExtResource("36_hero_selection_panel")]
+z_index = 20
 
 [node name="UnitDetailPanel Panel" parent="UI CanvasLayer" instance=ExtResource("17_unit_detail_panel")]
+z_index = 20
 
 [node name="RelicBarPanel Panel" parent="UI CanvasLayer" instance=ExtResource("18_relic_bar_panel")]
+z_index = 0
 
 [node name="RelicDetailPanel Panel" parent="UI CanvasLayer" instance=ExtResource("19_relic_detail_panel")]
+z_index = 30

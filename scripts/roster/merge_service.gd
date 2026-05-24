@@ -126,6 +126,7 @@ func merge_units(
 	if bool(position_source_item.get("has_saved_cell", false)):
 		merged_item["saved_cell"] = position_source_item.get("saved_cell", Vector2i(-1, -1))
 		merged_item["has_saved_cell"] = true
+	merged_item["permanent_stat_bonuses"] = _merge_permanent_stat_bonuses(active_roster, bench_roster, group)
 
 	_remove_merge_group(active_roster, bench_roster, group)
 	if should_return_to_active and active_roster.size() < max_active_units:
@@ -244,6 +245,29 @@ func _group_contains_active_unit(group: Array[Dictionary]) -> bool:
 			return true
 
 	return false
+
+
+func _merge_permanent_stat_bonuses(
+	active_roster: Array[Dictionary],
+	bench_roster: Array[Dictionary],
+	group: Array[Dictionary]
+) -> Dictionary:
+	var merged_bonuses: Dictionary = {}
+	for position: Dictionary in group:
+		var roster_item: Dictionary = _get_roster_item_from_position(active_roster, bench_roster, position)
+		var bonuses_value: Variant = roster_item.get("permanent_stat_bonuses", {})
+		if not (bonuses_value is Dictionary):
+			continue
+
+		var bonuses: Dictionary = bonuses_value as Dictionary
+		for stat_name_value: Variant in bonuses.keys():
+			var stat_name: String = str(stat_name_value).strip_edges()
+			if stat_name == "":
+				continue
+
+			merged_bonuses[stat_name] = float(merged_bonuses.get(stat_name, 0.0)) + float(bonuses.get(stat_name_value, 0.0))
+
+	return merged_bonuses
 
 
 func _remove_merge_group(

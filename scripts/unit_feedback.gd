@@ -13,9 +13,11 @@ func play_attack_feedback(unit: Node2D) -> void:
 	if attack_feedback_tween != null:
 		attack_feedback_tween.kill()
 
+	var feedback_target: Node2D = _get_feedback_target(unit)
+	feedback_target.scale = Vector2.ONE
 	attack_feedback_tween = unit.create_tween()
-	attack_feedback_tween.tween_property(unit, "scale", Vector2(1.12, 0.92), _get_scaled_duration(unit, 0.06))
-	attack_feedback_tween.tween_property(unit, "scale", Vector2.ONE, _get_scaled_duration(unit, 0.08))
+	attack_feedback_tween.tween_property(feedback_target, "scale", Vector2(1.12, 0.92), _get_scaled_duration(unit, 0.06))
+	attack_feedback_tween.tween_property(feedback_target, "scale", Vector2.ONE, _get_scaled_duration(unit, 0.08))
 
 
 func play_damage_feedback(unit: Node2D, body: ColorRect, amount: int, is_critical: bool = false) -> void:
@@ -24,15 +26,16 @@ func play_damage_feedback(unit: Node2D, body: ColorRect, amount: int, is_critica
 
 	_show_damage_number(unit, amount, is_critical)
 
-	if body == null:
+	var flash_target: CanvasItem = _get_flash_target(unit, body)
+	if flash_target == null:
 		return
 
 	if damage_flash_tween != null:
 		damage_flash_tween.kill()
 
-	body.modulate = Color(1.0, 0.35, 0.35)
+	flash_target.modulate = Color(1.0, 0.35, 0.35)
 	damage_flash_tween = unit.create_tween()
-	damage_flash_tween.tween_property(body, "modulate", Color.WHITE, _get_scaled_duration(unit, 0.12))
+	damage_flash_tween.tween_property(flash_target, "modulate", Color.WHITE, _get_scaled_duration(unit, 0.12))
 
 
 func play_heal_feedback(unit: Node2D, amount: int) -> void:
@@ -123,3 +126,21 @@ func _get_scaled_duration(unit: Node2D, duration: float) -> float:
 		return duration
 
 	return maxf(duration / maxf(battle_unit.battle_time_scale, 0.01), 0.01)
+
+
+func _get_feedback_target(unit: Node2D) -> Node2D:
+	if unit != null and unit.has_method("get_feedback_target"):
+		var target: Variant = unit.get_feedback_target()
+		if target is Node2D and is_instance_valid(target):
+			return target
+
+	return unit
+
+
+func _get_flash_target(unit: Node2D, fallback_body: ColorRect) -> CanvasItem:
+	if unit != null and unit.has_method("get_flash_target"):
+		var target: Variant = unit.get_flash_target()
+		if target is CanvasItem and is_instance_valid(target):
+			return target
+
+	return fallback_body

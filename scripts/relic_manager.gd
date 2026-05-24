@@ -191,12 +191,16 @@ func trigger_battle_start_relics(player_units: Array[Unit]) -> void:
 	relic_trigger_dispatcher.trigger_battle_start_relics(player_units)
 
 
+func apply_always_on_relics_to_runtime_unit(unit: Unit) -> void:
+	relic_effect_resolver.apply_always_on_relics_to_unit(unit)
+
+
 func trigger_attack_relics(attacker: Unit, target: Unit) -> void:
 	relic_trigger_dispatcher.trigger_attack_relics(attacker, target)
 
 
-func trigger_kill_relics(attacker: Unit, target: Unit) -> void:
-	relic_trigger_dispatcher.trigger_kill_relics(attacker, target)
+func trigger_kill_relics(attacker: Unit, target: Unit, roster_manager: Variant = null, hero_manager: Variant = null) -> void:
+	relic_trigger_dispatcher.trigger_kill_relics(attacker, target, roster_manager, hero_manager)
 
 
 func trigger_death_relics(dead_unit: Unit, enemy_units: Array[Unit], is_battle_active: bool, player_units: Array[Unit]) -> void:

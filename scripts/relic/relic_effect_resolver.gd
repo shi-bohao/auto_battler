@@ -35,6 +35,7 @@ const RELIC_ID_OPENING_TOME: String = "opening_tome"
 const RELIC_ID_DYNAMO_NEEDLE: String = "dynamo_needle"
 const RELIC_ID_MIRAGE_CLOAK: String = "mirage_cloak"
 const RELIC_ID_GRAVEBONE_CHARM: String = "gravebone_charm"
+const RELIC_ID_VITALITY_TROPHY: String = "vitality_trophy"
 const SKELETON_SUMMON_DATA: Resource = preload("res://data/summons/skeleton.tres")
 const GUARDIAN_OATH_DEFENSE_BONUS: int = 25
 const STAR_CROWN_DEFENSE_BONUS: int = 18
@@ -106,6 +107,42 @@ func apply_battle_start_relic(relic_data: Resource, player_units: Array[Unit]) -
 			push_warning("Unknown battle start relic: " + relic_id)
 
 
+func is_always_on_relic(relic_data: Resource) -> bool:
+	var relic_id: String = _get_relic_id(relic_data)
+	return [
+		RELIC_ID_BATTLE_BANNER,
+		RELIC_ID_STEEL_FORMATION,
+		RELIC_ID_SHARP_EDGE,
+		RELIC_ID_BROKEN_FANG,
+		RELIC_ID_ARCANE_CORE,
+		RELIC_ID_MAGE_LENS,
+		RELIC_ID_HEALING_BELL,
+		RELIC_ID_STAR_CROWN,
+		RELIC_ID_CROWN_OF_THREE,
+		RELIC_ID_ARCANE_PRISM,
+		RELIC_ID_MERCY_CENSER,
+		RELIC_ID_PIERCING_WHETSTONE,
+		RELIC_ID_BLOODGLASS_CHARM,
+		RELIC_ID_DYNAMO_NEEDLE,
+	].has(relic_id)
+
+
+func apply_always_on_relics_to_unit(unit: Unit) -> void:
+	if not _is_alive_unit(unit) or not _is_owner_unit(unit):
+		return
+
+	var current_relic_manager: Variant = _get_relic_manager()
+	if current_relic_manager == null or not current_relic_manager.has_method("get_player_relics"):
+		return
+
+	var player_relics: Array[Resource] = current_relic_manager.get_player_relics()
+	for relic_data: Resource in player_relics:
+		if relic_data == null or not is_always_on_relic(relic_data):
+			continue
+
+		_apply_always_on_relic_to_unit(relic_data, unit)
+
+
 func try_apply_hunter_mark_relic(attacker: Unit, target: Unit) -> void:
 	if not _is_archer_unit(attacker):
 		return
@@ -165,6 +202,33 @@ func apply_executioner_sigil_relic(attacker: Unit) -> void:
 
 	print("Relic triggered: Executioner Sigil, " + attacker.display_name + " gains +" + str(roundi(attack_bonus * 100.0)) + "% attack damage")
 	_apply_relic_stat_multiply(attacker, RELIC_ID_EXECUTIONER_SIGIL, "attack_damage", 1.0 + attack_bonus, StatusEffectFactory.STACK_POLICY_PERMANENT_STACK)
+
+
+func apply_vitality_trophy_relic(attacker: Unit, roster_manager: Variant = null, hero_manager: Variant = null) -> void:
+	if not _is_alive_unit(attacker):
+		return
+
+	if attacker.roster_area == "summon" or bool(attacker.get_meta("is_summon", false)):
+		return
+
+	var vitality_trophy: Resource = _get_relic_by_id(RELIC_ID_VITALITY_TROPHY)
+	var max_hp_bonus: float = maxf(0.0, _get_relic_value(vitality_trophy, 5.0))
+	if max_hp_bonus <= 0.0:
+		return
+
+	var did_store_bonus: bool = false
+	if attacker.roster_area == "hero" or bool(attacker.get_meta("is_hero", false)):
+		if hero_manager != null and hero_manager.has_method("add_permanent_stat_bonus"):
+			did_store_bonus = bool(hero_manager.add_permanent_stat_bonus("max_hp", max_hp_bonus))
+	elif attacker.roster_id > 0:
+		if roster_manager != null and roster_manager.has_method("add_permanent_stat_bonus_by_roster_id"):
+			did_store_bonus = bool(roster_manager.add_permanent_stat_bonus_by_roster_id(attacker.roster_id, "max_hp", max_hp_bonus))
+
+	if not did_store_bonus:
+		return
+
+	print("Relic triggered: Vitality Trophy, " + attacker.display_name + " permanently gains +" + str(int(round(max_hp_bonus))) + " max HP")
+	attacker.apply_runtime_stat_bonus("max_hp", max_hp_bonus, true)
 
 
 func apply_victory_drum_relic(attacker: Unit) -> void:
@@ -244,6 +308,71 @@ func apply_gravebone_charm_relic(dead_unit: Unit) -> void:
 	}
 	print("Relic triggered: Gravebone Charm summons a Skeleton")
 	battle_root.summon_units(dead_unit, SKELETON_SUMMON_DATA, 1, context)
+
+
+func _apply_always_on_relic_to_unit(relic_data: Resource, unit: Unit) -> void:
+	if not _is_alive_unit(unit):
+		return
+
+	var relic_id: String = _get_relic_id(relic_data)
+	var applied_meta_key: String = "always_on_relic_" + relic_id
+	if unit.has_meta(applied_meta_key):
+		return
+
+	match relic_id:
+		RELIC_ID_BATTLE_BANNER:
+			_apply_direct_stat_multiply(unit, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.10))
+		RELIC_ID_STEEL_FORMATION:
+			_apply_direct_stat_add(unit, "defense", maxi(0, int(round(_get_relic_value(relic_data, 12.0)))))
+		RELIC_ID_SHARP_EDGE:
+			_apply_direct_stat_add(unit, "crit_chance", _get_relic_value(relic_data, 0.10))
+		RELIC_ID_BROKEN_FANG:
+			if _is_archer_unit(unit) or _is_assassin_unit(unit):
+				_apply_direct_stat_add(unit, "crit_damage_multiplier", _get_relic_value(relic_data, 0.55))
+			else:
+				return
+		RELIC_ID_ARCANE_CORE:
+			_apply_direct_stat_multiply(unit, "mana_regen_per_second", 1.0 + _get_relic_value(relic_data, 0.25))
+		RELIC_ID_MAGE_LENS:
+			if _is_mage_unit(unit):
+				_apply_direct_stat_add(unit, "skill_power", _get_relic_value(relic_data, 0.35))
+			else:
+				return
+		RELIC_ID_HEALING_BELL:
+			if _is_priest_unit(unit):
+				_apply_direct_stat_add(unit, "healing_power", _get_relic_value(relic_data, 0.40))
+			else:
+				return
+		RELIC_ID_STAR_CROWN:
+			if unit.star >= 2:
+				_apply_direct_stat_multiply(unit, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.25))
+				_apply_direct_stat_add(unit, "defense", STAR_CROWN_DEFENSE_BONUS)
+			else:
+				return
+		RELIC_ID_CROWN_OF_THREE:
+			if unit.star == 3:
+				_apply_direct_stat_multiply(unit, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.45))
+				_apply_direct_stat_multiply(unit, "mana_regen_per_second", 1.0 + CROWN_OF_THREE_MANA_REGEN_BONUS)
+			else:
+				return
+		RELIC_ID_ARCANE_PRISM:
+			_apply_direct_stat_add(unit, "skill_power", maxf(0.0, _get_relic_value(relic_data, 0.15)))
+		RELIC_ID_MERCY_CENSER:
+			var output_bonus: float = maxf(0.0, _get_relic_value(relic_data, 0.20))
+			_apply_direct_stat_add(unit, "healing_power", output_bonus)
+			_apply_direct_stat_add(unit, "shield_power", output_bonus)
+		RELIC_ID_PIERCING_WHETSTONE:
+			_apply_direct_stat_add(unit, "defense_penetration", maxi(0, int(round(_get_relic_value(relic_data, 8.0)))))
+		RELIC_ID_BLOODGLASS_CHARM:
+			_apply_direct_stat_add(unit, "life_steal", maxf(0.0, _get_relic_value(relic_data, 0.08)))
+		RELIC_ID_DYNAMO_NEEDLE:
+			var mana_bonus: float = maxf(0.0, _get_relic_value(relic_data, 4.0))
+			_apply_direct_stat_add(unit, "mana_on_attack", mana_bonus)
+			_apply_direct_stat_add(unit, "mana_on_hit_taken", mana_bonus)
+		_:
+			return
+
+	unit.set_meta(applied_meta_key, true)
 
 
 func _apply_battle_banner_relic(relic_data: Resource, player_units: Array[Unit]) -> void:
@@ -537,6 +666,36 @@ func _get_alive_allies_including_self(attacker: Unit) -> Array[Unit]:
 			allies.append(unit)
 
 	return allies
+
+
+func _is_owner_unit(unit: Unit) -> bool:
+	if not _is_alive_unit(unit):
+		return false
+
+	var current_relic_manager: Variant = _get_relic_manager()
+	if current_relic_manager == null or not current_relic_manager.has_method("get_owner_team_id"):
+		return unit.team_id == 1
+
+	return unit.team_id == int(current_relic_manager.get_owner_team_id())
+
+
+func _apply_direct_stat_add(unit: Unit, stat_name: String, value: float) -> void:
+	if not _is_alive_unit(unit) or is_zero_approx(value):
+		return
+
+	unit.apply_runtime_stat_bonus(stat_name, value)
+
+
+func _apply_direct_stat_multiply(unit: Unit, stat_name: String, multiplier: float) -> void:
+	if not _is_alive_unit(unit) or is_equal_approx(multiplier, 1.0):
+		return
+
+	var current_value: Variant = unit.get(stat_name)
+	if current_value == null:
+		return
+
+	var bonus_value: float = float(current_value) * (multiplier - 1.0)
+	_apply_direct_stat_add(unit, stat_name, bonus_value)
 
 
 func _apply_relic_stat_add(unit: Unit, relic_id: String, stat_name: String, value: float, stack_policy: String = StatusEffectFactory.STACK_POLICY_REFRESH_ONLY) -> void:

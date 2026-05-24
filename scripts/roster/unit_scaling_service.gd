@@ -36,6 +36,7 @@ func create_scaled_unit_data(roster_item: Dictionary, hp_multiplier: float, atta
 	configured_data.set("star", star)
 	configured_data.set("unit_name", display_name)
 	configured_data.set("unit_name_cn", display_name)
+	_apply_permanent_stat_bonuses(configured_data, roster_item)
 	return configured_data
 
 
@@ -423,6 +424,48 @@ func _get_float_property(resource: Resource, property_name: String, default_valu
 		return default_value
 
 	return float(configured_value)
+
+
+func _apply_permanent_stat_bonuses(configured_data: Resource, roster_item: Dictionary) -> void:
+	if configured_data == null:
+		return
+
+	var bonuses_value: Variant = roster_item.get("permanent_stat_bonuses", {})
+	if not (bonuses_value is Dictionary):
+		return
+
+	var bonuses: Dictionary = bonuses_value as Dictionary
+	for stat_name_value: Variant in bonuses.keys():
+		var stat_name: String = str(stat_name_value).strip_edges()
+		if stat_name == "":
+			continue
+
+		_apply_permanent_stat_bonus(configured_data, stat_name, float(bonuses.get(stat_name_value, 0.0)))
+
+
+func _apply_permanent_stat_bonus(configured_data: Resource, stat_name: String, amount: float) -> void:
+	if is_zero_approx(amount):
+		return
+
+	var current_value: Variant = configured_data.get(stat_name)
+	if current_value == null:
+		return
+
+	match stat_name:
+		"max_hp", "attack_damage":
+			configured_data.set(stat_name, maxi(1, int(round(float(current_value) + amount))))
+		"defense", "defense_penetration":
+			configured_data.set(stat_name, maxi(0, int(round(float(current_value) + amount))))
+		"crit_chance", "life_steal", "damage_reduction", "status_resistance", "dodge_chance":
+			configured_data.set(stat_name, clampf(float(current_value) + amount, 0.0, 1.0))
+		"crit_damage_multiplier":
+			configured_data.set(stat_name, maxf(1.0, float(current_value) + amount))
+		"attack_interval", "damage_taken_multiplier":
+			configured_data.set(stat_name, maxf(0.05, float(current_value) + amount))
+		"move_speed":
+			configured_data.set(stat_name, maxf(1.0, float(current_value) + amount))
+		_:
+			configured_data.set(stat_name, float(current_value) + amount)
 
 
 func _get_star_text(star: int) -> String:

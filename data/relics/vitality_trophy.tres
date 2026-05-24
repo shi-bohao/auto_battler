@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_vitality"]
+
+[resource]
+script = ExtResource("1_vitality")
+relic_id = "vitality_trophy"
+relic_name = "Vitality Trophy"
+relic_name_cn = "生命战利品"
+description = "When a non-summoned player unit kills an enemy, that unit permanently gains +5 max HP for this run."
+description_cn = "友方非召唤单位击杀敌人时，该单位本局永久获得 +5 最大生命值。"
+rarity = "RARE"
+trigger_type = "ON_KILL"
+value = 5.0
