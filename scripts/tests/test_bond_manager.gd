@@ -207,6 +207,7 @@ func _test_summon_bond_applies_to_new_summons_and_death_event() -> void:
 	summon_2_manager.apply_bonds_to_summoned_unit(tier_2_skeleton)
 	_expect_int(tier_2_skeleton.attack_damage, int(round(float(SKELETON_DATA.get("attack_damage")) * 1.15)), "Summon 2 should increase new summon attack.")
 	_expect_int(tier_2_skeleton.max_hp, int(round(float(SKELETON_DATA.get("max_hp")) * 1.15)), "Summon 2 should increase new summon max HP.")
+	_expect_int(tier_2_skeleton.hp, tier_2_skeleton.max_hp, "Summon 2 should not raise current HP above max HP.")
 
 	var bond_manager: Variant = BOND_MANAGER_SCRIPT.new()
 	var player_units: Array[Unit] = [
@@ -226,6 +227,7 @@ func _test_summon_bond_applies_to_new_summons_and_death_event() -> void:
 	bond_manager.apply_bonds_to_summoned_unit(skeleton)
 	_expect_int(skeleton.attack_damage, int(round(float(SKELETON_DATA.get("attack_damage")) * 1.25)), "Summon 3 should increase new summon attack.")
 	_expect_int(skeleton.max_hp, int(round(float(SKELETON_DATA.get("max_hp")) * 1.25)), "Summon 3 should increase new summon max HP.")
+	_expect_int(skeleton.hp, skeleton.max_hp, "Summon 3 should not raise current HP above max HP.")
 
 	skeleton.is_alive = false
 	bond_manager.handle_unit_died(skeleton, player_units)

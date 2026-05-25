@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_goldhunter"]
+
+[resource]
+script = ExtResource("1_goldhunter")
+relic_id = "goldhunter_contract"
+relic_name = "Goldhunter Contract"
+relic_name_cn = "猎金契约"
+description = "Player units have a 35% chance to gain 1 gold on kill. No per-battle cap."
+description_cn = "玩家单位击杀敌人时，有 35% 概率获得 1 金币；每场战斗不设上限。"
+rarity = "EPIC"
+trigger_type = "ON_KILL"
+value = 0.35

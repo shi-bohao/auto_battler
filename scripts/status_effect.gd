@@ -59,6 +59,7 @@ var _is_stat_applied: bool = false
 var _applied_value: float = 0.0
 var _applied_stat_name: String = ""
 var _applied_effect_type: String = ""
+var _applied_modifier_id: String = ""
 
 
 func setup(effect_data: Dictionary) -> void:
@@ -276,6 +277,27 @@ func _apply_stat_modifier() -> void:
 	if stat_name.strip_edges() == "" or not _is_valid_unit(target_unit):
 		return
 
+	if target_unit.has_method("add_stat_modifier"):
+		var modifier_stage: String = StatModifier.STAGE_RUNTIME_FLAT
+		if effect_type == EFFECT_STAT_MULTIPLY:
+			modifier_stage = StatModifier.STAGE_FINAL_MULTIPLY
+		elif effect_type != EFFECT_STAT_ADD:
+			return
+
+		_applied_modifier_id = "status:" + stack_instance_key + ":" + stat_name
+		target_unit.add_stat_modifier({
+			"modifier_id": _applied_modifier_id,
+			"source_key": "status:" + stack_group_key,
+			"stat_name": stat_name,
+			"stage": modifier_stage,
+			"value": value,
+		})
+		_is_stat_applied = true
+		_applied_value = value
+		_applied_stat_name = stat_name
+		_applied_effect_type = effect_type
+		return
+
 	var current_value: float = _get_stat_value(target_unit, stat_name)
 	var new_value: float = current_value
 	match effect_type:
@@ -300,6 +322,12 @@ func _remove_stat_modifier() -> void:
 
 	if not _is_valid_unit(target_unit):
 		_is_stat_applied = false
+		return
+
+	if _applied_modifier_id.strip_edges() != "" and target_unit.has_method("remove_stat_modifier"):
+		target_unit.remove_stat_modifier(_applied_modifier_id)
+		_is_stat_applied = false
+		_applied_modifier_id = ""
 		return
 
 	var current_value: float = _get_stat_value(target_unit, _applied_stat_name)

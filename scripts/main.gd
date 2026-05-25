@@ -77,6 +77,7 @@ var hero_selection_panel_controller: Variant = HERO_SELECTION_PANEL_CONTROLLER_S
 var battle_time_manager: Variant = BATTLE_TIME_MANAGER_SCRIPT.new()
 var bond_manager: Variant = BOND_MANAGER_SCRIPT.new()
 var mirror_enemy_relic_manager: RelicManager = null
+var gold_relic_logs: Array[String] = []
 var mirror_info_button: Button = null
 var mirror_info_panel: Panel = null
 var mirror_info_text: RichTextLabel = null
@@ -166,6 +167,10 @@ func _ready() -> void:
 	encounter_manager.use_random_encounters = use_random_encounters
 	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager)
 	reward_manager.setup(relic_manager, roster_manager)
+	relic_manager.set_gold_callback(Callable(self, "_on_relic_gold_added"))
+	relic_manager.set_gold_query_callback(Callable(economy_manager, "get_gold"))
+	if not economy_manager.gold_changed.is_connected(_on_gold_changed):
+		economy_manager.gold_changed.connect(_on_gold_changed)
 	battle_manager.setup(self, unit_scene, stats_manager, relic_manager, battle_board, Callable(self, "_on_prepare_unit_drop_requested"), hero_manager, bond_manager)
 	battle_manager.set_roster_manager(roster_manager)
 	battle_manager.battle_ended.connect(_on_battle_ended)
@@ -952,10 +957,26 @@ func _on_start_button_pressed() -> void:
 
 func _on_battle_ended(result_text: String, player_won: bool) -> void:
 	var encounter_type: String = _get_current_encounter_type()
-	var gold_reward: int = _get_victory_gold_reward(encounter_type)
-	if player_won and gold_reward > 0:
-		_add_gold(gold_reward)
-		print(_get_victory_gold_reward_debug_text(encounter_type, gold_reward))
+	gold_relic_logs.clear()
+	if player_won:
+		var pre_reward_gold: int = economy_manager.gold
+		var base_reward: int = _get_victory_gold_reward(encounter_type)
+		var is_final_boss: bool = encounter_type == "BOSS" and run_controller.is_final_boss_victory(encounter_type)
+		var round_reward_result: Dictionary = {}
+		if not is_final_boss:
+			round_reward_result = relic_manager.trigger_round_reward_relics(encounter_type, run_controller.current_round, run_controller.max_round, pre_reward_gold, base_reward)
+		var extra_gold: int = int(round_reward_result.get("extra_gold", 0))
+		var logs: PackedStringArray = round_reward_result.get("logs", PackedStringArray()) as PackedStringArray
+		for log_line: String in logs:
+			gold_relic_logs.append(log_line)
+		var total_gold: int = base_reward + extra_gold
+		if total_gold > 0:
+			_add_gold(total_gold)
+			var log_text: String = _get_victory_gold_reward_debug_text(encounter_type, base_reward)
+			if extra_gold > 0:
+				log_text += "，遗物额外金币：" + ", ".join(logs)
+			log_text += "，金币 +" + str(total_gold) + "，当前金币：" + str(economy_manager.gold)
+			print(log_text)
 
 	_show_battle_statistics(result_text)
 	if player_won and encounter_type == "BOSS":
@@ -1187,6 +1208,7 @@ func _create_mirror_enemy_relic_manager_for_current_round() -> RelicManager:
 
 	mirror_enemy_relic_manager = RelicManager.new()
 	mirror_enemy_relic_manager.set_owner_team_id(2)
+	mirror_enemy_relic_manager.set_battle_gold_context(mirror_challenge_manager.get_snapshot_gold_for_round(run_controller.current_round))
 	mirror_enemy_relic_manager.restore_relic_ids(relic_ids)
 	return mirror_enemy_relic_manager
 
@@ -1230,6 +1252,20 @@ func _add_gold(amount: int) -> void:
 	economy_manager.add_gold(amount)
 	_update_gold_label()
 	print("金币 +" + str(amount) + "，当前金币：" + str(economy_manager.gold))
+
+
+func _on_relic_gold_added(amount: int) -> void:
+	economy_manager.add_gold(amount)
+	_update_gold_label()
+
+
+func _on_gold_changed(_new_gold: int, _delta: int) -> void:
+	_refresh_dynamic_stat_modifiers()
+
+
+func _refresh_dynamic_stat_modifiers() -> void:
+	if battle_manager != null and battle_manager.has_method("refresh_dynamic_relic_auras"):
+		battle_manager.refresh_dynamic_relic_auras()
 
 
 func _get_victory_gold_reward(encounter_type: String) -> int:
@@ -1574,6 +1610,7 @@ func _buy_shop_relic(shop_index: int, shop_item: Dictionary, price: int, relic_n
 
 	relic_manager.add_relic(relic_data)
 	shop_manager.mark_item_sold(shop_index)
+	_refresh_dynamic_stat_modifiers()
 	_update_gold_label()
 	_refresh_shop_panel()
 	_refresh_relic_bar()
@@ -1712,6 +1749,7 @@ func _handle_hero_unit_drop(unit: Unit, fallback_position: Vector2, drop_cell: V
 		unit.position = snapped_position
 		if hero_manager != null and hero_manager.has_method("save_hero_cell"):
 			hero_manager.save_hero_cell(drop_cell, snapped_position)
+		_refresh_dynamic_stat_modifiers()
 		result_label.text = "已调整英雄站位"
 		return
 
@@ -1724,6 +1762,7 @@ func _handle_active_unit_drop(unit: Unit, fallback_position: Vector2, drop_cell:
 		var snapped_position: Vector2 = battle_board.grid_to_world(drop_cell)
 		unit.position = snapped_position
 		roster_manager.save_active_unit_cell(unit.roster_id, drop_cell, snapped_position)
+		_refresh_dynamic_stat_modifiers()
 		return
 
 	if battle_board.is_valid_bench_slot(drop_bench_slot) \
@@ -1760,6 +1799,7 @@ func _handle_bench_unit_drop(unit: Unit, fallback_position: Vector2, drop_cell: 
 		if roster_manager.move_bench_to_active_by_id(unit.roster_id):
 			roster_manager.save_active_unit_cell(unit.roster_id, drop_cell, snapped_position)
 			_refresh_roster_preview_without_saving()
+			_refresh_dynamic_stat_modifiers()
 			_refresh_shop_panel()
 			result_label.text = "已部署单位"
 			return

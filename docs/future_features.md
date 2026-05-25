@@ -8,13 +8,23 @@
 
 | 功能 | 状态 | 实现日期 |
 |------|------|----------|
-| 金币经济遗物 | **待实现** | - |
+| 金币经济遗物 | **已完成** | 2026-05-25 |
 | 远程普攻真实弹道 | **已完成** | 2026-05-23 |
 | 非圆形瞬时 AoE（矩形/扇形） | **已完成** | 2026-05-23 |
 
 已完成的功能设计文档仍保留在下方作为实现参考，标题以 ~~删除线~~ 标记。
 
-## 待实现：金币经济遗物
+## ~~待实现：金币经济遗物~~ （已完成）
+
+> 此功能已于 2026-05-25 按本文档设计实现。实现入口见：
+> - `scripts/relic/relic_effect_resolver.gd` — 金币遗物数值计算与效果应用
+> - `scripts/relic/relic_trigger_dispatcher.gd` — `ON_ROUND_REWARD` 分发与击杀金币接入
+> - `scripts/relic_manager.gd` — `set_battle_gold_context()` / `trigger_round_reward_relics()` / `reset_battle_relic_state()`
+> - `scripts/main.gd` — 胜利结算接入 `ON_ROUND_REWARD`，金币回调与上下文传递
+> - `scripts/battle_manager.gd` — 战斗开始时调用 `reset_battle_relic_state()`
+> - `data/relics/` — 9 件新遗物资源文件
+
+### 原始设计（已按此实现）
 
 ### 目标
 
@@ -24,7 +34,7 @@
 
 - 胜利结算额外金币：在战斗胜利后的金币结算阶段触发。
 - 击杀金币：玩家单位击杀敌人时触发，可带每场战斗上限或概率。
-- 持有金币转化属性：战斗开始时根据当前金币数量给玩家运行时单位提供本场战斗属性。
+- 持有金币转化属性：通过 `AURA` 与属性修饰器读取实时金币，金币变化后动态刷新玩家运行时单位的本场战斗属性。
 
 ### 新增触发类型
 
@@ -64,11 +74,11 @@ economy_manager.add_gold(base_reward + extra_reward_gold)
 | FINE | 战利品账本 | Spoils Ledger | `spoils_ledger` | `ON_ROUND_REWARD` | 每次战斗胜利后，额外获得 2 金币；如果是 Boss 战胜利，额外获得 4 金币。 |
 | FINE | 赏金匕首 | Bounty Dagger | `bounty_dagger` | `ON_KILL` | 玩家单位每击杀 3 个敌人，获得 1 金币；每场战斗最多获得 3 金币。 |
 | FINE | 投资账本 | Investment Ledger | `investment_ledger` | `ON_ROUND_REWARD` | 战斗胜利结算时，每持有 10 金币，额外获得 1 金币，最多 3 金币。 |
-| FINE | 金甲契约 | Golden Armor Contract | `golden_armor_contract` | `BATTLE_START` | 战斗开始时，每拥有 2 金币，所有玩家前排单位获得 1 防御，最多 25 防御。 |
-| RARE | 黄金护符 | Golden Charm | `golden_charm` | `BATTLE_START` | 战斗开始时，每拥有 1 金币，所有玩家单位攻击力提高 1%，最多 20%。 |
+| FINE | 金甲契约 | Golden Armor Contract | `golden_armor_contract` | `AURA` | 光环：每拥有 2 金币，所有玩家前排单位获得 1 防御，最多 25 防御。（实现时改为 AURA 类型） |
+| RARE | 黄金护符 | Golden Charm | `golden_charm` | `AURA` | 光环：每拥有 1 金币，所有玩家单位攻击力提高 1%，最多 20%。（实现时改为 AURA 类型） |
 | EPIC | 猎金契约 | Goldhunter Contract | `goldhunter_contract` | `ON_KILL` | 玩家单位击杀敌人时，有 35% 概率获得 1 金币；每场战斗不设上限。 |
 | EPIC | 复利核心 | Compound Core | `compound_core` | `ON_ROUND_REWARD` | 战斗胜利结算时，每持有 8 金币，额外获得 1 金币，不设上限。 |
-| LEGENDARY | 贪婪王冠 | Crown of Greed | `crown_of_greed` | `BATTLE_START` | 战斗开始时，每拥有 5 金币，所有玩家单位获得攻击力 +3%、技能强度 +3%、治疗强度 +3%，不设上限。 |
+| LEGENDARY | 贪婪王冠 | Crown of Greed | `crown_of_greed` | `AURA` | 光环：每拥有 5 金币，所有玩家单位获得攻击力 +3%、技能强度 +3%、治疗强度 +3%，不设上限。（实现时改为 AURA 类型） |
 
 ### 资源配置建议
 
@@ -125,9 +135,9 @@ value = 1.0
 | `scripts/relic/relic_trigger_dispatcher.gd` | 新增 `RELIC_TRIGGER_ROUND_REWARD = "ON_ROUND_REWARD"`，新增 `trigger_round_reward_relics(...)`，并在击杀入口接入 `bounty_dagger`、`goldhunter_contract`。 |
 | `scripts/relic/relic_effect_resolver.gd` | 实现金币奖励计算、击杀金币、根据金币转换战斗属性。 |
 | `scripts/relic_manager.gd` | 对外新增 `trigger_round_reward_relics(...)`，返回金币增量与日志明细。 |
-| `scripts/game/economy_manager.gd` | 可选：新增辅助方法 `get_round_reward_context(...)` 或保持只由 `main.gd` 传入当前金币和基础奖励。 |
-| `scripts/main.gd` | 在胜利结算处接入 `ON_ROUND_REWARD`，把额外金币并入最终发放并刷新 UI。 |
-| `scripts/battle_manager.gd` | 战斗开始遗物需要拿到开战时金币数量；推荐由 `start_battle()` 增加 `player_gold` 参数或由 `RelicManager` 保存当前经济上下文。 |
+| `scripts/game/economy_manager.gd` | 新增 `gold_changed` 信号，金币变化后通知动态属性光环刷新。 |
+| `scripts/main.gd` | 在胜利结算处接入 `ON_ROUND_REWARD`，把额外金币并入最终发放并刷新 UI；监听金币变化并刷新动态光环。 |
+| `scripts/battle_manager.gd` | 战斗开始时重置每场金币遗物状态，并提供 `refresh_dynamic_relic_auras()` 刷新当前运行时单位。 |
 
 推荐不要让 `RelicEffectResolver` 直接持有 `EconomyManager` 强引用。金币变动可以由触发函数返回给 `main.gd` 统一调用 `economy_manager.add_gold()`，这样 UI 刷新、日志和流程控制仍集中在经济入口。
 
@@ -211,27 +221,27 @@ func trigger_round_reward_relics(
 
 #### Golden Armor Contract / 金甲契约
 
-触发：`BATTLE_START`
+触发：`AURA`
 
 规则：
 
-- 使用战斗开始瞬间的金币数。
+- 使用当前实时金币数，金币变化后通过动态 modifier 刷新。
 - `defense_bonus = min(floor(current_gold / 2), 25)`。
 - 只影响玩家前排单位。
 - 前排判定沿用现有 `Bulwark Rune` 或前排遗物使用的筛选规则，避免新增一套坐标判断。
 - 只修改本场运行时单位，不写回 `UnitData`、阵容永久属性或英雄成长。
-- 召唤物不吃战斗开始遗物，沿用当前规则。
+- 召唤物不会吃开战型旧 Buff；动态金币光环按当前 AURA 规则处理。
 
 #### Golden Charm / 黄金护符
 
-触发：`BATTLE_START`
+触发：`AURA`
 
 规则：
 
-- 使用战斗开始瞬间的金币数。
+- 使用当前实时金币数，金币变化后通过动态 modifier 刷新。
 - `attack_bonus = min(current_gold * 0.01, 0.20)`。
-- 所有玩家非召唤单位攻击力提高对应百分比。
-- 建议复用现有运行时属性加成方式，例如 `_apply_relic_stat_multiply(unit, relic_id, "attack_damage", 1.0 + attack_bonus)`。
+- 所有玩家单位攻击力提高对应百分比。
+- 当前实现通过 `UnitStatController` 的 `RUNTIME_PERCENT` 动态 modifier 处理，避免重复叠加或覆盖其他来源。
 
 #### Goldhunter Contract / 猎金契约
 
@@ -260,20 +270,20 @@ func trigger_round_reward_relics(
 
 #### Crown of Greed / 贪婪王冠
 
-触发：`BATTLE_START`
+触发：`AURA`
 
 规则：
 
-- 使用战斗开始瞬间的金币数。
+- 使用当前实时金币数，金币变化后通过动态 modifier 刷新。
 - `steps = floor(current_gold / 5)`。
 - `bonus = steps * 0.03`。
 - 不设上限。
-- 所有玩家非召唤单位获得：
+- 所有玩家单位获得：
   - 攻击力乘算：`attack_damage *= 1.0 + bonus`
   - 技能强度加算：`skill_power += bonus`
   - 治疗强度加算：`healing_power += bonus`
 - 只影响本场运行时单位。
-- 与 `Golden Charm` 同时存在时，两个攻击力乘算效果都应可叠加。推荐都通过现有遗物属性加成入口，避免互相覆盖。
+- 与 `Golden Charm` 同时存在时，两个攻击力百分比效果在同一属性层级内加算后结算，避免互相覆盖。
 
 ### UI 与日志
 
@@ -311,10 +321,10 @@ scripts/tests/test_gold_relics.gd
 7. `Bounty Dagger` 新战斗开始后计数和本场获得金币数清零。
 8. `Goldhunter Contract` 概率触发可用固定 RNG 或 mock 方式验证成功与失败分支。
 9. `Golden Armor Contract` 在 0/1/2/50/80 金币时分别给前排 +0/+0/+1/+25/+25 防御。
-10. `Golden Armor Contract` 只影响前排玩家单位，不影响后排、敌人或召唤物。
+10. `Golden Armor Contract` 只影响前排玩家单位，不影响后排或敌人；召唤物按当前 AURA 规则处理。
 11. `Golden Charm` 在 0/10/20/30 金币时分别给全队 +0%/+10%/+20%/+20% 攻击。
 12. `Crown of Greed` 在 0/4/5/10/25 金币时分别给全队 +0%/+0%/+3%/+6%/+15% 攻击、技能强度和治疗强度。
-13. 战斗结束后战斗开始类金币属性加成不会永久写回 `UnitData` 或阵容。
+13. 金币动态光环不会永久写回 `UnitData` 或阵容，金币归零或失去前排条件后会恢复基础属性。
 14. Restart 后击杀计数、临时战斗状态和金币遗物状态全部清空。
 15. 商店、奖励三选一、遗物去重和遗物详情显示新遗物正常。
 
@@ -326,10 +336,10 @@ scripts/tests/test_gold_relics.gd
 4. 在 `RelicManager` 中暴露 `trigger_round_reward_relics()` 与 `reset_battle_relic_state()`。
 5. 在 `RelicEffectResolver` 中实现每件遗物的数值计算和战斗属性应用。
 6. 在 `main.gd` 胜利金币结算处接入 `ON_ROUND_REWARD`。
-7. 在 `BattleManager.start_battle()` 或其调用方传入战斗开始金币，供 `BATTLE_START` 金币转属性遗物使用。
+7. 接入 `EconomyManager.gold_changed` 与 `BattleManager.refresh_dynamic_relic_auras()`，供金币转属性遗物动态刷新。
 8. 为 `Bounty Dagger` 和 `Goldhunter Contract` 接入击杀入口，并处理每场战斗临时状态。
 9. 更新 `docs/relic_design.md` 和 `docs/content_reference.md`。
-10. 新增并运行 `scripts/tests/test_gold_relics.gd`，再跑 `main.gd --check-only` 与项目启动退出检查。
+10. 新增并运行 `scripts/tests/test_stat_modifier_system.gd`，再跑 `main.gd --check-only` 与项目启动退出检查。
 
 ## ~~1. 远程普攻真实弹道~~ （已完成）
 

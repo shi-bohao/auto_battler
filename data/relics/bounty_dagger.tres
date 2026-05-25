@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_bounty_dagger"]
+
+[resource]
+script = ExtResource("1_bounty_dagger")
+relic_id = "bounty_dagger"
+relic_name = "Bounty Dagger"
+relic_name_cn = "赏金匕首"
+description = "Player units gain 1 gold every 3 kills, up to 3 gold per battle."
+description_cn = "玩家单位每击杀 3 个敌人，获得 1 金币；每场战斗最多获得 3 金币。"
+rarity = "FINE"
+trigger_type = "ON_KILL"
+value = 3.0

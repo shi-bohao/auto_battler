@@ -880,16 +880,67 @@ func _apply_status_effect(
 
 
 func _apply_ally_attack_and_mana_regen_bonus(unit: Variant, attack_bonus: float, mana_regen_bonus: float) -> void:
+	var source_key: String = _get_modifier_source_key("passive:" + str(unit.passive_id) + ":ally_bonus", unit)
 	for ally_value: Variant in unit.ally_units:
 		var ally: Variant = ally_value
 		if not _is_valid_unit(ally) or not ally.is_alive:
 			continue
 
 		if attack_bonus != 0.0:
-			ally.attack_damage = maxi(1, int(round(float(ally.attack_damage) * (1.0 + attack_bonus))))
+			_apply_runtime_percent_modifier(ally, source_key, "attack_damage", attack_bonus)
 		if mana_regen_bonus != 0.0:
-			ally.mana_regen_per_second *= 1.0 + mana_regen_bonus
+			_apply_runtime_percent_modifier(ally, source_key, "mana_regen_per_second", mana_regen_bonus)
 		ally.update_info_display()
+
+
+func _apply_runtime_flat_modifier(unit: Variant, source_key: String, stat_name: String, value: float) -> void:
+	_apply_runtime_stat_modifier(unit, source_key, stat_name, StatModifier.STAGE_RUNTIME_FLAT, value)
+
+
+func _apply_runtime_percent_modifier(unit: Variant, source_key: String, stat_name: String, value: float) -> void:
+	_apply_runtime_stat_modifier(unit, source_key, stat_name, StatModifier.STAGE_RUNTIME_PERCENT, value)
+
+
+func _apply_runtime_stat_modifier(unit: Variant, source_key: String, stat_name: String, stage: String, value: float) -> void:
+	if not _is_valid_unit(unit) or stat_name.strip_edges() == "":
+		return
+
+	if is_zero_approx(value):
+		return
+
+	var clean_source: String = source_key.strip_edges()
+	if clean_source == "":
+		clean_source = "passive:runtime"
+
+	if unit.has_method("add_stat_modifier"):
+		unit.add_stat_modifier({
+			"modifier_id": clean_source + ":" + stat_name + ":" + stage,
+			"source_key": clean_source,
+			"stat_name": stat_name,
+			"stage": stage,
+			"value": value,
+		})
+		return
+
+	var current_value: Variant = unit.get(stat_name)
+	if current_value == null:
+		return
+
+	match stage:
+		StatModifier.STAGE_RUNTIME_FLAT:
+			unit.set(stat_name, float(current_value) + value)
+		StatModifier.STAGE_RUNTIME_PERCENT:
+			unit.set(stat_name, float(current_value) * (1.0 + value))
+
+
+func _get_modifier_source_key(prefix: String, source_unit: Variant) -> String:
+	var source_id: String = ""
+	if _is_valid_unit(source_unit):
+		source_id = str(source_unit.unit_id)
+		if source_id == "" or source_id == "0":
+			source_id = str(source_unit.get_instance_id())
+
+	return prefix + ":" + source_id
 
 
 func _apply_iron_oath_battle_start(hero: Variant) -> void:
@@ -945,7 +996,7 @@ func _apply_arcane_mentor_battle_start(hero: Variant) -> void:
 			continue
 
 		if _hero_has_upgrade(hero, "arcane_mana_surge"):
-			ally.mana_regen_per_second *= 1.10
+			_apply_runtime_percent_modifier(ally, _get_modifier_source_key("hero_upgrade:arcane_mana_surge", hero), "mana_regen_per_second", 0.10)
 		if _hero_has_upgrade(hero, "arcane_elemental_overload") and _is_elemental_overload_unit(ally):
 			ally.add_battle_attack_bonus_percent(0.12)
 		ally.update_info_display()
@@ -961,9 +1012,9 @@ func _apply_bloodshadow_hunter_battle_start(hero: Variant) -> void:
 			continue
 
 		if _hero_has_upgrade(hero, "blood_lethal_instinct"):
-			ally.crit_chance = clampf(ally.crit_chance + 0.08, 0.0, 1.0)
+			_apply_runtime_flat_modifier(ally, _get_modifier_source_key("hero_upgrade:blood_lethal_instinct", hero), "crit_chance", 0.08)
 		if _hero_has_upgrade(hero, "blood_hunter_instinct") and (_is_assassin_unit(ally) or _is_archer_unit(ally)):
-			ally.crit_damage_multiplier = maxf(1.0, ally.crit_damage_multiplier + 0.30)
+			_apply_runtime_flat_modifier(ally, _get_modifier_source_key("hero_upgrade:blood_hunter_instinct", hero), "crit_damage_multiplier", 0.30)
 		ally.update_info_display()
 
 		_mark_bloodshadow_target(hero)
@@ -978,12 +1029,10 @@ func _apply_bloodshadow_hunter_battle_start(hero: Variant) -> void:
 				continue
 
 			if _is_summon_unit(ally):
-				ally.max_hp = maxi(1, int(round(float(ally.max_hp) * (1.0 + BONEWEAVER_BONE_TIDE_HP_BONUS))))
-				ally.hp = mini(ally.hp, ally.max_hp)
+				_increase_runtime_max_hp(ally, BONEWEAVER_BONE_TIDE_HP_BONUS)
 				ally.add_battle_attack_bonus_percent(BONEWEAVER_BONE_TIDE_ATK_BONUS)
 				if _hero_has_upgrade(hero, "skeleton_vigor"):
-					ally.max_hp = maxi(1, int(round(float(ally.max_hp) * 1.25)))
-					ally.hp = mini(ally.hp, ally.max_hp)
+					_increase_runtime_max_hp(ally, 0.25)
 				if _hero_has_upgrade(hero, "bone_spike_armor"):
 					ally.set_meta("bone_thorns_ratio", 0.10)
 				if _hero_has_upgrade(hero, "skeletal_fortitude"):
@@ -1284,10 +1333,13 @@ func _increase_runtime_max_hp(unit: Variant, percent: float) -> void:
 		return
 
 	var hp_bonus: int = maxi(1, int(round(float(unit.max_hp) * percent)))
-	unit.max_hp += hp_bonus
-	unit.hp += hp_bonus
-	unit._update_hp_bar()
-	unit.update_info_display()
+	if unit.has_method("apply_runtime_stat_bonus"):
+		unit.apply_runtime_stat_bonus("max_hp", float(hp_bonus), true)
+	else:
+		unit.max_hp += hp_bonus
+		unit.hp += hp_bonus
+		unit._update_hp_bar()
+		unit.update_info_display()
 
 
 func _count_tank_like_allies(hero: Variant) -> int:
@@ -1510,12 +1562,10 @@ func _apply_boneweaver_battle_start(hero: Variant) -> void:
 			continue
 
 		if _is_summon_unit(ally):
-			ally.max_hp = maxi(1, int(round(float(ally.max_hp) * (1.0 + BONEWEAVER_BONE_TIDE_HP_BONUS))))
-			ally.hp = mini(ally.hp, ally.max_hp)
+			_increase_runtime_max_hp(ally, BONEWEAVER_BONE_TIDE_HP_BONUS)
 			ally.add_battle_attack_bonus_percent(BONEWEAVER_BONE_TIDE_ATK_BONUS)
 			if _hero_has_upgrade(hero, "skeleton_vigor"):
-				ally.max_hp = maxi(1, int(round(float(ally.max_hp) * 1.25)))
-				ally.hp = mini(ally.hp, ally.max_hp)
+				_increase_runtime_max_hp(ally, 0.25)
 			if _hero_has_upgrade(hero, "bone_spike_armor"):
 				ally.set_meta("bone_thorns_ratio", 0.10)
 			if _hero_has_upgrade(hero, "skeletal_fortitude"):
@@ -1605,7 +1655,7 @@ func _apply_summon_death_echo(unit: Variant) -> void:
 		return
 
 	var damage: int = maxi(1, int(round(float(unit.attack_damage) * 0.60)))
-	var enemies: Array[Variant] = aoe_resolver.get_enemy_units_in_radius(unit.global_position, 80.0, bone_hero)
+	var enemies: Array[Variant] = aoe_resolver.get_enemy_units_in_radius(bone_hero, unit.global_position, 80.0)
 	for enemy_value: Variant in enemies:
 		var enemy: Variant = enemy_value
 		if _is_valid_unit(enemy) and enemy.is_alive:
@@ -1619,8 +1669,8 @@ func _apply_dragon_breath_splash(unit: Variant, target: Variant) -> void:
 		return
 
 	var splash_damage: int = maxi(1, int(round(float(unit.attack_damage) * DRAGON_BREATH_SPLASH_RATIO)))
-	var enemies: Array[Variant] = aoe_resolver.get_enemy_units_in_radius(target.global_position, DRAGON_BREATH_SPLASH_RADIUS, unit)
+	var enemies: Array[Variant] = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, DRAGON_BREATH_SPLASH_RADIUS, [target])
 	for enemy_value: Variant in enemies:
 		var enemy: Variant = enemy_value
-		if enemy != target and _is_valid_unit(enemy) and enemy.is_alive:
+		if _is_valid_unit(enemy) and enemy.is_alive:
 			enemy.take_damage(splash_damage, unit)

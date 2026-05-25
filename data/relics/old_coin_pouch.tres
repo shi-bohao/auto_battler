@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_coin_pouch"]
+
+[resource]
+script = ExtResource("1_coin_pouch")
+relic_id = "old_coin_pouch"
+relic_name = "Old Coin Pouch"
+relic_name_cn = "旧钱袋"
+description = "After each victorious battle, gain 1 extra gold."
+description_cn = "每次战斗胜利后，额外获得 1 金币。"
+rarity = "COMMON"
+trigger_type = "ON_ROUND_REWARD"
+value = 1.0

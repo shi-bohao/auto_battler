@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_compound"]
+
+[resource]
+script = ExtResource("1_compound")
+relic_id = "compound_core"
+relic_name = "Compound Core"
+relic_name_cn = "复利核心"
+description = "After each victorious battle, gain 1 extra gold per 8 gold held. No cap."
+description_cn = "战斗胜利结算时，每持有 8 金币，额外获得 1 金币，不设上限。"
+rarity = "EPIC"
+trigger_type = "ON_ROUND_REWARD"
+value = 8.0

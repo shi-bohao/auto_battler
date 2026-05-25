@@ -1,6 +1,6 @@
 # 遗物设计文档
 
-更新时间：2026-05-24
+更新时间：2026-05-25
 
 本文档记录当前遗物系统的数据结构、奖励池规则、已实现遗物、UI 展示和验证方式。新增遗物时应先补充本文档，再同步资源文件和 `RelicManager` 逻辑。
 
@@ -65,12 +65,12 @@ Restart 时调用：
 - 去重依据为 `relic_id`。
 - 战斗开始类遗物只修改本场战斗中的运行时单位，不永久修改原始 `UnitData`。
 - 伤害类遗物需要明确是否暴击；除非特别说明，遗物额外伤害不暴击。
-- 临时属性增益优先使用运行时属性加成方式，不引入复杂 Buff 系统。
+- 临时属性、光环属性和动态属性增益优先通过 `UnitStatController` 的 modifier 系统接入，避免直接改写字段后互相覆盖；详细层级见 `docs/stat_modifier_system_design.md`。
 - 本局永久属性成长不写回 `.tres`，而是写入 `RosterManager` 或 `HeroManager` 的 `permanent_stat_bonuses`，由后续单位生成流程重新应用。
 
 ## 3. 当前遗物池
 
-当前可获得遗物共 34 个。
+当前可获得遗物共 43 个。
 
 | 遗物 | 中文名 | `relic_id` | 稀有度 | 触发 | `value` | 效果摘要 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -108,6 +108,15 @@ Restart 时调用：
 | Opening Tome | 开场秘典 | `opening_tome` | `FINE` | `BATTLE_START` | `20.0` | 玩家全队本场初始魔力 +20，并立刻恢复等量魔力 |
 | Dynamo Needle | 充能针 | `dynamo_needle` | `RARE` | `AURA` | `4.0` | 光环：玩家全队普攻回魔 +4，受击回魔 +4 |
 | Mirage Cloak | 幻影披风 | `mirage_cloak` | `RARE` | `BATTLE_START` | `0.10` | 玩家后排单位本场闪避 +10%，状态抗性 +10% |
+| Old Coin Pouch | 旧钱袋 | `old_coin_pouch` | `COMMON` | `ON_ROUND_REWARD` | `1.0` | 每次战斗胜利后，额外获得 1 金币 |
+| Spoils Ledger | 战利品账本 | `spoils_ledger` | `FINE` | `ON_ROUND_REWARD` | `2.0` | 每次战斗胜利后额外 +2 金币；Boss 战胜利额外 +4 金币 |
+| Bounty Dagger | 赏金匕首 | `bounty_dagger` | `FINE` | `ON_KILL` | `3.0` | 玩家单位每击杀 3 个敌人获得 1 金币，每场战斗最多 3 金币 |
+| Investment Ledger | 投资账本 | `investment_ledger` | `FINE` | `ON_ROUND_REWARD` | `10.0` | 战斗胜利时每持有 10 金币额外 +1，最多 3 金币 |
+| Golden Armor Contract | 金甲契约 | `golden_armor_contract` | `FINE` | `AURA` | `2.0` | 光环：每 2 金币前排 +1 防御，最多 +25 防御 |
+| Golden Charm | 黄金护符 | `golden_charm` | `RARE` | `AURA` | `0.01` | 光环：每 1 金币全队 +1% 攻击，最多 +20% |
+| Goldhunter Contract | 猎金契约 | `goldhunter_contract` | `EPIC` | `ON_KILL` | `0.35` | 玩家单位击杀敌人时 35% 概率获得 1 金币，无上限 |
+| Compound Core | 复利核心 | `compound_core` | `EPIC` | `ON_ROUND_REWARD` | `8.0` | 战斗胜利时每持有 8 金币额外 +1，不设上限 |
+| Crown of Greed | 贪婪王冠 | `crown_of_greed` | `LEGENDARY` | `AURA` | `5.0` | 光环：每 5 金币全队 +3% 攻击/技能强度/治疗强度，不设上限 |
 
 ## 4. 触发类型说明
 
@@ -130,12 +139,16 @@ Restart 时调用：
 - `piercing_whetstone`
 - `bloodglass_charm`
 - `dynamo_needle`
+- `golden_armor_contract`
+- `golden_charm`
+- `crown_of_greed`
 
 实现要点：
-- 光环直接作用于当前运行时单位，不永久修改原始 `UnitData`。
-- 新生成的玩家单位和玩家召唤物会在生成后立刻应用当前光环。
+- 光环通过运行时 modifier 作用于当前单位，不永久修改原始 `UnitData`。
+- 新生成的玩家单位会在生成后立刻应用当前光环；召唤物会在生成时标记 `is_summon`，避免吃已定义为开战型旧 Buff 的光环。
 - 已接入光环的遗物不会再通过 `BATTLE_START` 入口重复叠加。
 - 每个运行时单位会记录已应用的光环 `meta`，避免同一光环重复应用。
+- 金币类光环通过 `RelicManager.get_live_gold()` 读取实时金币数，并通过动态 modifier 在金币变化、购买遗物、调整站位和单位生成后重新计算。
 
 ### BATTLE_START
 
@@ -202,6 +215,53 @@ Restart 时调用：
 - `Ember Bulwark` 可以和 `Vengeance Spark` 同时触发。
 - `Gravebone Charm` 只响应非召唤玩家单位死亡；召唤物死亡不会递归触发。
 
+### ON_ROUND_REWARD
+
+用于战斗胜利结算时的金币奖励效果。
+
+当前遗物：
+- `old_coin_pouch`
+- `spoils_ledger`
+- `investment_ledger`
+- `compound_core`
+
+实现要点：
+
+- 只在玩家战斗胜利后触发。
+- 在基础胜利金币计算完成后、最终金币写入前统一计算。
+- 以进入胜利结算瞬间的 `EconomyManager.gold` 为基准（此时击杀金币遗物已经通过回调写入）。
+- 第 30 波最终 Boss 跳过 `ON_ROUND_REWARD`，因为后续没有商店或备战阶段可使用金币。
+- 多个 `ON_ROUND_REWARD` 遗物使用同一个 `pre_reward_gold` 计算，不互相递归。
+- 返回 Dictionary：`{"extra_gold": int, "logs": PackedStringArray}`。
+
+### ON_KILL（金币扩展）
+
+击杀金币遗物通过现有 `ON_KILL` 入口触发，新增：
+
+- `bounty_dagger`
+- `goldhunter_contract`
+
+实现要点：
+
+- 击杀金币通过 `RelicManager._add_battle_gold()` 累积，内部通过 `gold_add_callback` 即时回调 `main.gd` 写入 `EconomyManager`。
+- `Bounty Dagger` 每场战斗独立计数击杀数（3 次击杀 → 1 金币），每场最多 3 金币；新战斗开始后通过 `reset_battle_relic_state()` 清零。
+- `Goldhunter Contract` 每次有效击杀独立进行 35% 概率判定，无上限。
+
+### AURA（金币扩展）
+
+金币转化属性遗物已接入 `AURA` 光环系统：
+
+- `golden_armor_contract`
+- `golden_charm`
+- `crown_of_greed`
+
+实现要点：
+
+- 通过 `RelicManager.get_live_gold()` → `EconomyManager.get_gold()` 读取实时金币数。
+- 在单位生成时（备战、战斗召唤）注册动态 modifier，并在金币变化、购买遗物和站位变化时刷新。
+- 与现有 AURA 遗物同一入口（`apply_always_on_relics_to_unit`），但动态金币光环会先移除同来源 modifier 再按当前上下文重建。
+- 金甲契约依赖前排判定，单位拖动到前排或离开前排后会刷新防御加成。
+
 ## 5. 奖励池规则
 
 遗物奖励由 `RelicManager.get_available_relic_reward_options()` 提供给 `RewardManager`。
@@ -265,7 +325,7 @@ Restart 时调用：
 1. 获得任意 `AURA` 遗物。
 2. 在备战阶段查看玩家单位详情，确认对应运行时属性已经提高。
 3. 开始战斗后确认 `BATTLE_START` 入口不会让同一光环重复叠加。
-4. 战斗中召唤友方召唤物，确认新生成单位也会获得当前光环。
+4. 战斗中召唤友方召唤物，确认新生成单位不会吃开战型旧 Buff；若拥有动态金币光环，则按当前金币重新计算。
 
 ### BATTLE_START
 

@@ -3,6 +3,7 @@ extends RefCounted
 
 
 const RELIC_TRIGGER_BATTLE_START: String = "BATTLE_START"
+const RELIC_TRIGGER_ROUND_REWARD: String = "ON_ROUND_REWARD"
 const RELIC_ID_BLOOD_PENDANT: String = "blood_pendant"
 const RELIC_ID_SOUL_LANTERN: String = "soul_lantern"
 const RELIC_ID_EXECUTIONER_SIGIL: String = "executioner_sigil"
@@ -14,6 +15,15 @@ const RELIC_ID_SOUL_EMBER: String = "soul_ember"
 const RELIC_ID_DUELIST_GLOVE: String = "duelist_glove"
 const RELIC_ID_GRAVEBONE_CHARM: String = "gravebone_charm"
 const RELIC_ID_VITALITY_TROPHY: String = "vitality_trophy"
+const RELIC_ID_OLD_COIN_POUCH: String = "old_coin_pouch"
+const RELIC_ID_SPOILS_LEDGER: String = "spoils_ledger"
+const RELIC_ID_BOUNTY_DAGGER: String = "bounty_dagger"
+const RELIC_ID_INVESTMENT_LEDGER: String = "investment_ledger"
+const RELIC_ID_GOLDEN_ARMOR_CONTRACT: String = "golden_armor_contract"
+const RELIC_ID_GOLDEN_CHARM: String = "golden_charm"
+const RELIC_ID_GOLDHUNTER_CONTRACT: String = "goldhunter_contract"
+const RELIC_ID_COMPOUND_CORE: String = "compound_core"
+const RELIC_ID_CROWN_OF_GREED: String = "crown_of_greed"
 
 var relic_manager_ref: WeakRef = null
 var relic_effect_resolver: Variant = null
@@ -73,6 +83,55 @@ func trigger_kill_relics(attacker: Unit, target: Unit, roster_manager: Variant =
 	if _has_relic_id(RELIC_ID_VITALITY_TROPHY):
 		relic_effect_resolver.apply_vitality_trophy_relic(attacker, roster_manager, hero_manager)
 
+	if _has_relic_id(RELIC_ID_BOUNTY_DAGGER):
+		relic_effect_resolver.try_apply_bounty_dagger_relic(attacker)
+
+	if _has_relic_id(RELIC_ID_GOLDHUNTER_CONTRACT):
+		relic_effect_resolver.try_apply_goldhunter_contract_relic(attacker)
+
+
+func trigger_round_reward_relics(encounter_type: String, current_round: int, max_round: int, pre_reward_gold: int, base_reward_gold: int) -> Dictionary:
+	var result: Dictionary = {"extra_gold": 0, "logs": PackedStringArray()}
+
+	var player_relics: Array[Resource] = _get_player_relics()
+	if player_relics.is_empty():
+		return result
+
+	var log_lines: Array[String] = []
+	for relic_data in player_relics:
+		if relic_data == null:
+			continue
+
+		if _get_relic_trigger_type(relic_data) != RELIC_TRIGGER_ROUND_REWARD:
+			continue
+
+		var relic_id: String = _get_relic_id(relic_data)
+		var relic_name: String = _get_relic_name(relic_data)
+		var extra: int = 0
+		match relic_id:
+			RELIC_ID_OLD_COIN_POUCH:
+				extra = relic_effect_resolver.calc_old_coin_pouch_relic(relic_data)
+			RELIC_ID_SPOILS_LEDGER:
+				extra = relic_effect_resolver.calc_spoils_ledger_relic(relic_data, encounter_type)
+			RELIC_ID_INVESTMENT_LEDGER:
+				extra = relic_effect_resolver.calc_investment_ledger_relic(relic_data, pre_reward_gold)
+			RELIC_ID_COMPOUND_CORE:
+				extra = relic_effect_resolver.calc_compound_core_relic(relic_data, pre_reward_gold)
+
+		if extra > 0:
+			result["extra_gold"] = int(result["extra_gold"]) + extra
+			log_lines.append(relic_name + " +" + str(extra))
+
+	if log_lines.size() > 0:
+		result["logs"] = PackedStringArray(log_lines)
+
+	return result
+
+
+func reset_battle_relic_state() -> void:
+	if relic_effect_resolver != null and relic_effect_resolver.has_method("reset_battle_gold_relic_state"):
+		relic_effect_resolver.reset_battle_gold_relic_state()
+
 
 func trigger_death_relics(dead_unit: Unit, enemy_units: Array[Unit], is_battle_active: bool, player_units: Array[Unit]) -> void:
 	if not is_battle_active:
@@ -112,6 +171,22 @@ func _get_relic_trigger_type(relic_data: Resource) -> String:
 		return ""
 
 	return str(current_relic_manager.get_relic_trigger_type(relic_data))
+
+
+func _get_relic_id(relic_data: Resource) -> String:
+	var current_relic_manager: Variant = _get_relic_manager()
+	if current_relic_manager == null or not current_relic_manager.has_method("get_relic_id"):
+		return ""
+
+	return str(current_relic_manager.get_relic_id(relic_data))
+
+
+func _get_relic_name(relic_data: Resource) -> String:
+	var current_relic_manager: Variant = _get_relic_manager()
+	if current_relic_manager == null or not current_relic_manager.has_method("get_relic_name"):
+		return ""
+
+	return str(current_relic_manager.get_relic_name(relic_data))
 
 
 func _has_relic_id(relic_id: String) -> bool:

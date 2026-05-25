@@ -12,6 +12,7 @@
 | `future_features.md` | 功能规划与实现记录；当前记录金币经济遗物待实现设计，并保留远程普攻真实弹道与非圆形瞬时 AoE 的已完成实现参考 | 后续新功能先在此文档记录设计，再拆分实现；完成后保留实现入口 |
 | `content_reference.md` | 当前玩家单位、英雄、敌人、召唤物和遗物的数值、技能、羁绊总览 | 通过 `scripts/tools/generate_content_reference.gd` 重新生成 |
 | `relic_design.md` | 遗物系统结构、当前遗物池、触发入口、常驻光环、永久属性成长和新增流程 | 新增或调整遗物时更新 |
+| `stat_modifier_system_design.md` | 运行时属性修饰器层级、动态属性、来源移除规则和验证入口 | 新增属性类光环、Buff/Debuff、羁绊或战斗加成时更新 |
 | `bond_system.md` | 羁绊成员、档位效果、战斗接入、UI 和验证方式 | 新增羁绊或调整羁绊数值时更新 |
 | `hero_design.md` | 英雄系统设计、英雄成长、强化规则和英雄美术资源接入方式 | 新增英雄、调整英雄升级/强化或替换英雄素材时更新 |
 | `ui_layering_design.md` | UI 大层级、语义 `z_index` 常量和新增 UI 分层规则 | 新增或调整全屏面板、弹窗、详情浮层时更新 |

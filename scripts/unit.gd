@@ -19,6 +19,7 @@ const UNIT_SKILL_SCRIPT: Script = preload("res://scripts/unit_skill.gd")
 const UNIT_EFFECT_CONTROLLER_SCRIPT: Script = preload("res://scripts/unit_effect_controller.gd")
 const COMBAT_RESOLVER_SCRIPT: Script = preload("res://scripts/combat/combat_resolver.gd")
 const ATTACK_PAYLOAD_SCRIPT: Script = preload("res://scripts/combat/attack_payload.gd")
+const UNIT_STAT_CONTROLLER_SCRIPT: Script = preload("res://scripts/combat/unit_stat_controller.gd")
 
 @export var team_id: int = 0
 @export var max_hp: int = 100
@@ -102,6 +103,7 @@ var unit_targeting: Variant = UNIT_TARGETING_SCRIPT.new()
 var unit_skill: Variant = UNIT_SKILL_SCRIPT.new()
 var effect_controller: Variant = UNIT_EFFECT_CONTROLLER_SCRIPT.new()
 var combat_resolver: Variant = COMBAT_RESOLVER_SCRIPT.new()
+var stat_controller: Variant = UNIT_STAT_CONTROLLER_SCRIPT.new()
 var visual_base_position: Vector2 = Vector2(20.0, 20.0)
 var visual_motion_time: float = 0.0
 
@@ -122,6 +124,7 @@ func _ready() -> void:
 	active_skill_damage_multiplier = 1.0
 	active_heal_multiplier = 1.0
 	damage_taken_multiplier = maxf(0.0, damage_taken_multiplier)
+	stat_controller.capture_base_stats(self)
 	is_alive = true
 	is_targetable = true
 	unit_state = UnitState.IDLE
@@ -291,6 +294,10 @@ func apply_runtime_stat_bonus(stat_name: String, amount: float, should_fill_curr
 	if stat_name.strip_edges() == "" or is_zero_approx(amount):
 		return
 
+	if stat_controller != null and stat_controller.has_method("add_base_stat_bonus"):
+		stat_controller.add_base_stat_bonus(self, stat_name, amount, should_fill_current_hp)
+		return
+
 	match stat_name:
 		"max_hp":
 			var hp_bonus: int = int(round(amount))
@@ -343,6 +350,41 @@ func apply_runtime_stat_bonus(stat_name: String, amount: float, should_fill_curr
 			mana_regen_per_second = maxf(0.0, mana_regen_per_second + amount)
 
 	update_info_display()
+
+
+func add_stat_modifier(modifier_data: Dictionary, context: Dictionary = {}) -> void:
+	if stat_controller == null:
+		return
+
+	stat_controller.add_modifier(self, modifier_data, context)
+
+
+func remove_stat_modifier(modifier_id: String, context: Dictionary = {}) -> void:
+	if stat_controller == null:
+		return
+
+	stat_controller.remove_modifier(self, modifier_id, context)
+
+
+func remove_stat_modifiers_by_source(source_key: String, context: Dictionary = {}) -> void:
+	if stat_controller == null:
+		return
+
+	stat_controller.remove_modifiers_by_source(self, source_key, context)
+
+
+func recalculate_stats(context: Dictionary = {}) -> void:
+	if stat_controller == null:
+		return
+
+	stat_controller.recalculate(self, context)
+
+
+func get_stat_modifier_count() -> int:
+	if stat_controller == null or not stat_controller.has_method("get_modifier_count"):
+		return 0
+
+	return int(stat_controller.get_modifier_count())
 
 
 func apply_status_effect(effect_data: Dictionary) -> StatusEffect:

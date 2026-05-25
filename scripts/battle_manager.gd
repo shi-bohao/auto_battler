@@ -124,6 +124,7 @@ func start_battle() -> void:
 			unit.unit_skill.apply_battle_start_passives(unit)
 
 	if relic_manager != null:
+		relic_manager.reset_battle_relic_state()
 		relic_manager.trigger_battle_start_relics(_get_non_summon_units(left_units))
 	if enemy_relic_manager != null:
 		enemy_relic_manager.trigger_battle_start_relics(_get_non_summon_units(right_units))
@@ -302,6 +303,17 @@ func spawn_summoned_unit(source_unit: Unit, summon_unit_data: Resource, spawn_po
 	return summoned_unit
 
 
+func refresh_dynamic_relic_auras() -> void:
+	if relic_manager != null and relic_manager.has_method("refresh_dynamic_relic_auras_for_units"):
+		var player_units: Array[Unit] = []
+		player_units.append_array(left_units)
+		player_units.append_array(bench_units)
+		relic_manager.refresh_dynamic_relic_auras_for_units(player_units)
+
+	if enemy_relic_manager != null and enemy_relic_manager.has_method("refresh_dynamic_relic_auras_for_units"):
+		enemy_relic_manager.refresh_dynamic_relic_auras_for_units(right_units)
+
+
 func remove_summoned_unit(unit: Unit) -> void:
 	if unit == null or not is_instance_valid(unit):
 		return
@@ -475,6 +487,8 @@ func _spawn_unit(team_id: int, unit_data: Resource, spawn_position: Vector2, dis
 	unit.stats_manager = stats_manager
 	unit.battle_board = battle_board
 	unit.prepare_drop_handler = prepare_drop_handler
+	if roster_area == "summon":
+		unit.set_meta("is_summon", true)
 	unit.set_battle_time_scale(battle_speed_multiplier)
 	unit.died.connect(_on_unit_died)
 	unit.attack_landed.connect(_on_unit_attack_landed)
@@ -742,8 +756,24 @@ func _apply_overtime_to_unit(unit: Unit) -> void:
 	if unit == null or not is_instance_valid(unit):
 		return
 
-	unit.attack_damage = maxi(1, unit.attack_damage * 2)
-	unit.attack_interval = maxf(0.05, unit.attack_interval * 0.5)
+	if unit.has_method("add_stat_modifier"):
+		unit.add_stat_modifier({
+			"modifier_id": "system:overtime:attack_damage",
+			"source_key": "system:overtime",
+			"stat_name": "attack_damage",
+			"stage": StatModifier.STAGE_FINAL_MULTIPLY,
+			"value": 2.0,
+		})
+		unit.add_stat_modifier({
+			"modifier_id": "system:overtime:attack_interval",
+			"source_key": "system:overtime",
+			"stat_name": "attack_interval",
+			"stage": StatModifier.STAGE_FINAL_MULTIPLY,
+			"value": 0.5,
+		})
+	else:
+		unit.attack_damage = maxi(1, unit.attack_damage * 2)
+		unit.attack_interval = maxf(0.05, unit.attack_interval * 0.5)
 	unit.attack_cooldown = minf(unit.attack_cooldown, unit.attack_interval)
 
 

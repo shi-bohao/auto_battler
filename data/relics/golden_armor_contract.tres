@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_golden_armor"]
+
+[resource]
+script = ExtResource("1_golden_armor")
+relic_id = "golden_armor_contract"
+relic_name = "Golden Armor Contract"
+relic_name_cn = "金甲契约"
+description = "Aura: frontline player units gain +1 defense per 2 gold held, up to +25 defense."
+description_cn = "光环：每拥有 2 金币，所有玩家前排单位获得 1 防御，最多 25 防御。"
+rarity = "FINE"
+trigger_type = "AURA"
+value = 2.0

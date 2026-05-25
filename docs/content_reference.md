@@ -95,26 +95,35 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --scrip
 | 壁垒符文<br>(Bulwark Rune) | `bulwark_rune` | RARE | BATTLE_START | 0.08 | 战斗开始时，玩家前排单位本场战斗伤害减免 +8%，状态抗性 +15%。 |
 | 处刑徽记<br>(Executioner Sigil) | `executioner_sigil` | EPIC | ON_KILL | 0.12 | 玩家单位击杀敌人后，本场战斗攻击力提高 12%。 |
 | 复仇火花<br>(Vengeance Spark) | `vengeance_spark` | RARE | ON_DEATH | 50 | 玩家单位死亡时，对最近敌人造成 50 点遗物伤害。 |
+| 复利核心<br>(Compound Core) | `compound_core` | EPIC | ON_ROUND_REWARD | 8 | 战斗胜利结算时，每持有 8 金币，额外获得 1 金币，不设上限。 |
 | 奥术核心<br>(Arcane Core) | `arcane_core` | RARE | AURA | 0.25 | 光环：所有玩家单位魔力回复速度 +25%。 |
 | 奥术棱镜<br>(Arcane Prism) | `arcane_prism` | FINE | AURA | 0.15 | 光环：所有玩家单位技能强度 +15%。 |
 | 守护誓约<br>(Guardian Oath) | `guardian_oath` | RARE | BATTLE_START | 70 | 战斗开始时，玩家防御最高的单位获得 70 护盾和 +25 防御。 |
 | 幻影披风<br>(Mirage Cloak) | `mirage_cloak` | RARE | BATTLE_START | 0.10 | 战斗开始时，玩家后排单位本场战斗闪避 +10%，状态抗性 +10%。 |
 | 开场秘典<br>(Opening Tome) | `opening_tome` | FINE | BATTLE_START | 20 | 战斗开始时，玩家全队本场战斗初始魔力 +20，并立刻恢复等量魔力，不超过魔力上限。 |
 | 慈悲香炉<br>(Mercy Censer) | `mercy_censer` | RARE | AURA | 0.20 | 光环：所有玩家单位治疗强度 +20%，护盾强度 +20%。 |
+| 战利品账本<br>(Spoils Ledger) | `spoils_ledger` | FINE | ON_ROUND_REWARD | 2 | 每次战斗胜利后，额外获得 2 金币；Boss 战胜利额外获得 4 金币。 |
 | 战斗旌旗<br>(Battle Banner) | `battle_banner` | COMMON | AURA | 0.10 | 光环：所有玩家单位攻击力 +10%。 |
+| 投资账本<br>(Investment Ledger) | `investment_ledger` | FINE | ON_ROUND_REWARD | 10 | 战斗胜利结算时，每持有 10 金币，额外获得 1 金币，最多 3 金币。 |
 | 收魂灯<br>(Soul Lantern) | `soul_lantern` | RARE | ON_KILL | 25 | 玩家单位击杀敌人后，恢复 25 魔力。 |
 | 断牙<br>(Broken Fang) | `broken_fang` | RARE | AURA | 0.55 | 光环：玩家弓手和刺客暴击伤害 +55%。 |
+| 旧钱袋<br>(Old Coin Pouch) | `old_coin_pouch` | COMMON | ON_ROUND_REWARD | 1 | 每次战斗胜利后，额外获得 1 金币。 |
 | 星冠<br>(Star Crown) | `star_crown` | EPIC | AURA | 0.25 | 光环：玩家 2 星及以上单位攻击力 +25%，防御 +18。 |
 | 治愈铃<br>(Healing Bell) | `healing_bell` | RARE | AURA | 0.40 | 光环：玩家牧师主动技能治疗量 +40%。 |
 | 法师透镜<br>(Mage Lens) | `mage_lens` | RARE | AURA | 0.35 | 光环：玩家法师主动技能伤害 +35%。 |
 | 灵魂余烬<br>(Soul Ember) | `soul_ember` | EPIC | ON_DEATH | 45 | 玩家单位死亡时，其他存活玩家单位恢复 45 魔力。 |
 | 猎手印记<br>(Hunter Mark) | `hunter_mark` | RARE | ON_ATTACK | 0.75 | 玩家弓手每 3 次攻击追加 75% 攻击力的额外伤害。 |
+| 猎金契约<br>(Goldhunter Contract) | `goldhunter_contract` | EPIC | ON_KILL | 0.35 | 玩家单位击杀敌人时，有 35% 概率获得 1 金币；每场战斗不设上限。 |
 | 破甲砺石<br>(Armorbreaker Whetstone) | `piercing_whetstone` | COMMON | AURA | 8 | 光环：所有玩家单位防御穿透 +8。 |
 | 血玻璃护符<br>(Bloodglass Charm) | `bloodglass_charm` | FINE | AURA | 0.08 | 光环：所有玩家单位吸血 +8%。 |
 | 血誓杯<br>(Blood Oath Chalice) | `vitality_trophy` | RARE | ON_KILL | 5 | 友方非召唤单位击杀敌人时，该单位本局永久获得 +5 最大生命值。 |
+| 贪婪王冠<br>(Crown of Greed) | `crown_of_greed` | LEGENDARY | AURA | 5 | 光环：每拥有 5 金币，所有玩家单位获得攻击力 +3%、技能强度 +3%、治疗强度 +3%，不设上限。 |
+| 赏金匕首<br>(Bounty Dagger) | `bounty_dagger` | FINE | ON_KILL | 3 | 玩家单位每击杀 3 个敌人，获得 1 金币；每场战斗最多获得 3 金币。 |
+| 金甲契约<br>(Golden Armor Contract) | `golden_armor_contract` | FINE | AURA | 2 | 光环：每拥有 2 金币，所有玩家前排单位获得 1 防御，最多 25 防御。 |
 | 钢铁阵列<br>(Steel Formation) | `steel_formation` | COMMON | AURA | 12 | 光环：所有玩家单位防御 +12。 |
 | 铁甲徽章<br>(Iron Armor Badge) | `iron_armor_badge` | COMMON | BATTLE_START | 30 | 战斗开始时，玩家全队获得 30 护盾。 |
 | 锐刃<br>(Sharp Edge) | `sharp_edge` | COMMON | AURA | 0.10 | 光环：所有玩家单位暴击率 +10%。 |
 | 骸骨坠饰<br>(Gravebone Charm) | `gravebone_charm` | RARE | ON_DEATH | 3 | 友方非召唤单位死亡时，在其位置召唤 1 个骷髅；该遗物最多同时维持 3 个骷髅，召唤物死亡不会触发。 |
 | 鲜血吊坠<br>(Blood Pendant) | `blood_pendant` | RARE | ON_KILL | 35 | 玩家单位击杀敌人后，恢复 35 生命。 |
+| 黄金护符<br>(Golden Charm) | `golden_charm` | RARE | AURA | 0.01 | 光环：每拥有 1 金币，所有玩家单位攻击力提高 1%，最多 20%。 |
 

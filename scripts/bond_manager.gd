@@ -70,6 +70,7 @@ func calculate_from_roster(active_roster: Array[Dictionary], hero_manager: Varia
 
 func apply_battle_start_bonds(player_units: Array[Unit]) -> void:
 	calculate_from_units(player_units)
+	_clear_battle_start_bond_modifiers(player_units)
 	_apply_iron_wall(player_units)
 	_apply_hunter(player_units)
 	_apply_arcane(player_units)
@@ -85,13 +86,10 @@ func apply_bonds_to_summoned_unit(unit: Unit) -> void:
 		return
 
 	var multiplier: float = 1.25 if tier >= 3 else 1.15
-	unit.attack_damage = maxi(1, int(round(float(unit.attack_damage) * multiplier)))
+	_apply_bond_stat_percent(unit, BOND_SUMMON, "attack_damage", multiplier - 1.0)
 	var old_max_hp: int = int(unit.max_hp)
-	unit.max_hp = maxi(1, int(round(float(unit.max_hp) * multiplier)))
-	if old_max_hp > 0:
-		unit.hp = maxi(1, int(round(float(unit.hp) * float(unit.max_hp) / float(old_max_hp))))
-	else:
-		unit.hp = unit.max_hp
+	unit.apply_runtime_stat_bonus("max_hp", float(maxi(1, int(round(float(unit.max_hp) * multiplier))) - old_max_hp), true)
+	unit.hp = clampi(int(unit.hp), 0, int(unit.max_hp))
 	unit.update_info_display()
 
 
@@ -273,12 +271,11 @@ func _apply_iron_wall(player_units: Array[Unit]) -> void:
 	for unit: Unit in player_units:
 		if not _is_valid_unit(unit) or not unit.is_alive or not has_bond_tag(unit, BOND_IRON_WALL):
 			continue
-		unit.defense += defense_bonus
+		_apply_bond_stat_add(unit, BOND_IRON_WALL, "defense", defense_bonus)
 		if shield_amount > 0:
 			unit.add_shield(shield_amount, unit)
 		if damage_reduction_bonus > 0.0:
-			unit.damage_reduction = clampf(float(unit.damage_reduction) + damage_reduction_bonus, 0.0, 0.95)
-		unit.update_info_display()
+			_apply_bond_stat_add(unit, BOND_IRON_WALL, "damage_reduction", damage_reduction_bonus)
 
 
 func _apply_hunter(player_units: Array[Unit]) -> void:
@@ -291,9 +288,8 @@ func _apply_hunter(player_units: Array[Unit]) -> void:
 	for unit: Unit in player_units:
 		if not _is_valid_unit(unit) or not unit.is_alive or not has_bond_tag(unit, BOND_HUNTER):
 			continue
-		unit.crit_chance = clampf(float(unit.crit_chance) + crit_chance_bonus, 0.0, 1.0)
-		unit.crit_damage_multiplier = maxf(1.0, float(unit.crit_damage_multiplier) + crit_damage_bonus)
-		unit.update_info_display()
+		_apply_bond_stat_add(unit, BOND_HUNTER, "crit_chance", crit_chance_bonus)
+		_apply_bond_stat_add(unit, BOND_HUNTER, "crit_damage_multiplier", crit_damage_bonus)
 
 
 func _apply_arcane(player_units: Array[Unit]) -> void:
@@ -315,12 +311,11 @@ func _apply_arcane(player_units: Array[Unit]) -> void:
 	for unit: Unit in player_units:
 		if not _is_valid_unit(unit) or not unit.is_alive:
 			continue
-		unit.skill_power = maxf(0.0, float(unit.skill_power) + skill_power_bonus)
+		_apply_bond_stat_add(unit, BOND_ARCANE, "skill_power", skill_power_bonus)
 		if has_bond_tag(unit, BOND_ARCANE):
-			unit.mana_regen_per_second = maxf(0.0, float(unit.mana_regen_per_second) * mana_regen_multiplier)
+			_apply_bond_stat_percent(unit, BOND_ARCANE, "mana_regen_per_second", mana_regen_multiplier - 1.0)
 			if initial_mana_bonus > 0.0:
 				unit.restore_mana(initial_mana_bonus, unit)
-		unit.update_info_display()
 
 
 func _apply_divine(player_units: Array[Unit]) -> void:
@@ -342,17 +337,58 @@ func _apply_divine(player_units: Array[Unit]) -> void:
 	for unit: Unit in player_units:
 		if not _is_valid_unit(unit) or not unit.is_alive:
 			continue
-		unit.healing_power = maxf(0.0, float(unit.healing_power) + healing_power_bonus)
-		unit.shield_power = maxf(0.0, float(unit.shield_power) + shield_power_bonus)
+		_apply_bond_stat_add(unit, BOND_DIVINE, "healing_power", healing_power_bonus)
+		_apply_bond_stat_add(unit, BOND_DIVINE, "shield_power", shield_power_bonus)
 		if shield_amount > 0:
 			_add_fixed_shield(unit, shield_amount)
-		unit.update_info_display()
 
 
 func _add_fixed_shield(unit: Unit, amount: int) -> void:
 	if amount <= 0:
 		return
 	unit.shield = max(0, int(unit.shield) + amount)
+
+
+func _clear_battle_start_bond_modifiers(player_units: Array[Unit]) -> void:
+	for unit: Unit in player_units:
+		if not _is_valid_unit(unit) or not unit.has_method("remove_stat_modifiers_by_source"):
+			continue
+		for bond_id: String in [BOND_IRON_WALL, BOND_HUNTER, BOND_ARCANE, BOND_DIVINE]:
+			unit.remove_stat_modifiers_by_source("bond:" + bond_id)
+
+
+func _apply_bond_stat_add(unit: Unit, bond_id: String, stat_name: String, value: float) -> void:
+	if is_zero_approx(value):
+		return
+
+	if unit.has_method("add_stat_modifier"):
+		unit.add_stat_modifier({
+			"modifier_id": "bond:" + bond_id + ":" + stat_name + ":runtime_flat",
+			"source_key": "bond:" + bond_id,
+			"stat_name": stat_name,
+			"stage": StatModifier.STAGE_RUNTIME_FLAT,
+			"value": value,
+		})
+	else:
+		unit.apply_runtime_stat_bonus(stat_name, value)
+
+
+func _apply_bond_stat_percent(unit: Unit, bond_id: String, stat_name: String, value: float) -> void:
+	if is_zero_approx(value):
+		return
+
+	if unit.has_method("add_stat_modifier"):
+		unit.add_stat_modifier({
+			"modifier_id": "bond:" + bond_id + ":" + stat_name + ":runtime_percent",
+			"source_key": "bond:" + bond_id,
+			"stat_name": stat_name,
+			"stage": StatModifier.STAGE_RUNTIME_PERCENT,
+			"value": value,
+		})
+	else:
+		var current_value: Variant = unit.get(stat_name)
+		if current_value != null:
+			unit.apply_runtime_stat_bonus(stat_name, float(current_value) * value)
 
 
 func _add_bond_tags(unit_type: String, tags: Array[String]) -> void:

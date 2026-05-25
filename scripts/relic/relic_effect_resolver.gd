@@ -36,6 +36,15 @@ const RELIC_ID_DYNAMO_NEEDLE: String = "dynamo_needle"
 const RELIC_ID_MIRAGE_CLOAK: String = "mirage_cloak"
 const RELIC_ID_GRAVEBONE_CHARM: String = "gravebone_charm"
 const RELIC_ID_VITALITY_TROPHY: String = "vitality_trophy"
+const RELIC_ID_OLD_COIN_POUCH: String = "old_coin_pouch"
+const RELIC_ID_SPOILS_LEDGER: String = "spoils_ledger"
+const RELIC_ID_BOUNTY_DAGGER: String = "bounty_dagger"
+const RELIC_ID_INVESTMENT_LEDGER: String = "investment_ledger"
+const RELIC_ID_GOLDEN_ARMOR_CONTRACT: String = "golden_armor_contract"
+const RELIC_ID_GOLDEN_CHARM: String = "golden_charm"
+const RELIC_ID_GOLDHUNTER_CONTRACT: String = "goldhunter_contract"
+const RELIC_ID_COMPOUND_CORE: String = "compound_core"
+const RELIC_ID_CROWN_OF_GREED: String = "crown_of_greed"
 const SKELETON_SUMMON_DATA: Resource = preload("res://data/summons/skeleton.tres")
 const GUARDIAN_OATH_DEFENSE_BONUS: int = 25
 const STAR_CROWN_DEFENSE_BONUS: int = 18
@@ -44,9 +53,19 @@ const FRONTLINE_PLATE_SHIELD_AMOUNT: int = 20
 const BULWARK_RUNE_STATUS_RESISTANCE_BONUS: float = 0.15
 const FALLBACK_BACKLINE_X_MAX: float = 320.0
 const FALLBACK_FRONTLINE_X_MIN: float = 560.0
+const GOLDEN_ARMOR_CONTRACT_DEFENSE_CAP: int = 25
+const GOLDEN_CHARM_ATTACK_CAP: float = 0.20
+const CROWN_OF_GREED_BONUS_PER_STEP: float = 0.03
+const BOUNTY_DAGGER_GOLD_PER_TRIGGER: int = 1
+const BOUNTY_DAGGER_BATTLE_CAP: int = 3
+const GOLDHUNTER_CONTRACT_GOLD_PER_TRIGGER: int = 1
+const INVESTMENT_LEDGER_CAP: int = 3
 
 var relic_manager_ref: WeakRef = null
 var status_effect_factory: Variant = StatusEffectFactory.new()
+var bounty_dagger_kill_count: int = 0
+var bounty_dagger_gold_gained_this_battle: int = 0
+var goldhunter_gold_gained_this_battle: int = 0
 
 
 func setup(relic_manager_value: Variant) -> void:
@@ -124,6 +143,9 @@ func is_always_on_relic(relic_data: Resource) -> bool:
 		RELIC_ID_PIERCING_WHETSTONE,
 		RELIC_ID_BLOODGLASS_CHARM,
 		RELIC_ID_DYNAMO_NEEDLE,
+		RELIC_ID_GOLDEN_ARMOR_CONTRACT,
+		RELIC_ID_GOLDEN_CHARM,
+		RELIC_ID_CROWN_OF_GREED,
 	].has(relic_id)
 
 
@@ -140,7 +162,37 @@ func apply_always_on_relics_to_unit(unit: Unit) -> void:
 		if relic_data == null or not is_always_on_relic(relic_data):
 			continue
 
+		var relic_id: String = _get_relic_id(relic_data)
+		if not _should_apply_always_on_relic_to_unit(relic_id, unit):
+			continue
+
 		_apply_always_on_relic_to_unit(relic_data, unit)
+
+
+func refresh_dynamic_gold_relics_to_unit(unit: Unit) -> void:
+	if not _is_alive_unit(unit) or not _is_owner_unit(unit):
+		return
+
+	var current_relic_manager: Variant = _get_relic_manager()
+	if current_relic_manager == null or not current_relic_manager.has_method("get_player_relics"):
+		return
+
+	var context: Dictionary = _get_modifier_context()
+	for relic_id: String in [RELIC_ID_GOLDEN_ARMOR_CONTRACT, RELIC_ID_GOLDEN_CHARM, RELIC_ID_CROWN_OF_GREED]:
+		if unit.has_method("remove_stat_modifiers_by_source"):
+			unit.remove_stat_modifiers_by_source("relic:" + relic_id, context)
+
+	var player_relics: Array[Resource] = current_relic_manager.get_player_relics()
+	for relic_data: Resource in player_relics:
+		if relic_data == null:
+			continue
+
+		var relic_id: String = _get_relic_id(relic_data)
+		if _is_dynamic_gold_relic_id(relic_id):
+			_apply_dynamic_gold_relic_to_unit(relic_data, unit, context)
+
+	if unit.has_method("recalculate_stats"):
+		unit.recalculate_stats(context)
 
 
 func try_apply_hunter_mark_relic(attacker: Unit, target: Unit) -> void:
@@ -315,60 +367,65 @@ func _apply_always_on_relic_to_unit(relic_data: Resource, unit: Unit) -> void:
 		return
 
 	var relic_id: String = _get_relic_id(relic_data)
+	if _is_dynamic_gold_relic_id(relic_id):
+		_apply_dynamic_gold_relic_to_unit(relic_data, unit, _get_modifier_context())
+		unit.set_meta("always_on_relic_" + relic_id, true)
+		return
+
 	var applied_meta_key: String = "always_on_relic_" + relic_id
 	if unit.has_meta(applied_meta_key):
 		return
 
 	match relic_id:
 		RELIC_ID_BATTLE_BANNER:
-			_apply_direct_stat_multiply(unit, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.10))
+			_apply_direct_stat_multiply(unit, relic_id, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.10))
 		RELIC_ID_STEEL_FORMATION:
-			_apply_direct_stat_add(unit, "defense", maxi(0, int(round(_get_relic_value(relic_data, 12.0)))))
+			_apply_direct_stat_add(unit, relic_id, "defense", maxi(0, int(round(_get_relic_value(relic_data, 12.0)))))
 		RELIC_ID_SHARP_EDGE:
-			_apply_direct_stat_add(unit, "crit_chance", _get_relic_value(relic_data, 0.10))
+			_apply_direct_stat_add(unit, relic_id, "crit_chance", _get_relic_value(relic_data, 0.10))
 		RELIC_ID_BROKEN_FANG:
 			if _is_archer_unit(unit) or _is_assassin_unit(unit):
-				_apply_direct_stat_add(unit, "crit_damage_multiplier", _get_relic_value(relic_data, 0.55))
+				_apply_direct_stat_add(unit, relic_id, "crit_damage_multiplier", _get_relic_value(relic_data, 0.55))
 			else:
 				return
 		RELIC_ID_ARCANE_CORE:
-			_apply_direct_stat_multiply(unit, "mana_regen_per_second", 1.0 + _get_relic_value(relic_data, 0.25))
+			_apply_direct_stat_multiply(unit, relic_id, "mana_regen_per_second", 1.0 + _get_relic_value(relic_data, 0.25))
 		RELIC_ID_MAGE_LENS:
 			if _is_mage_unit(unit):
-				_apply_direct_stat_add(unit, "skill_power", _get_relic_value(relic_data, 0.35))
+				_apply_direct_stat_add(unit, relic_id, "skill_power", _get_relic_value(relic_data, 0.35))
 			else:
 				return
 		RELIC_ID_HEALING_BELL:
 			if _is_priest_unit(unit):
-				_apply_direct_stat_add(unit, "healing_power", _get_relic_value(relic_data, 0.40))
+				_apply_direct_stat_add(unit, relic_id, "healing_power", _get_relic_value(relic_data, 0.40))
 			else:
 				return
 		RELIC_ID_STAR_CROWN:
 			if unit.star >= 2:
-				_apply_direct_stat_multiply(unit, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.25))
-				_apply_direct_stat_add(unit, "defense", STAR_CROWN_DEFENSE_BONUS)
+				_apply_direct_stat_multiply(unit, relic_id, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.25))
+				_apply_direct_stat_add(unit, relic_id, "defense", STAR_CROWN_DEFENSE_BONUS)
 			else:
 				return
 		RELIC_ID_CROWN_OF_THREE:
 			if unit.star == 3:
-				_apply_direct_stat_multiply(unit, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.45))
-				_apply_direct_stat_multiply(unit, "mana_regen_per_second", 1.0 + CROWN_OF_THREE_MANA_REGEN_BONUS)
+				_apply_direct_stat_multiply(unit, relic_id, "attack_damage", 1.0 + _get_relic_value(relic_data, 0.45))
+				_apply_direct_stat_multiply(unit, relic_id, "mana_regen_per_second", 1.0 + CROWN_OF_THREE_MANA_REGEN_BONUS)
 			else:
 				return
 		RELIC_ID_ARCANE_PRISM:
-			_apply_direct_stat_add(unit, "skill_power", maxf(0.0, _get_relic_value(relic_data, 0.15)))
+			_apply_direct_stat_add(unit, relic_id, "skill_power", maxf(0.0, _get_relic_value(relic_data, 0.15)))
 		RELIC_ID_MERCY_CENSER:
 			var output_bonus: float = maxf(0.0, _get_relic_value(relic_data, 0.20))
-			_apply_direct_stat_add(unit, "healing_power", output_bonus)
-			_apply_direct_stat_add(unit, "shield_power", output_bonus)
+			_apply_direct_stat_add(unit, relic_id, "healing_power", output_bonus)
+			_apply_direct_stat_add(unit, relic_id, "shield_power", output_bonus)
 		RELIC_ID_PIERCING_WHETSTONE:
-			_apply_direct_stat_add(unit, "defense_penetration", maxi(0, int(round(_get_relic_value(relic_data, 8.0)))))
+			_apply_direct_stat_add(unit, relic_id, "defense_penetration", maxi(0, int(round(_get_relic_value(relic_data, 8.0)))))
 		RELIC_ID_BLOODGLASS_CHARM:
-			_apply_direct_stat_add(unit, "life_steal", maxf(0.0, _get_relic_value(relic_data, 0.08)))
+			_apply_direct_stat_add(unit, relic_id, "life_steal", maxf(0.0, _get_relic_value(relic_data, 0.08)))
 		RELIC_ID_DYNAMO_NEEDLE:
 			var mana_bonus: float = maxf(0.0, _get_relic_value(relic_data, 4.0))
-			_apply_direct_stat_add(unit, "mana_on_attack", mana_bonus)
-			_apply_direct_stat_add(unit, "mana_on_hit_taken", mana_bonus)
+			_apply_direct_stat_add(unit, relic_id, "mana_on_attack", mana_bonus)
+			_apply_direct_stat_add(unit, relic_id, "mana_on_hit_taken", mana_bonus)
 		_:
 			return
 
@@ -679,23 +736,71 @@ func _is_owner_unit(unit: Unit) -> bool:
 	return unit.team_id == int(current_relic_manager.get_owner_team_id())
 
 
-func _apply_direct_stat_add(unit: Unit, stat_name: String, value: float) -> void:
+func _apply_direct_stat_add(unit: Unit, relic_id: String, stat_name: String, value: float) -> void:
 	if not _is_alive_unit(unit) or is_zero_approx(value):
 		return
 
-	unit.apply_runtime_stat_bonus(stat_name, value)
+	_apply_stat_modifier(unit, relic_id, stat_name, StatModifier.STAGE_RUNTIME_FLAT, value)
 
 
-func _apply_direct_stat_multiply(unit: Unit, stat_name: String, multiplier: float) -> void:
+func _apply_direct_stat_multiply(unit: Unit, relic_id: String, stat_name: String, multiplier: float) -> void:
 	if not _is_alive_unit(unit) or is_equal_approx(multiplier, 1.0):
 		return
 
-	var current_value: Variant = unit.get(stat_name)
-	if current_value == null:
+	_apply_stat_modifier(unit, relic_id, stat_name, StatModifier.STAGE_RUNTIME_PERCENT, multiplier - 1.0)
+
+
+func _apply_stat_modifier(unit: Unit, relic_id: String, stat_name: String, stage: String, value: float, dynamic_key: String = "", params: Dictionary = {}) -> void:
+	if not _is_alive_unit(unit) or stat_name.strip_edges() == "":
 		return
 
-	var bonus_value: float = float(current_value) * (multiplier - 1.0)
-	_apply_direct_stat_add(unit, stat_name, bonus_value)
+	if not unit.has_method("add_stat_modifier"):
+		unit.apply_runtime_stat_bonus(stat_name, value)
+		return
+
+	var modifier_id: String = "relic:" + relic_id + ":" + stat_name + ":" + stage
+	if dynamic_key != "":
+		modifier_id += ":" + dynamic_key
+	unit.add_stat_modifier({
+		"modifier_id": modifier_id,
+		"source_key": "relic:" + relic_id,
+		"stat_name": stat_name,
+		"stage": stage,
+		"value": value,
+		"dynamic_key": dynamic_key,
+		"params": params,
+	}, _get_modifier_context())
+
+
+func _apply_dynamic_gold_relic_to_unit(relic_data: Resource, unit: Unit, context: Dictionary) -> void:
+	if not _is_alive_unit(unit):
+		return
+
+	var relic_id: String = _get_relic_id(relic_data)
+	match relic_id:
+		RELIC_ID_GOLDEN_ARMOR_CONTRACT:
+			var frontline_columns: Array[int] = [5, 6]
+			if not _is_player_unit_in_columns(unit, frontline_columns, false):
+				return
+			_apply_stat_modifier(unit, relic_id, "defense", StatModifier.STAGE_RUNTIME_FLAT, 0.0, "gold_flat_step_capped", {
+				"step": maxi(1, int(round(_get_relic_value(relic_data, 2.0)))),
+				"per_step": 1.0,
+				"cap": float(GOLDEN_ARMOR_CONTRACT_DEFENSE_CAP),
+			})
+		RELIC_ID_GOLDEN_CHARM:
+			_apply_stat_modifier(unit, relic_id, "attack_damage", StatModifier.STAGE_RUNTIME_PERCENT, 0.0, "gold_percent_capped", {
+				"per_gold": _get_relic_value(relic_data, 0.01),
+				"cap": GOLDEN_CHARM_ATTACK_CAP,
+			})
+		RELIC_ID_CROWN_OF_GREED:
+			var step: int = maxi(1, int(round(_get_relic_value(relic_data, 5.0))))
+			var params: Dictionary = {
+				"step": step,
+				"per_step": CROWN_OF_GREED_BONUS_PER_STEP,
+			}
+			_apply_stat_modifier(unit, relic_id, "attack_damage", StatModifier.STAGE_RUNTIME_PERCENT, 0.0, "gold_percent_step", params)
+			_apply_stat_modifier(unit, relic_id, "skill_power", StatModifier.STAGE_RUNTIME_FLAT, 0.0, "gold_percent_step", params)
+			_apply_stat_modifier(unit, relic_id, "healing_power", StatModifier.STAGE_RUNTIME_FLAT, 0.0, "gold_percent_step", params)
 
 
 func _apply_relic_stat_add(unit: Unit, relic_id: String, stat_name: String, value: float, stack_policy: String = StatusEffectFactory.STACK_POLICY_REFRESH_ONLY) -> void:
@@ -835,6 +940,107 @@ func _add_relic_damage_dealt(damage: int) -> void:
 		return
 
 	current_relic_manager.relic_damage_dealt += damage
+
+
+func calc_old_coin_pouch_relic(relic_data: Resource) -> int:
+	return maxi(0, int(round(_get_relic_value(relic_data, 1.0))))
+
+
+func calc_spoils_ledger_relic(relic_data: Resource, encounter_type: String) -> int:
+	if encounter_type == "BOSS":
+		return 4
+	return maxi(0, int(round(_get_relic_value(relic_data, 2.0))))
+
+
+func calc_investment_ledger_relic(relic_data: Resource, pre_reward_gold: int) -> int:
+	var step: int = maxi(1, int(round(_get_relic_value(relic_data, 10.0))))
+	if step <= 0 or pre_reward_gold <= 0:
+		return 0
+	var extra: int = floori(pre_reward_gold / step)
+	return mini(extra, INVESTMENT_LEDGER_CAP)
+
+
+func calc_compound_core_relic(relic_data: Resource, pre_reward_gold: int) -> int:
+	var step: int = maxi(1, int(round(_get_relic_value(relic_data, 8.0))))
+	if step <= 0 or pre_reward_gold <= 0:
+		return 0
+	return floori(pre_reward_gold / step)
+
+
+func try_apply_bounty_dagger_relic(attacker: Unit) -> void:
+	if not _is_alive_unit(attacker):
+		return
+
+	if bounty_dagger_gold_gained_this_battle >= BOUNTY_DAGGER_BATTLE_CAP:
+		return
+
+	bounty_dagger_kill_count += 1
+	if bounty_dagger_kill_count < 3:
+		return
+
+	bounty_dagger_kill_count = 0
+	bounty_dagger_gold_gained_this_battle += BOUNTY_DAGGER_GOLD_PER_TRIGGER
+	var mgr: Variant = _get_relic_manager()
+	if mgr != null and mgr.has_method("_add_battle_gold"):
+		mgr._add_battle_gold(BOUNTY_DAGGER_GOLD_PER_TRIGGER)
+	print("Relic triggered: Bounty Dagger, +" + str(BOUNTY_DAGGER_GOLD_PER_TRIGGER) + " gold (battle total: " + str(bounty_dagger_gold_gained_this_battle) + "/" + str(BOUNTY_DAGGER_BATTLE_CAP) + ")")
+
+
+func try_apply_goldhunter_contract_relic(attacker: Unit) -> void:
+	if not _is_alive_unit(attacker):
+		return
+
+	var goldhunter_contract: Resource = _get_relic_by_id(RELIC_ID_GOLDHUNTER_CONTRACT)
+	var chance: float = _get_relic_value(goldhunter_contract, 0.35)
+	if randf() >= chance:
+		return
+
+	goldhunter_gold_gained_this_battle += GOLDHUNTER_CONTRACT_GOLD_PER_TRIGGER
+	var mgr: Variant = _get_relic_manager()
+	if mgr != null and mgr.has_method("_add_battle_gold"):
+		mgr._add_battle_gold(GOLDHUNTER_CONTRACT_GOLD_PER_TRIGGER)
+	print("Relic triggered: Goldhunter Contract, +" + str(GOLDHUNTER_CONTRACT_GOLD_PER_TRIGGER) + " gold (battle total: " + str(goldhunter_gold_gained_this_battle) + ")")
+
+
+func reset_battle_gold_relic_state() -> void:
+	bounty_dagger_kill_count = 0
+	bounty_dagger_gold_gained_this_battle = 0
+	goldhunter_gold_gained_this_battle = 0
+
+
+func _get_live_gold() -> int:
+	var current_relic_manager: Variant = _get_relic_manager()
+	if current_relic_manager == null:
+		return 0
+
+	if current_relic_manager.has_method("get_live_gold"):
+		return int(current_relic_manager.get_live_gold())
+
+	return 0
+
+
+func _get_modifier_context() -> Dictionary:
+	return {
+		"gold": _get_live_gold(),
+	}
+
+
+func _is_dynamic_gold_relic_id(relic_id: String) -> bool:
+	return [
+		RELIC_ID_GOLDEN_ARMOR_CONTRACT,
+		RELIC_ID_GOLDEN_CHARM,
+		RELIC_ID_CROWN_OF_GREED,
+	].has(relic_id)
+
+
+func _should_apply_always_on_relic_to_unit(relic_id: String, unit: Unit) -> bool:
+	if unit == null or not is_instance_valid(unit):
+		return false
+
+	if bool(unit.get_meta("is_summon", false)):
+		return _is_dynamic_gold_relic_id(relic_id)
+
+	return true
 
 
 func _get_relic_manager() -> Variant:

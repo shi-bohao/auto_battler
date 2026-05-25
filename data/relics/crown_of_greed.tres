@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_greed_crown"]
+
+[resource]
+script = ExtResource("1_greed_crown")
+relic_id = "crown_of_greed"
+relic_name = "Crown of Greed"
+relic_name_cn = "贪婪王冠"
+description = "Aura: per 5 gold held, all player units gain +3% attack damage, +3% skill power, and +3% healing power. No cap."
+description_cn = "光环：每拥有 5 金币，所有玩家单位获得攻击力 +3%、技能强度 +3%、治疗强度 +3%，不设上限。"
+rarity = "LEGENDARY"
+trigger_type = "AURA"
+value = 5.0

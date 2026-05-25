@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-25（含永久成长遗物、光环遗物接入、英雄美术资源和 UI 分层系统）
+更新时间：2026-05-25（含属性修饰器系统、动态金币光环、金币经济遗物、永久成长遗物、英雄美术资源和 UI 分层系统）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成或待规划的功能设计与实现入口见 `docs/future_features.md`。
 
@@ -8,11 +8,78 @@
 
 本项目是一个 Godot 4 + GDScript 制作的 2D 肉鸽自走棋 Demo。
 
-当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄美术资源、中文文本、战斗统计和结束回主菜单流程的可玩原型。
+当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、运行时属性修饰器、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄美术资源、中文文本、战斗统计和结束回主菜单流程的可玩原型。
 
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
 截至 2026-05-06，`docs/refactor_plan_2026-05-06.md` 中的 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。本文档仍保留早期说明口径，但以下目录和职责已同步到当前结构。
+
+## 2026-05-25 属性修饰器与动态金币光环
+
+近期完成并通过 headless 检查的内容：
+
+- 新增 `scripts/combat/stat_modifier.gd` 与 `scripts/combat/unit_stat_controller.gd`，为运行时单位提供统一属性修饰器系统。
+- 属性修饰器按 `BASE_OVERRIDE → PERMANENT_FLAT → PERMANENT_PERCENT → RUNTIME_FLAT → RUNTIME_PERCENT → FINAL_FLAT → FINAL_PERCENT → FINAL_MULTIPLY` 顺序结算，避免遗物、羁绊、Buff/Debuff、英雄被动和加时赛直接改写同一字段后互相覆盖。
+- `Unit` 新增 `add_stat_modifier()`、`remove_stat_modifier()`、`remove_stat_modifiers_by_source()`、`recalculate_stats()`，作为其他系统接入属性加成的统一入口。
+- 静态 `AURA` 遗物、金币动态光环、Buff/Debuff 属性效果、羁绊战斗开始属性、部分英雄/单位战斗开始被动和加时赛加成已接入 modifier 系统。
+- 金币转化属性遗物（金甲契约、黄金护符、贪婪王冠）不再只按开战金币固定结算，而是通过动态 modifier 读取实时金币；金币变化、购买遗物、调整站位和单位生成都会刷新当前加成。
+- `EconomyManager` 新增 `gold_changed` 信号，`main.gd` 监听后调用 `BattleManager.refresh_dynamic_relic_auras()` 刷新当前玩家单位、备战单位和镜像敌方单位。
+- 召唤物生成时会先标记 `is_summon` 再应用遗物光环，避免开战型旧光环误套到召唤物；动态金币光环仍可按当前规则刷新。
+- 新增 `scripts/tests/test_stat_modifier_system.gd`，覆盖属性层级结算和金币动态光环在金币/站位变化后的重算。
+- 详细设计见 `docs/stat_modifier_system_design.md`。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_stat_modifier_system.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_status_effect_stack_policy.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_kill_relics.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_summon_system.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_bond_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
+```
+
+## 2026-05-25 稳定性修复
+
+近期修复并通过 headless 检查的内容：
+
+- 修复骨龙普攻溅射、骨龙主动弹幕和织骨者召唤死亡回响仍按旧参数顺序调用 `AoeResolver.get_enemy_units_in_radius()` 的问题。当前统一使用 `source_unit, center_position, radius, excluded_units` 顺序，避免运行时报 `Cannot convert argument 2 from float to Vector2`。
+- 修复召唤羁绊给召唤物增加最大生命后当前生命超过最大生命的问题。原因是 `apply_runtime_stat_bonus("max_hp", ..., true)` 已经补过一次 HP，后续又按新旧最大生命比例重复缩放；当前只保留一次补血并 clamp 到 `max_hp`。
+- `scripts/tests/test_bond_manager.gd` 已补充断言，确认 2/3 召唤羁绊增强新召唤物后 `hp == max_hp`，防止生命溢出回归。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/combat/passive_resolver.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/combat/active_skill_caster.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_bond_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_summon_system.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_high_rarity_units.gd
+```
+
+## 2026-05-25 金币经济遗物
+
+近期完成并通过 headless 检查的内容：
+
+- 新增 9 件金币经济遗物：旧钱袋、战利品账本、赏金匕首、投资账本、金甲契约、黄金护符、猎金契约、复利核心、贪婪王冠。
+- 新增触发类型 `ON_ROUND_REWARD`：在战斗胜利金币结算阶段触发，参考 `pre_reward_gold` 计算额外金币，第 30 波最终 Boss 跳过。
+- `RelicManager` 新增 `set_battle_gold_context()`、`trigger_round_reward_relics()`、`reset_battle_relic_state()`、`_add_battle_gold()` 和 `gold_add_callback` 回调机制。
+- 击杀金币遗物（赏金匕首、猎金契约）通过现有 `ON_KILL` 入口触发，通过 `RelicEffectResolver` 累积金币，回调 `main.gd` 即时写入 `EconomyManager`。
+- 金币转化属性遗物（金甲契约、黄金护符、贪婪王冠）已改为 `AURA` 光环类型，并接入动态属性修饰器，通过 `RelicManager.get_live_gold()` → `EconomyManager.get_gold()` 读取实时金币，金币变化后会刷新属性加成。
+- `BattleManager.start_battle()` 调用 `relic_manager.reset_battle_relic_state()` 清零每场战斗的击杀计数和金币累积。
+- `main.gd` 的 `_on_battle_ended()` 已接入 `trigger_round_reward_relics()`，在基础胜利金币计算完成后合并额外金币并输出日志。
+- 遗物奖励池扩展至 43 件。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --check-only --script res://scripts/relic/relic_effect_resolver.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tools/generate_content_reference.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --quit
+```
 
 ## 2026-05-25 永久成长、光环遗物、英雄素材与 UI 分层
 
@@ -22,7 +89,7 @@
 - `RosterManager` 与 `HeroManager` 新增 `permanent_stat_bonuses` 状态，用于保存本局永久属性成长；普通单位按 `roster_id` 写回阵容项，英雄写回当前英雄状态。
 - `UnitScalingService`、`MergeService` 与 `HeroManager` 已接入永久属性成长：后续战斗重新生成单位时会重新应用这些加成；同类型单位升星合成时会合并永久属性加成。
 - `LineupSnapshotManager` 已保存并还原 `permanent_stat_bonuses`，后续镜像挑战或其他基于阵容快照的模式可以保留这类本局成长结果。
-- 遗物系统新增常驻 `AURA` 触发类型：光环不再只在战斗开始时结算，而是在玩家运行时单位、英雄或召唤物生成后立即应用；每个运行时单位通过 `meta` 记录已应用光环，避免重复叠加。
+- 遗物系统新增常驻 `AURA` 触发类型：光环不再只在战斗开始时结算，而是在玩家运行时单位、英雄生成后立即应用；召唤物生成时会先标记身份，再按规则应用允许作用于召唤物的动态光环。
 - 已接入 `AURA` 的遗物包括：战斗旌旗、钢铁阵列、锐刃、断牙、奥术核心、法师透镜、治愈铃、星冠、三星冠冕、奥术棱镜、慈悲香炉、破甲砺石、血玻璃护符、充能针。
 - `BattleManager` 在普通单位、英雄和召唤物生成后调用 `RelicManager.apply_always_on_relics_to_runtime_unit()`；`BATTLE_START` 入口会跳过已标记为常驻光环的遗物，避免同一效果重复结算。
 - 四名英雄已接入美术资源：`assets/game/units/heroes/` 下包含头像、棋盘图标、图标和立绘资源；`UnitData` 的 `board_sprite`、`portrait_texture`、`icon_texture`、`art_scale`、`art_offset` 用于区分棋盘显示与 UI 显示。
@@ -245,6 +312,7 @@ res://
 │   ├── mirror_challenge_design.md
 │   ├── phase_summary_2026-05-04.md
 │   ├── refactor_plan_2026-05-06.md
+│   ├── stat_modifier_system_design.md
 │   ├── ui_layering_design.md
 │   ├── 索敌设计.md
 │   └── project_status.md
@@ -282,7 +350,9 @@ res://
     │   ├── projectile.gd
     │   ├── projectile_manager.gd
     │   ├── shape_geometry.gd
-    │   └── status_effect_factory.gd
+    │   ├── stat_modifier.gd
+    │   ├── status_effect_factory.gd
+    │   └── unit_stat_controller.gd
     ├── encounter/
     ├── formatters/
     ├── game/
@@ -749,7 +819,7 @@ MIRROR_CHALLENGE
 - 召唤物默认影响胜负结算
 - 单位自身召唤效果默认最多同时维持 3 个召唤物，可通过单位 meta 或被动调整
 - 遗物召唤上限独立计算，由遗物效果提供
-- 召唤物可触发攻击、击杀、死亡类遗物，但不会吃本场已经结算过的战斗开始类 Buff；新生成的玩家召唤物会立即获得当前常驻 `AURA` 光环
+- 召唤物可触发攻击、击杀、死亡类遗物，但不会吃本场已经结算过的战斗开始类 Buff；新生成的玩家召唤物会先标记 `is_summon`，再按规则刷新允许作用于召唤物的动态光环
 - 已新增玩家单位：`Necromancer / 亡灵法师`，主动技能召唤骷髅
 - 已新增玩家单位：`Puppet Warlock / 傀儡术士`，标记敌人，标记目标死亡时召唤傀儡
 - 已新增召唤型敌人：`Grave Caller / 唤墓者`、`Bone Carrier / 运骨者`、`Puppet Binder / 傀儡缚师`

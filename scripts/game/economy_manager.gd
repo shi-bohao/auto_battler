@@ -1,6 +1,7 @@
 class_name EconomyManager
 extends RefCounted
 
+signal gold_changed(new_gold: int, delta: int)
 
 const ENCOUNTER_TYPE_NORMAL: String = "NORMAL"
 const ENCOUNTER_TYPE_ELITE: String = "ELITE"
@@ -13,8 +14,15 @@ var boss_win_gold_bonus: int = 12
 var gold: int = initial_gold
 
 
+func get_gold() -> int:
+	return gold
+
+
 func reset() -> void:
+	var old_gold: int = gold
 	gold = initial_gold
+	if old_gold != gold:
+		gold_changed.emit(gold, gold - old_gold)
 
 
 func add_gold(amount: int) -> void:
@@ -22,6 +30,7 @@ func add_gold(amount: int) -> void:
 		return
 
 	gold += amount
+	gold_changed.emit(gold, amount)
 
 
 func can_spend(amount: int) -> bool:
@@ -33,6 +42,7 @@ func spend_gold(amount: int) -> bool:
 		return false
 
 	gold -= amount
+	gold_changed.emit(gold, -amount)
 	return true
 
 

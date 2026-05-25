@@ -38,6 +38,15 @@ const DYNAMO_NEEDLE_RELIC_DATA: Resource = preload("res://data/relics/dynamo_nee
 const MIRAGE_CLOAK_RELIC_DATA: Resource = preload("res://data/relics/mirage_cloak.tres")
 const GRAVEBONE_CHARM_RELIC_DATA: Resource = preload("res://data/relics/gravebone_charm.tres")
 const VITALITY_TROPHY_RELIC_DATA: Resource = preload("res://data/relics/vitality_trophy.tres")
+const OLD_COIN_POUCH_RELIC_DATA: Resource = preload("res://data/relics/old_coin_pouch.tres")
+const SPOILS_LEDGER_RELIC_DATA: Resource = preload("res://data/relics/spoils_ledger.tres")
+const BOUNTY_DAGGER_RELIC_DATA: Resource = preload("res://data/relics/bounty_dagger.tres")
+const INVESTMENT_LEDGER_RELIC_DATA: Resource = preload("res://data/relics/investment_ledger.tres")
+const GOLDEN_ARMOR_CONTRACT_RELIC_DATA: Resource = preload("res://data/relics/golden_armor_contract.tres")
+const GOLDEN_CHARM_RELIC_DATA: Resource = preload("res://data/relics/golden_charm.tres")
+const GOLDHUNTER_CONTRACT_RELIC_DATA: Resource = preload("res://data/relics/goldhunter_contract.tres")
+const COMPOUND_CORE_RELIC_DATA: Resource = preload("res://data/relics/compound_core.tres")
+const CROWN_OF_GREED_RELIC_DATA: Resource = preload("res://data/relics/crown_of_greed.tres")
 
 var _relic_data_list: Array[Resource] = [
 	BATTLE_BANNER_RELIC_DATA,
@@ -74,6 +83,15 @@ var _relic_data_list: Array[Resource] = [
 	MIRAGE_CLOAK_RELIC_DATA,
 	GRAVEBONE_CHARM_RELIC_DATA,
 	VITALITY_TROPHY_RELIC_DATA,
+	OLD_COIN_POUCH_RELIC_DATA,
+	SPOILS_LEDGER_RELIC_DATA,
+	BOUNTY_DAGGER_RELIC_DATA,
+	INVESTMENT_LEDGER_RELIC_DATA,
+	GOLDEN_ARMOR_CONTRACT_RELIC_DATA,
+	GOLDEN_CHARM_RELIC_DATA,
+	GOLDHUNTER_CONTRACT_RELIC_DATA,
+	COMPOUND_CORE_RELIC_DATA,
+	CROWN_OF_GREED_RELIC_DATA,
 ]
 
 

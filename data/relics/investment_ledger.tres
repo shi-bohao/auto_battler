@@ -1,0 +1,14 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_investment"]
+
+[resource]
+script = ExtResource("1_investment")
+relic_id = "investment_ledger"
+relic_name = "Investment Ledger"
+relic_name_cn = "投资账本"
+description = "After each victorious battle, gain 1 extra gold per 10 gold held, up to 3 extra gold."
+description_cn = "战斗胜利结算时，每持有 10 金币，额外获得 1 金币，最多 3 金币。"
+rarity = "FINE"
+trigger_type = "ON_ROUND_REWARD"
+value = 10.0

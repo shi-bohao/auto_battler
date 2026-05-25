@@ -881,7 +881,7 @@ func _cast_summoned_dragon_barrage(unit: Variant) -> bool:
 
 	var radius: float = DRAGON_BARRAGE_RADIUS_STAR_3 if _is_star_3(unit) else DRAGON_BARRAGE_RADIUS
 	var barrage_mult: float = DRAGON_BARRAGE_DAMAGE_MULTIPLIER_STAR_3 if _is_star_3(unit) else DRAGON_BARRAGE_DAMAGE_MULTIPLIER
-	var enemies: Array[Variant] = aoe_resolver.get_enemy_units_in_radius(target.global_position, radius, unit)
+	var enemies: Array[Variant] = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, radius)
 	var damage: int = maxi(1, int(round(float(unit.attack_damage) * barrage_mult)))
 
 	for enemy_value: Variant in enemies:

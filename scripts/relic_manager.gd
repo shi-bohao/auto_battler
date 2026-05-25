@@ -13,6 +13,10 @@ var relic_effect_resolver: Variant = RELIC_EFFECT_RESOLVER_SCRIPT.new()
 var relic_trigger_dispatcher: Variant = RELIC_TRIGGER_DISPATCHER_SCRIPT.new()
 var relic_damage_dealt: int = 0
 var owner_team_id: int = 1
+var battle_start_gold_context: int = 0
+var battle_gold_accumulator: int = 0
+var gold_add_callback: Callable = Callable()
+var get_gold_callable: Callable = Callable()
 
 
 func _init() -> void:
@@ -22,11 +26,66 @@ func _init() -> void:
 
 func clear_relics() -> void:
 	relic_inventory.clear()
+	reset_battle_relic_state()
 	print_player_relics()
 
 
 func reset_battle_stats() -> void:
 	relic_damage_dealt = 0
+
+
+func set_battle_gold_context(gold: int) -> void:
+	battle_start_gold_context = gold
+	battle_gold_accumulator = 0
+
+
+func get_battle_gold_context() -> int:
+	return battle_start_gold_context
+
+
+func collect_battle_gold() -> int:
+	var collected: int = battle_gold_accumulator
+	battle_gold_accumulator = 0
+	return collected
+
+
+func set_gold_callback(callback: Callable) -> void:
+	gold_add_callback = callback
+
+
+func set_gold_query_callback(callback: Callable) -> void:
+	get_gold_callable = callback
+
+
+func get_live_gold() -> int:
+	if not get_gold_callable.is_null():
+		return int(get_gold_callable.call())
+	return battle_start_gold_context
+
+
+func _add_battle_gold(amount: int) -> void:
+	battle_gold_accumulator += amount
+	if not gold_add_callback.is_null():
+		gold_add_callback.call(amount)
+
+
+func trigger_round_reward_relics(encounter_type: String, current_round: int, max_round: int, pre_reward_gold: int, base_reward_gold: int) -> Dictionary:
+	return relic_trigger_dispatcher.trigger_round_reward_relics(encounter_type, current_round, max_round, pre_reward_gold, base_reward_gold)
+
+
+func reset_battle_relic_state() -> void:
+	battle_gold_accumulator = 0
+	relic_trigger_dispatcher.reset_battle_relic_state()
+
+
+func refresh_dynamic_relic_auras_for_unit(unit: Unit) -> void:
+	if relic_effect_resolver != null and relic_effect_resolver.has_method("refresh_dynamic_gold_relics_to_unit"):
+		relic_effect_resolver.refresh_dynamic_gold_relics_to_unit(unit)
+
+
+func refresh_dynamic_relic_auras_for_units(units: Array[Unit]) -> void:
+	for unit: Unit in units:
+		refresh_dynamic_relic_auras_for_unit(unit)
 
 
 func set_owner_team_id(team_id: int) -> void:

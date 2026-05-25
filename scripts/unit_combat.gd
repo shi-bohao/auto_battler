@@ -89,7 +89,18 @@ func add_battle_attack_bonus_percent(unit: Variant, percent: float) -> void:
 		return
 
 	var old_attack_damage: int = unit.attack_damage
-	unit.attack_damage = maxi(1, int(round(float(unit.attack_damage) * (1.0 + percent))))
+	if unit.has_method("add_stat_modifier"):
+		var modifier_index: int = int(unit.get_meta("battle_attack_bonus_modifier_index", 0)) + 1
+		unit.set_meta("battle_attack_bonus_modifier_index", modifier_index)
+		unit.add_stat_modifier({
+			"modifier_id": "runtime:battle_attack_bonus:" + str(modifier_index),
+			"source_key": "runtime:battle_attack_bonus",
+			"stat_name": "attack_damage",
+			"stage": StatModifier.STAGE_FINAL_MULTIPLY,
+			"value": 1.0 + percent,
+		})
+	else:
+		unit.attack_damage = maxi(1, int(round(float(unit.attack_damage) * (1.0 + percent))))
 	print(unit.display_name + " attack damage: " + str(old_attack_damage) + " -> " + str(unit.attack_damage))
 
 

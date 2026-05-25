@@ -62,6 +62,15 @@ func get_relic_ids_for_round(round_number: int) -> Array[String]:
 	return relic_ids
 
 
+func get_snapshot_gold_for_round(round_number: int) -> int:
+	var snapshot: Dictionary = selected_snapshots_by_round.get(round_number, {}) as Dictionary
+	if snapshot.is_empty():
+		return 0
+
+	var run_data: Dictionary = _get_dictionary(snapshot, "run")
+	return maxi(0, int(run_data.get("gold", 0)))
+
+
 func build_locked_preview_text(max_round: int) -> String:
 	var lines: Array[String] = []
 	lines.append("[b]镜像挑战[/b]")
