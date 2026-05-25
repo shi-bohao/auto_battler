@@ -227,7 +227,7 @@ func apply_vitality_trophy_relic(attacker: Unit, roster_manager: Variant = null,
 	if not did_store_bonus:
 		return
 
-	print("Relic triggered: Vitality Trophy, " + attacker.display_name + " permanently gains +" + str(int(round(max_hp_bonus))) + " max HP")
+	print("Relic triggered: Blood Oath Chalice, " + attacker.display_name + " permanently gains +" + str(int(round(max_hp_bonus))) + " max HP")
 	attacker.apply_runtime_stat_bonus("max_hp", max_hp_bonus, true)
 
 
@@ -252,7 +252,7 @@ func apply_last_stand_relic(dead_unit: Unit, player_units: Array[Unit]) -> void:
 	if shield_amount <= 0:
 		return
 
-	print("Relic triggered: Last Stand, surviving player units gain " + str(shield_amount) + " shield")
+	print("Relic triggered: Ember Bulwark, surviving player units gain " + str(shield_amount) + " shield")
 	for unit in player_units:
 		if _is_alive_unit(unit) and unit != dead_unit:
 			unit.add_shield(shield_amount)

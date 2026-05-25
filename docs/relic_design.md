@@ -1,5 +1,7 @@
 # 遗物设计文档
 
+更新时间：2026-05-24
+
 本文档记录当前遗物系统的数据结构、奖励池规则、已实现遗物、UI 展示和验证方式。新增遗物时应先补充本文档，再同步资源文件和 `RelicManager` 逻辑。
 
 ## 1. 数据结构
@@ -50,6 +52,7 @@ Restart 时调用：
 
 | 入口 | 调用位置 | 用途 |
 | --- | --- | --- |
+| `apply_always_on_relics_to_runtime_unit(unit)` | `BattleManager` 生成玩家单位、英雄或召唤物后 | 常驻光环类遗物 |
 | `trigger_battle_start_relics(player_units)` | `BattleManager.start_battle()` | 战斗开始类遗物 |
 | `trigger_attack_relics(attacker, target)` | `BattleManager._on_unit_attack_landed()` | 普通攻击命中类遗物 |
 | `trigger_kill_relics(attacker, target)` | `BattleManager._on_unit_killed_target()` | 击杀类遗物 |
@@ -63,6 +66,7 @@ Restart 时调用：
 - 战斗开始类遗物只修改本场战斗中的运行时单位，不永久修改原始 `UnitData`。
 - 伤害类遗物需要明确是否暴击；除非特别说明，遗物额外伤害不暴击。
 - 临时属性增益优先使用运行时属性加成方式，不引入复杂 Buff 系统。
+- 本局永久属性成长不写回 `.tres`，而是写入 `RosterManager` 或 `HeroManager` 的 `permanent_stat_bonuses`，由后续单位生成流程重新应用。
 
 ## 3. 当前遗物池
 
@@ -76,7 +80,7 @@ Restart 时调用：
 | Soul Lantern | 收魂灯 | `soul_lantern` | `RARE` | `ON_KILL` | `25.0` | 玩家单位击杀后恢复 25 魔力 |
 | Executioner Sigil | 处刑徽记 | `executioner_sigil` | `EPIC` | `ON_KILL` | `0.12` | 玩家单位击杀后，本场战斗攻击力提高 12% |
 | Victory Drum | 凯歌战鼓 | `victory_drum` | `EPIC` | `ON_KILL` | `12.0` | 玩家单位击杀后，所有存活玩家单位获得 12 护盾 |
-| Vitality Trophy | 生命战利品 | `vitality_trophy` | `RARE` | `ON_KILL` | `5.0` | 友方非召唤单位击杀后，本局永久获得 +5 最大生命值 |
+| Blood Oath Chalice | 血誓杯 | `vitality_trophy` | `RARE` | `ON_KILL` | `5.0` | 友方非召唤单位击杀后，本局永久获得 +5 最大生命值 |
 | Hunter Mark | 猎手印记 | `hunter_mark` | `RARE` | `ON_ATTACK` | `0.75` | 玩家弓手每 3 次普通攻击追加 75% 攻击力伤害 |
 | Vengeance Spark | 复仇火花 | `vengeance_spark` | `RARE` | `ON_DEATH` | `50.0` | 玩家单位死亡时对最近敌人造成 50 遗物伤害 |
 | Steel Formation | 钢铁阵列 | `steel_formation` | `COMMON` | `AURA` | `12.0` | 光环：玩家全队防御 +12 |
@@ -85,7 +89,7 @@ Restart 时调用：
 | Arcane Core | 奥术核心 | `arcane_core` | `RARE` | `AURA` | `0.25` | 光环：玩家全队魔力回复速度 +25% |
 | First Spark | 初始火花 | `first_spark` | `RARE` | `BATTLE_START` | `50.0` | 玩家全队获得 50 初始魔力，不超过 `max_mana` |
 | Guardian Oath | 守护誓约 | `guardian_oath` | `RARE` | `BATTLE_START` | `70.0` | 玩家防御最高单位获得 70 护盾和 +25 防御 |
-| Last Stand | 背水一战 | `last_stand` | `EPIC` | `ON_DEATH` | `60.0` | 玩家单位死亡时，其他存活玩家单位获得 60 护盾 |
+| Ember Bulwark | 余烬壁垒 | `last_stand` | `EPIC` | `ON_DEATH` | `60.0` | 玩家单位死亡时，其他存活玩家单位获得 60 护盾 |
 | Soul Ember | 灵魂余烬 | `soul_ember` | `EPIC` | `ON_DEATH` | `45.0` | 玩家单位死亡时，其他存活玩家单位恢复 45 魔力 |
 | Gravebone Charm | 骸骨坠饰 | `gravebone_charm` | `RARE` | `ON_DEATH` | `3.0` | 友方非召唤单位死亡时召唤 1 个骷髅；最多同时维持 3 个骷髅，召唤物死亡不触发 |
 | Duelist Glove | 决斗手套 | `duelist_glove` | `RARE` | `ON_ATTACK` | `0.35` | 玩家刺客攻击低于 50% HP 的目标时追加 35% 攻击力伤害 |
@@ -98,7 +102,7 @@ Restart 时调用：
 | Frontline Plate | 前线护板 | `frontline_plate` | `COMMON` | `BATTLE_START` | `15.0` | 玩家前排单位防御 +15，护盾 +20 |
 | Arcane Prism | 奥术棱镜 | `arcane_prism` | `FINE` | `AURA` | `0.15` | 光环：玩家全队技能强度 +15% |
 | Mercy Censer | 慈悲香炉 | `mercy_censer` | `RARE` | `AURA` | `0.20` | 光环：玩家全队治疗强度 +20%，护盾强度 +20% |
-| Piercing Whetstone | 防御穿透磨石 | `piercing_whetstone` | `COMMON` | `AURA` | `8.0` | 光环：玩家全队防御穿透 +8 |
+| Armorbreaker Whetstone | 破甲砺石 | `piercing_whetstone` | `COMMON` | `AURA` | `8.0` | 光环：玩家全队防御穿透 +8 |
 | Bloodglass Charm | 血玻璃护符 | `bloodglass_charm` | `FINE` | `AURA` | `0.08` | 光环：玩家全队吸血 +8% |
 | Bulwark Rune | 壁垒符文 | `bulwark_rune` | `RARE` | `BATTLE_START` | `0.08` | 玩家前排单位本场伤害减免 +8%，状态抗性 +15% |
 | Opening Tome | 开场秘典 | `opening_tome` | `FINE` | `BATTLE_START` | `20.0` | 玩家全队本场初始魔力 +20，并立刻恢复等量魔力 |
@@ -177,7 +181,7 @@ Restart 时调用：
 - 治疗量不超过 `max_hp`。
 - 魔力恢复不超过 `max_mana`。
 - 击杀者攻击力增益只修改本场运行时属性，战斗结束后随单位刷新重置。
-- `Vitality Trophy` 会把永久最大生命值写回阵容项或当前英雄状态，召唤物击杀不触发。
+- `Blood Oath Chalice` 会把永久最大生命值写回阵容项或当前英雄状态，召唤物击杀不触发。
 - 全队类效果只作用于当前存活的玩家单位。
 
 ### ON_DEATH
@@ -194,8 +198,8 @@ Restart 时调用：
 实现要点：
 
 - 只在战斗中触发。
-- 死亡单位自身不获得 `Last Stand` 护盾或 `Soul Ember` 魔力。
-- `Last Stand` 可以和 `Vengeance Spark` 同时触发。
+- 死亡单位自身不获得 `Ember Bulwark` 护盾或 `Soul Ember` 魔力。
+- `Ember Bulwark` 可以和 `Vengeance Spark` 同时触发。
 - `Gravebone Charm` 只响应非召唤玩家单位死亡；召唤物死亡不会递归触发。
 
 ## 5. 奖励池规则
@@ -249,10 +253,10 @@ Restart 时调用：
 2. 新建 `res://data/relics/<relic_id>.tres`。
 3. 使用 `res://scripts/relic_data.gd` 作为脚本。
 4. 填写 `relic_id`、`relic_name`、`relic_name_cn`、`description`、`rarity`、`trigger_type`、`value`。
-5. 在 `RelicManager` 中添加常量和 preload。
-6. 在 `get_available_relic_reward_options()` 中加入奖励池。
-7. 根据 `trigger_type` 在对应触发函数中接入效果。
-8. 如新增触发类型，先在战斗或 UI 系统中增加统一事件入口。
+5. 在 `scripts/relic/relic_reward_pool.gd` 中添加 preload，并加入奖励池。
+6. 在 `scripts/relic/relic_trigger_dispatcher.gd` 中根据 `trigger_type` 接入触发条件。
+7. 在 `scripts/relic/relic_effect_resolver.gd` 中实现具体效果；常驻光环优先接入 `apply_always_on_relics_to_unit()`，战斗开始一次性效果接入 `apply_battle_start_relic()`。
+8. 如新增触发类型，先在战斗或 UI 系统中增加统一事件入口，再由 `RelicManager` 对外转发。
 
 ## 8. 简单验证清单
 
@@ -279,16 +283,16 @@ Restart 时调用：
 
 ### ON_KILL
 
-1. 获得 `Blood Pendant`、`Soul Lantern`、`Executioner Sigil`、`Victory Drum` 或 `Vitality Trophy`。
+1. 获得 `Blood Pendant`、`Soul Lantern`、`Executioner Sigil`、`Victory Drum` 或 `Blood Oath Chalice`。
 2. 让玩家单位击杀敌人。
 3. 检查击杀者恢复生命或魔力时不超过上限。
 4. 检查 `Executioner Sigil` 的攻击力提升只影响本场战斗。
 5. 检查 `Victory Drum` 只给存活玩家单位添加护盾。
-6. 检查 `Vitality Trophy` 会把击杀者最大生命永久写回本局阵容，且召唤物击杀不触发。
+6. 检查 `Blood Oath Chalice` 会把击杀者最大生命永久写回本局阵容，且召唤物击杀不触发。
 
 ### ON_DEATH
 
-1. 获得 `Vengeance Spark`、`Last Stand`、`Soul Ember` 或 `Gravebone Charm`。
+1. 获得 `Vengeance Spark`、`Ember Bulwark`、`Soul Ember` 或 `Gravebone Charm`。
 2. 让玩家单位在战斗中死亡。
 3. 检查对应死亡遗物触发。
 4. 确认死亡单位自身不会获得死亡后护盾或魔力。

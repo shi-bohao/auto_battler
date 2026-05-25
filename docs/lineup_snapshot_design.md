@@ -47,6 +47,9 @@
 - `roster_id`
 - `saved_cell`
 - `saved_position`
+- `permanent_stat_bonuses`
+
+`permanent_stat_bonuses` 用于保存本局永久属性成长，例如 `Blood Oath Chalice / 血誓杯` 写入的 `max_hp` 加成。还原阵容时，该字段会回到对应阵容项，并在后续生成战斗单位时重新应用。
 
 `relics` 会保存：
 

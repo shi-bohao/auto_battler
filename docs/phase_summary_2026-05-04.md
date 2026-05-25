@@ -129,7 +129,7 @@
 | `BATTLE_START` | Battle Banner（战斗旌旗）, Iron Armor Badge（铁甲徽章）, Steel Formation（钢铁阵列）, Sharp Edge（锐刃）, Broken Fang（断牙）, Arcane Core（奥术核心）, First Spark（初始火花）, Guardian Oath（守护誓约）, Mage Lens（法师透镜）, Healing Bell（治愈铃）, Resonance Harp（共鸣竖琴）, Star Crown（星冠）, Crown of Three（三星冠冕）, Backline Scope（后排瞄镜）, Frontline Plate（前线护板） |
 | `ON_ATTACK` | Hunter Mark（猎手印记）, Duelist Glove（决斗手套） |
 | `ON_KILL` | Blood Pendant（鲜血吊坠） |
-| `ON_DEATH` | Vengeance Spark（复仇火花）, Last Stand（背水一战）, Soul Ember（灵魂余烬） |
+| `ON_DEATH` | Vengeance Spark（复仇火花）, Ember Bulwark（余烬壁垒）, Soul Ember（灵魂余烬） |
 
 所有遗物默认只对玩家单位生效，并已新增 `relic_name_cn` 中文名字段。伤害类遗物已经明确是否暴击；当前额外遗物伤害默认不暴击，并尽量走正常防御、护盾、HP 和击杀归属流程。
 

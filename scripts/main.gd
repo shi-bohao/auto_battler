@@ -23,6 +23,7 @@ const HERO_SELECTION_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui
 const BATTLE_TIME_MANAGER_SCRIPT: Script = preload("res://scripts/battle_time_manager.gd")
 const BOND_MANAGER_SCRIPT: Script = preload("res://scripts/bond_manager.gd")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
+const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
 const MAX_ACTIVE_UNITS: int = 10
 const MAX_TOTAL_UNITS: int = 25
 const MAX_RELIC_BAR_ITEMS: int = 5
@@ -171,7 +172,7 @@ func _ready() -> void:
 	battle_manager.overtime_started.connect(_on_overtime_started)
 	if battle_board != null and battle_board.has_signal("layout_changed"):
 		battle_board.layout_changed.connect(_on_battle_board_layout_changed)
-	menu_button.z_index = 80
+	_apply_static_ui_layers()
 	start_button.pressed.connect(_on_start_button_pressed)
 	menu_button.pressed.connect(_on_menu_button_pressed)
 	shop_button.pressed.connect(_on_shop_button_pressed)
@@ -203,6 +204,30 @@ func _process(delta: float) -> void:
 		battle_manager.update(battle_delta)
 		_update_sell_zone_highlight()
 	_refresh_unit_detail_panel_if_open()
+
+
+func _apply_static_ui_layers() -> void:
+	result_label.z_index = UI_LAYER.RESULT_LABEL
+	round_label.z_index = UI_LAYER.ROUND_LABEL
+	hero_exp_panel.z_index = UI_LAYER.HERO_EXP_PANEL
+	gold_frame.z_index = UI_LAYER.GOLD_PANEL
+	gold_label.z_index = UI_LAYER.GOLD_PANEL
+	relic_bar_panel.z_index = UI_LAYER.RELIC_BAR
+	encounter_info_panel.z_index = UI_LAYER.ENCOUNTER_INFO
+	sell_zone_panel.z_index = UI_LAYER.SELL_ZONE
+
+	start_button.z_index = UI_LAYER.HUD_ACTION_BUTTON
+	shop_button.z_index = UI_LAYER.HUD_ACTION_BUTTON
+	bench_button.z_index = UI_LAYER.HUD_ACTION_BUTTON
+	menu_button.z_index = UI_LAYER.MENU_BUTTON
+
+	shop_panel.z_index = UI_LAYER.SHOP_PANEL
+	bench_panel.z_index = UI_LAYER.BENCH_PANEL
+	stats_label.z_index = UI_LAYER.STATS_PANEL
+	unit_detail_panel.z_index = UI_LAYER.UNIT_DETAIL
+	relic_detail_panel.z_index = UI_LAYER.RELIC_DETAIL
+	hero_selection_panel.z_index = UI_LAYER.HERO_SELECTION
+	reward_panel.z_index = UI_LAYER.REWARD_PANEL
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -483,6 +508,7 @@ func _create_battle_speed_button() -> void:
 	battle_speed_button.offset_bottom = 132.0
 	battle_speed_button.visible = false
 	battle_speed_button.focus_mode = Control.FOCUS_NONE
+	battle_speed_button.z_index = UI_LAYER.BATTLE_SPEED_BUTTON
 	battle_speed_button.tooltip_text = "点击切换战斗速度"
 	battle_speed_button.pressed.connect(_on_battle_speed_button_pressed)
 	battle_speed_button.add_theme_font_size_override("font_size", 16)
@@ -498,6 +524,7 @@ func _create_bond_panel() -> void:
 
 	bond_panel = Panel.new()
 	bond_panel.visible = false
+	bond_panel.z_index = UI_LAYER.BOND_PANEL
 	bond_panel.add_theme_stylebox_override("panel", _create_panel_style(Color(0.045, 0.060, 0.090, 0.90), Color(0.50, 0.67, 0.88, 0.88), 0, 2))
 	ui_canvas_layer.add_child(bond_panel)
 
@@ -520,6 +547,7 @@ func _create_bond_panel() -> void:
 
 	bond_detail_panel = Panel.new()
 	bond_detail_panel.visible = false
+	bond_detail_panel.z_index = UI_LAYER.BOND_DETAIL
 	bond_detail_panel.custom_minimum_size = Vector2(520.0, 420.0)
 	bond_detail_panel.add_theme_stylebox_override("panel", _create_panel_style(Color(0.040, 0.052, 0.078, 0.98), Color(0.78, 0.62, 0.36, 0.96), 0, 2))
 	ui_canvas_layer.add_child(bond_detail_panel)
@@ -710,12 +738,14 @@ func _create_mirror_info_ui() -> void:
 	mirror_info_button.position = Vector2(24.0, 140.0)
 	mirror_info_button.custom_minimum_size = Vector2(136.0, 36.0)
 	mirror_info_button.visible = false
+	mirror_info_button.z_index = UI_LAYER.MIRROR_INFO_BUTTON
 	mirror_info_button.pressed.connect(_on_mirror_info_button_pressed)
 	_apply_menu_button_style(mirror_info_button, Color(0.34, 0.30, 0.58, 1.0), Color(0.86, 0.80, 1.0, 1.0))
 	ui_canvas_layer.add_child(mirror_info_button)
 
 	mirror_info_panel = Panel.new()
 	mirror_info_panel.visible = false
+	mirror_info_panel.z_index = UI_LAYER.MIRROR_INFO_PANEL
 	mirror_info_panel.anchor_left = 0.5
 	mirror_info_panel.anchor_top = 0.5
 	mirror_info_panel.anchor_right = 0.5

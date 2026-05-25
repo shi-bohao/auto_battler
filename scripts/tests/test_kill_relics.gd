@@ -94,9 +94,9 @@ func _test_vitality_trophy_stores_permanent_max_hp() -> void:
 
 	relic_manager.trigger_kill_relics(attacker, _create_enemy_unit(), roster_manager, null)
 
-	_expect_int(attacker.max_hp, 105, "Vitality Trophy should increase runtime max HP.")
-	_expect_int(attacker.hp, 65, "Vitality Trophy should preserve current HP ratio by adding the same HP amount.")
-	_expect_float(roster_manager.get_bonus(7, "max_hp"), 5.0, "Vitality Trophy should store max HP on the roster item.")
+	_expect_int(attacker.max_hp, 105, "Blood Oath Chalice should increase runtime max HP.")
+	_expect_int(attacker.hp, 65, "Blood Oath Chalice should preserve current HP ratio by adding the same HP amount.")
+	_expect_float(roster_manager.get_bonus(7, "max_hp"), 5.0, "Blood Oath Chalice should store max HP on the roster item.")
 
 
 func _test_always_on_relics_apply_once() -> void:

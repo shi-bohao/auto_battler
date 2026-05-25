@@ -5,6 +5,7 @@ extends RefCounted
 const ENCYCLOPEDIA_PANEL_SCENE: PackedScene = preload("res://scenes/ui/encyclopedia_panel.tscn")
 const ENCYCLOPEDIA_CATALOG_SCRIPT: Script = preload("res://scripts/catalog/encyclopedia_catalog.gd")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
+const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
 
 var panel: Panel = null
 var card_panel: Panel = null
@@ -32,6 +33,7 @@ func setup(canvas_layer: CanvasLayer, unit_text_formatter_value: Variant, rarity
 	if panel == null:
 		return
 
+	panel.z_index = UI_LAYER.ENCYCLOPEDIA
 	canvas_layer.add_child(panel)
 	_bind_nodes()
 	_apply_style()

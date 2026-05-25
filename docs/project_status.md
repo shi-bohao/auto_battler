@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-23（含织骨者英雄与新召唤物）
+更新时间：2026-05-25（含永久成长遗物、光环遗物接入、英雄美术资源和 UI 分层系统）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成或待规划的功能设计与实现入口见 `docs/future_features.md`。
 
@@ -8,11 +8,39 @@
 
 本项目是一个 Godot 4 + GDScript 制作的 2D 肉鸽自走棋 Demo。
 
-当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、中文文本、战斗统计和结束回主菜单流程的可玩原型。
+当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄美术资源、中文文本、战斗统计和结束回主菜单流程的可玩原型。
 
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
 截至 2026-05-06，`docs/refactor_plan_2026-05-06.md` 中的 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。本文档仍保留早期说明口径，但以下目录和职责已同步到当前结构。
+
+## 2026-05-25 永久成长、光环遗物、英雄素材与 UI 分层
+
+近期完成并通过 headless 检查的内容：
+
+- 新增遗物 **血誓杯 (Blood Oath Chalice)**：友方非召唤玩家单位击杀敌人后，该单位本局永久获得 +5 最大生命值；召唤物击杀不会触发。
+- `RosterManager` 与 `HeroManager` 新增 `permanent_stat_bonuses` 状态，用于保存本局永久属性成长；普通单位按 `roster_id` 写回阵容项，英雄写回当前英雄状态。
+- `UnitScalingService`、`MergeService` 与 `HeroManager` 已接入永久属性成长：后续战斗重新生成单位时会重新应用这些加成；同类型单位升星合成时会合并永久属性加成。
+- `LineupSnapshotManager` 已保存并还原 `permanent_stat_bonuses`，后续镜像挑战或其他基于阵容快照的模式可以保留这类本局成长结果。
+- 遗物系统新增常驻 `AURA` 触发类型：光环不再只在战斗开始时结算，而是在玩家运行时单位、英雄或召唤物生成后立即应用；每个运行时单位通过 `meta` 记录已应用光环，避免重复叠加。
+- 已接入 `AURA` 的遗物包括：战斗旌旗、钢铁阵列、锐刃、断牙、奥术核心、法师透镜、治愈铃、星冠、三星冠冕、奥术棱镜、慈悲香炉、破甲砺石、血玻璃护符、充能针。
+- `BattleManager` 在普通单位、英雄和召唤物生成后调用 `RelicManager.apply_always_on_relics_to_runtime_unit()`；`BATTLE_START` 入口会跳过已标记为常驻光环的遗物，避免同一效果重复结算。
+- 四名英雄已接入美术资源：`assets/game/units/heroes/` 下包含头像、棋盘图标、图标和立绘资源；`UnitData` 的 `board_sprite`、`portrait_texture`、`icon_texture`、`art_scale`、`art_offset` 用于区分棋盘显示与 UI 显示。
+- 棋盘英雄图标已改为 96×96 显示，并使用裁切后的 `*_board_icon.png`，减少不同英雄在图标内部留白不同导致的体感尺寸不一致。
+- 英雄选择界面继续优化：底部页码已移除，左右按钮位于头像选择框两侧，每次点击使头像窗口移动一格；点击头像只切换详情，确认按钮用于最终选择英雄。
+- 遗物栏保持在英雄详情面板下层，不再遮挡英雄选择详情；局内菜单按钮和弹出的菜单面板提高 `z_index`，在英雄选择界面打开菜单时可以正常显示。
+- 新增 UI 分层系统设计与实现入口：`scripts/ui/ui_layer.gd` 定义 HUD、功能面板、详情、流程遮罩、主菜单/图鉴、系统弹窗、浮动提示等大层级；`docs/ui_layering_design.md` 记录新增 UI 的分层规则。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/ui/menu_panel_controller.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_kill_relics.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_hero_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_lineup_snapshot_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
+```
 
 ## 2026-05-23 非圆形瞬时 AoE
 
@@ -155,9 +183,9 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
 ## 2026-05-16 增量进度
 
 近期新增并通过 headless 检查的内容：
-- 新增 8 件围绕扩展战斗属性设计的遗物，并接入 `RelicRewardPool` 与 `RelicEffectResolver`：奥术棱镜、慈悲香炉、防御穿透磨石、血玻璃护符、壁垒符文、开场秘典、充能针、幻影披风。
+- 新增 8 件围绕扩展战斗属性设计的遗物，并接入 `RelicRewardPool` 与 `RelicEffectResolver`：奥术棱镜、慈悲香炉、破甲砺石、血玻璃护符、壁垒符文、开场秘典、充能针、幻影披风。
 - 新遗物覆盖技能强度、治疗强度、护盾强度、防御穿透、吸血、伤害减免、初始魔力、普攻回魔、受击回魔、状态抗性和闪避等扩展属性。
-- 新属性遗物均为战斗开始类临时效果，只修改运行时 `Unit` 字段，不永久写回 `UnitData`。
+- 新属性遗物初版以战斗开始类临时效果为主；后续已将适合常驻生效的部分接入 `AURA` 光环系统，仍只修改运行时 `Unit` 字段，不永久写回 `UnitData`。
 - `scripts/tests/test_extended_unit_attributes.gd` 已补充新遗物验证，确认全队、前排、后排和魔力相关效果可以正确写入新属性。
 
 本轮常用验证命令：
@@ -205,6 +233,8 @@ res://
 │   ├── enemies/*.tres              # 敌人单位资源
 │   ├── summons/*.tres              # 召唤物（骷髅/傀儡/魂偶/骨巨人/骨龙）
 │   └── relics/*.tres               # 遗物资源
+├── assets/
+│   └── game/units/heroes/*.png      # 英雄头像、棋盘图标、图标和立绘资源
 ├── docs/
 │   ├── README.md                   # 文档目录与新旧关系
 │   ├── bond_system.md
@@ -215,6 +245,7 @@ res://
 │   ├── mirror_challenge_design.md
 │   ├── phase_summary_2026-05-04.md
 │   ├── refactor_plan_2026-05-06.md
+│   ├── ui_layering_design.md
 │   ├── 索敌设计.md
 │   └── project_status.md
 ├── scenes/
@@ -399,17 +430,18 @@ res://
 - 防止重复获得同名遗物
 - 生成可用遗物奖励选项
 - 触发战斗开始遗物
+- 应用常驻光环遗物
 - 触发攻击遗物
 - 触发击杀遗物
 - 触发死亡遗物
 - 统计遗物伤害
 
-当前已实现遗物：
-- 战旗：战斗开始时玩家单位本场攻击力提升
-- 铁甲徽章：战斗开始时玩家单位获得护盾
-- 鲜血吊坠：玩家单位击杀敌人时回血
-- 猎手印记：玩家弓手每攻击 3 次追加伤害
-- 复仇火种：玩家单位死亡时对最近敌人造成遗物伤害
+当前完整遗物池以 `docs/content_reference.md` 和 `docs/relic_design.md` 为准。当前触发类型包括：
+- `AURA`：常驻光环，单位生成后应用，适用于备战阶段、战斗开始和战斗中召唤物。
+- `BATTLE_START`：战斗开始时的一次性临时增益、护盾或初始魔力。
+- `ON_ATTACK`：普通攻击命中后触发。
+- `ON_KILL`：玩家单位击杀目标后触发，支持 `Blood Oath Chalice / 血誓杯` 这类本局永久属性成长。
+- `ON_DEATH`：玩家单位死亡时触发，支持 `Gravebone Charm / 骸骨坠饰` 这类遗物召唤效果。
 
 ### `stats_manager.gd`
 
@@ -527,6 +559,14 @@ res://
 - `target_mode`
 - `retarget_interval`
 - `lowest_hp_switch_threshold`
+- `basic_attack_type`
+- `projectile_speed`
+- `projectile_visual_type`
+- `board_sprite`
+- `portrait_texture`
+- `icon_texture`
+- `art_scale`
+- `art_offset`
 
 同时兼容旧字段：
 - `target_strategy`
@@ -535,7 +575,7 @@ res://
 
 单位配置资源脚本。
 
-当前主要状态以 `docs/phase_summary_2026-05-04.md` 和 `docs/unit_design.md` 为准；单位资源已支持中文名字段 `unit_name_cn`。
+当前主要数值以 `docs/content_reference.md` 为准；单位资源已支持中文名、羁绊标签、扩展战斗属性、远程弹道配置和静态美术资源字段。
 
 ### `relic_data.gd`
 
@@ -685,6 +725,8 @@ MIRROR_CHALLENGE
 - 玩家阵容持久化
 - 全队生命倍率
 - 全队攻击倍率
+- 单位本局永久属性加成 `permanent_stat_bonuses`
+- 升星合成时合并本局永久属性加成
 - 新增单位进入后续战斗
 - Restart 后恢复初始阵容
 
@@ -707,7 +749,7 @@ MIRROR_CHALLENGE
 - 召唤物默认影响胜负结算
 - 单位自身召唤效果默认最多同时维持 3 个召唤物，可通过单位 meta 或被动调整
 - 遗物召唤上限独立计算，由遗物效果提供
-- 召唤物可触发攻击、击杀、死亡类遗物，但不会吃本场已经结算过的战斗开始类 Buff
+- 召唤物可触发攻击、击杀、死亡类遗物，但不会吃本场已经结算过的战斗开始类 Buff；新生成的玩家召唤物会立即获得当前常驻 `AURA` 光环
 - 已新增玩家单位：`Necromancer / 亡灵法师`，主动技能召唤骷髅
 - 已新增玩家单位：`Puppet Warlock / 傀儡术士`，标记敌人，标记目标死亡时召唤傀儡
 - 已新增召唤型敌人：`Grave Caller / 唤墓者`、`Bone Carrier / 运骨者`、`Puppet Binder / 傀儡缚师`
@@ -731,7 +773,9 @@ MIRROR_CHALLENGE
 - 按钮、金币框、遗物栏、遭遇信息框、出售区、阵容面板等 UI 框体统一使用代码生成的像素风样式，不再使用图片按钮和图片框体皮肤。
 - 出售区显示 `出售` 与 `拖拽单位到这里出售`，并使用统一像素风文字样式。
 - 遗物栏显示对齐和超过 5 个后的展开按钮位置已修复。
-- 英雄选择界面支持先预览再确认：底部方形头像轮播（翻页循环），点击头像展示完整英雄详情（头像框、四列属性、技能按钮弹窗详情、三列强化按钮、经验成长），确认/返回按钮在面板底部。
+- 英雄选择界面支持先预览再确认：底部方形头像轮播，左右按钮每次移动一格；点击头像展示完整英雄详情（头像框、四列属性、技能按钮弹窗详情、三列强化按钮、经验成长），确认/返回按钮在面板底部。
+- 英雄选择界面已接入英雄头像/立绘；棋盘英雄显示使用裁切后的 96×96 棋盘图标。
+- 局内菜单按钮和菜单面板层级高于英雄选择面板，选择界面中点击菜单可以正常看到菜单。
 - 单位详情支持点击单位打开，点击空白位置关闭。
 - 英雄单位详情会显示专属技能、等级强化和已选强化。
 - 按钮全局 hover/press 缩放补间动画（`PixelUITheme` 自动集成）。

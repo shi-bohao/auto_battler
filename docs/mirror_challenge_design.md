@@ -42,6 +42,7 @@
 
 - `unit_id` 和 `resource_path` 用于加载玩家单位资源。
 - `star` 用于还原星级。
+- `permanent_stat_bonuses` 用于还原本局永久属性成长，例如最大生命成长。
 - `saved_cell` 会左右镜像到敌方半场。
 - `global_effects.player_hp_multiplier` 和 `player_attack_multiplier` 会应用到镜像单位。
 

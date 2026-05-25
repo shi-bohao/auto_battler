@@ -6,6 +6,7 @@ const MAIN_MENU_PANEL_SCENE: PackedScene = preload("res://scenes/ui/main_menu_pa
 const GAME_END_PANEL_SCENE: PackedScene = preload("res://scenes/ui/game_end_panel.tscn")
 const GAMEPLAY_MENU_PANEL_SCENE: PackedScene = preload("res://scenes/ui/gameplay_menu_panel.tscn")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
+const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
 
 signal start_requested()
 signal mirror_challenge_requested()
@@ -95,7 +96,7 @@ func _create_main_menu_ui() -> void:
 	if main_menu_panel == null:
 		return
 
-	main_menu_panel.z_index = 100
+	main_menu_panel.z_index = UI_LAYER.MAIN_MENU
 	main_menu_panel.add_theme_stylebox_override("panel", _create_panel_style(Color(0.0, 0.0, 0.0, 1.0), Color.TRANSPARENT, 0, 0))
 	canvas_layer.add_child(main_menu_panel)
 
@@ -126,7 +127,7 @@ func _create_game_end_dialog() -> void:
 	if game_end_panel == null:
 		return
 
-	game_end_panel.z_index = 110
+	game_end_panel.z_index = UI_LAYER.GAME_END_DIALOG
 	game_end_panel.add_theme_stylebox_override("panel", _create_panel_style(Color(0.02, 0.025, 0.03, 0.72), Color(0.0, 0.0, 0.0, 0.0), 0, 0))
 	canvas_layer.add_child(game_end_panel)
 
@@ -151,7 +152,7 @@ func _create_gameplay_menu_dialog() -> void:
 	if gameplay_menu_panel == null:
 		return
 
-	gameplay_menu_panel.z_index = 120
+	gameplay_menu_panel.z_index = UI_LAYER.GAMEPLAY_MENU
 	gameplay_menu_panel.add_theme_stylebox_override("panel", _create_panel_style(Color(0.02, 0.025, 0.03, 0.62), Color(0.0, 0.0, 0.0, 0.0), 0, 0))
 	canvas_layer.add_child(gameplay_menu_panel)
 

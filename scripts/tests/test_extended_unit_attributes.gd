@@ -134,12 +134,13 @@ func _test_relics_use_new_attribute_fields() -> void:
 	var priest: Unit = _create_unit("Priest", 1)
 	priest.unit_type = "priest"
 
-	relic_manager.trigger_battle_start_relics([mage, priest])
+	relic_manager.apply_always_on_relics_to_runtime_unit(mage)
+	relic_manager.apply_always_on_relics_to_runtime_unit(priest)
 
 	_expect_float(mage.skill_power, 0.35, "Mage Lens should now write to skill power.")
 	_expect_float(priest.healing_power, 0.40, "Healing Bell should now write to healing power.")
-	_expect_true(mage.effect_controller.has_effect("relic_mage_lens_skill_power"), "Mage Lens should apply through the status effect system.")
-	_expect_true(priest.effect_controller.has_effect("relic_healing_bell_healing_power"), "Healing Bell should apply through the status effect system.")
+	_expect_true(mage.has_meta("always_on_relic_mage_lens"), "Mage Lens should mark itself as an always-on relic.")
+	_expect_true(priest.has_meta("always_on_relic_healing_bell"), "Healing Bell should mark itself as an always-on relic.")
 
 
 func _test_new_attribute_relics_apply_battle_start_bonuses() -> void:
@@ -160,12 +161,14 @@ func _test_new_attribute_relics_apply_battle_start_bonuses() -> void:
 	backline.position = Vector2(100.0, 240.0)
 	backline.max_mana = 100
 
+	relic_manager.apply_always_on_relics_to_runtime_unit(frontline)
+	relic_manager.apply_always_on_relics_to_runtime_unit(backline)
 	relic_manager.trigger_battle_start_relics([frontline, backline])
 
 	_expect_float(frontline.skill_power, 0.15, "Arcane Prism should increase skill power.")
 	_expect_float(frontline.healing_power, 0.20, "Mercy Censer should increase healing power.")
 	_expect_float(frontline.shield_power, 0.20, "Mercy Censer should increase shield power.")
-	_expect_int(frontline.defense_penetration, 8, "Piercing Whetstone should increase defense penetration.")
+	_expect_int(frontline.defense_penetration, 8, "Armorbreaker Whetstone should increase defense penetration.")
 	_expect_float(frontline.life_steal, 0.08, "Bloodglass Charm should increase life steal.")
 	_expect_float(frontline.damage_reduction, 0.08, "Bulwark Rune should increase frontline damage reduction.")
 	_expect_float(frontline.status_resistance, 0.15, "Bulwark Rune should increase frontline status resistance.")
@@ -175,7 +178,8 @@ func _test_new_attribute_relics_apply_battle_start_bonuses() -> void:
 	_expect_float(frontline.mana_on_hit_taken, 4.0, "Dynamo Needle should increase mana on hit taken.")
 	_expect_float(backline.dodge_chance, 0.10, "Mirage Cloak should increase backline dodge chance.")
 	_expect_float(backline.status_resistance, 0.10, "Mirage Cloak should increase backline status resistance.")
-	_expect_true(frontline.effect_controller.has_effect("relic_arcane_prism_skill_power"), "Arcane Prism should apply through the status effect system.")
+	_expect_true(frontline.has_meta("always_on_relic_arcane_prism"), "Arcane Prism should mark itself as an always-on relic.")
+	_expect_true(frontline.has_meta("always_on_relic_piercing_whetstone"), "Armorbreaker Whetstone should mark itself as an always-on relic.")
 	_expect_true(frontline.effect_controller.has_effect("relic_opening_tome_initial_mana"), "Opening Tome initial mana should apply through the status effect system.")
 	_expect_true(backline.effect_controller.has_effect("relic_mirage_cloak_dodge_chance"), "Mirage Cloak should apply through the status effect system.")
 

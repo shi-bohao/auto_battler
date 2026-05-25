@@ -21,7 +21,7 @@ func _run() -> void:
 	var lines: Array[String] = []
 	lines.append("# 当前单位与遗物信息总览")
 	lines.append("")
-	lines.append("更新时间：2026-05-23")
+	lines.append("更新时间：2026-05-25")
 	lines.append("")
 	lines.append("> 本文档用于快速核对当前项目已实现的单位、召唤物和遗物数值。单位属性来自 `UnitData` 资源默认值与 `.tres` 配置；技能说明来自 `UnitTextFormatter`；遗物信息来自 `RelicData`。")
 	lines.append("")

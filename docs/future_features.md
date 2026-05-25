@@ -1,6 +1,6 @@
 # 功能规划与实现记录
 
-更新时间：2026-05-23
+更新时间：2026-05-25
 
 本文档记录已经明确设计方向的功能规划及完成后的实现入口。未完成内容用于后续开发拆分和验收；已完成内容保留为实现参考。
 
@@ -8,10 +8,328 @@
 
 | 功能 | 状态 | 实现日期 |
 |------|------|----------|
+| 金币经济遗物 | **待实现** | - |
 | 远程普攻真实弹道 | **已完成** | 2026-05-23 |
 | 非圆形瞬时 AoE（矩形/扇形） | **已完成** | 2026-05-23 |
 
 已完成的功能设计文档仍保留在下方作为实现参考，标题以 ~~删除线~~ 标记。
+
+## 待实现：金币经济遗物
+
+### 目标
+
+新增一组围绕金币获取、金币持有量和金币转化战斗属性的遗物，使经济路线可以成为独立构筑方向。
+
+第一版需要覆盖三类效果：
+
+- 胜利结算额外金币：在战斗胜利后的金币结算阶段触发。
+- 击杀金币：玩家单位击杀敌人时触发，可带每场战斗上限或概率。
+- 持有金币转化属性：战斗开始时根据当前金币数量给玩家运行时单位提供本场战斗属性。
+
+### 新增触发类型
+
+需要新增 `ON_ROUND_REWARD`。
+
+推荐语义：
+
+- 只在玩家战斗胜利后触发。
+- 在基础胜利金币计算完成后、最终金币写入前统一计算。
+- 计算“持有金币”类奖励时，以进入胜利结算瞬间的 `EconomyManager.gold` 为基准。
+- 如果本场战斗中通过击杀金币遗物已经获得金币，这些金币已经计入 `EconomyManager.gold`，可以影响本次胜利结算类遗物。
+- 第 30 波最终 Boss 当前流程直接通关且基础金币为 0；第一版建议跳过 `ON_ROUND_REWARD`，因为后续没有商店或备战阶段可使用金币。如果后续增加通关后结算展示，可单独扩展。
+
+推荐调用顺序：
+
+```text
+战斗胜利
+↓
+记录 pre_reward_gold = economy_manager.gold
+↓
+计算基础胜利金币 base_reward
+↓
+RelicManager.trigger_round_reward_relics(encounter_type, current_round, max_round, pre_reward_gold, base_reward)
+↓
+得到 extra_reward_gold 与日志明细
+↓
+economy_manager.add_gold(base_reward + extra_reward_gold)
+↓
+刷新金币 UI、进入奖励面板或下一流程
+```
+
+### 新增遗物清单
+
+| 稀有度 | 遗物 | 英文名 | `relic_id` | 触发 | 效果 |
+| --- | --- | --- | --- | --- | --- |
+| COMMON | 旧钱袋 | Old Coin Pouch | `old_coin_pouch` | `ON_ROUND_REWARD` | 每次战斗胜利后，额外获得 1 金币。 |
+| FINE | 战利品账本 | Spoils Ledger | `spoils_ledger` | `ON_ROUND_REWARD` | 每次战斗胜利后，额外获得 2 金币；如果是 Boss 战胜利，额外获得 4 金币。 |
+| FINE | 赏金匕首 | Bounty Dagger | `bounty_dagger` | `ON_KILL` | 玩家单位每击杀 3 个敌人，获得 1 金币；每场战斗最多获得 3 金币。 |
+| FINE | 投资账本 | Investment Ledger | `investment_ledger` | `ON_ROUND_REWARD` | 战斗胜利结算时，每持有 10 金币，额外获得 1 金币，最多 3 金币。 |
+| FINE | 金甲契约 | Golden Armor Contract | `golden_armor_contract` | `BATTLE_START` | 战斗开始时，每拥有 2 金币，所有玩家前排单位获得 1 防御，最多 25 防御。 |
+| RARE | 黄金护符 | Golden Charm | `golden_charm` | `BATTLE_START` | 战斗开始时，每拥有 1 金币，所有玩家单位攻击力提高 1%，最多 20%。 |
+| EPIC | 猎金契约 | Goldhunter Contract | `goldhunter_contract` | `ON_KILL` | 玩家单位击杀敌人时，有 35% 概率获得 1 金币；每场战斗不设上限。 |
+| EPIC | 复利核心 | Compound Core | `compound_core` | `ON_ROUND_REWARD` | 战斗胜利结算时，每持有 8 金币，额外获得 1 金币，不设上限。 |
+| LEGENDARY | 贪婪王冠 | Crown of Greed | `crown_of_greed` | `BATTLE_START` | 战斗开始时，每拥有 5 金币，所有玩家单位获得攻击力 +3%、技能强度 +3%、治疗强度 +3%，不设上限。 |
+
+### 资源配置建议
+
+每个遗物新增一个资源文件：
+
+```text
+data/relics/old_coin_pouch.tres
+data/relics/spoils_ledger.tres
+data/relics/bounty_dagger.tres
+data/relics/investment_ledger.tres
+data/relics/golden_armor_contract.tres
+data/relics/golden_charm.tres
+data/relics/goldhunter_contract.tres
+data/relics/compound_core.tres
+data/relics/crown_of_greed.tres
+```
+
+沿用 `RelicData` 当前字段：
+
+```gdscript
+relic_id = "old_coin_pouch"
+relic_name = "Old Coin Pouch"
+relic_name_cn = "旧钱袋"
+description = "After each victorious battle, gain 1 extra gold."
+description_cn = "每次战斗胜利后，额外获得 1 金币。"
+rarity = "COMMON"
+trigger_type = "ON_ROUND_REWARD"
+value = 1.0
+```
+
+多参数遗物第一版可以继续只用 `value` 存主数值，其他数值写入 `RelicEffectResolver` 常量，避免立刻扩展 `RelicData` 结构。
+
+推荐主数值：
+
+| `relic_id` | `value` | 其他常量 |
+| --- | --- | --- |
+| `old_coin_pouch` | `1.0` | 无 |
+| `spoils_ledger` | `2.0` | `SPOILS_LEDGER_BOSS_BONUS = 4` |
+| `bounty_dagger` | `3.0` | `BOUNTY_DAGGER_GOLD = 1`, `BOUNTY_DAGGER_BATTLE_CAP = 3` |
+| `investment_ledger` | `10.0` | `INVESTMENT_LEDGER_GOLD_PER_STEP = 1`, `INVESTMENT_LEDGER_CAP = 3` |
+| `golden_armor_contract` | `2.0` | `GOLDEN_ARMOR_CONTRACT_DEFENSE_PER_STEP = 1`, `GOLDEN_ARMOR_CONTRACT_CAP = 25` |
+| `golden_charm` | `0.01` | `GOLDEN_CHARM_CAP = 0.20` |
+| `goldhunter_contract` | `0.35` | `GOLDHUNTER_CONTRACT_GOLD = 1` |
+| `compound_core` | `8.0` | `COMPOUND_CORE_GOLD_PER_STEP = 1` |
+| `crown_of_greed` | `5.0` | `CROWN_OF_GREED_BONUS_PER_STEP = 0.03` |
+
+### 代码接入点
+
+需要修改或新增的主要入口：
+
+| 文件 | 改动 |
+| --- | --- |
+| `scripts/relic/relic_reward_pool.gd` | preload 9 个新遗物资源，并加入奖励池。 |
+| `scripts/relic/relic_trigger_dispatcher.gd` | 新增 `RELIC_TRIGGER_ROUND_REWARD = "ON_ROUND_REWARD"`，新增 `trigger_round_reward_relics(...)`，并在击杀入口接入 `bounty_dagger`、`goldhunter_contract`。 |
+| `scripts/relic/relic_effect_resolver.gd` | 实现金币奖励计算、击杀金币、根据金币转换战斗属性。 |
+| `scripts/relic_manager.gd` | 对外新增 `trigger_round_reward_relics(...)`，返回金币增量与日志明细。 |
+| `scripts/game/economy_manager.gd` | 可选：新增辅助方法 `get_round_reward_context(...)` 或保持只由 `main.gd` 传入当前金币和基础奖励。 |
+| `scripts/main.gd` | 在胜利结算处接入 `ON_ROUND_REWARD`，把额外金币并入最终发放并刷新 UI。 |
+| `scripts/battle_manager.gd` | 战斗开始遗物需要拿到开战时金币数量；推荐由 `start_battle()` 增加 `player_gold` 参数或由 `RelicManager` 保存当前经济上下文。 |
+
+推荐不要让 `RelicEffectResolver` 直接持有 `EconomyManager` 强引用。金币变动可以由触发函数返回给 `main.gd` 统一调用 `economy_manager.add_gold()`，这样 UI 刷新、日志和流程控制仍集中在经济入口。
+
+### 结算数据结构
+
+`ON_ROUND_REWARD` 推荐返回 Dictionary：
+
+```gdscript
+{
+    "extra_gold": 0,
+    "logs": PackedStringArray()
+}
+```
+
+`RelicManager.trigger_round_reward_relics()` 推荐签名：
+
+```gdscript
+func trigger_round_reward_relics(
+    encounter_type: String,
+    current_round: int,
+    max_round: int,
+    pre_reward_gold: int,
+    base_reward_gold: int
+) -> Dictionary
+```
+
+`RelicTriggerDispatcher` 只负责判断玩家是否拥有对应遗物，具体数值计算交给 `RelicEffectResolver`。
+
+### 每件遗物的实现规则
+
+#### Old Coin Pouch / 旧钱袋
+
+触发：`ON_ROUND_REWARD`
+
+规则：
+
+- 任意非最终通关战斗胜利后触发。
+- 额外金币固定 +1。
+- 与其他胜利结算遗物叠加。
+
+#### Spoils Ledger / 战利品账本
+
+触发：`ON_ROUND_REWARD`
+
+规则：
+
+- 普通战、精英战胜利：额外 +2 金币。
+- Boss 战胜利：额外 +4 金币。
+- 推荐 Boss 分支直接返回 4，不再叠加基础 +2，避免文本“额外获得 4 金币”出现歧义。
+- 如果后续希望 Boss 为 +2 再额外 +4，需要改描述为“如果是 Boss 战胜利，再额外 +4”。
+
+#### Bounty Dagger / 赏金匕首
+
+触发：`ON_KILL`
+
+规则：
+
+- 只响应玩家单位击杀敌人。
+- 召唤物是否触发：沿用当前击杀遗物默认规则。若当前 `trigger_kill_relics()` 对玩家召唤物也会触发，则第一版允许召唤物计入，除非后续设计明确排除。
+- 每场战斗独立计数击杀数。
+- 每 3 次击杀获得 1 金币。
+- 每场战斗最多获得 3 金币，也就是最多响应 9 次有效击杀。
+- 需要在每场战斗开始时重置 `bounty_dagger_kill_count` 与 `bounty_dagger_gold_gained_this_battle`。
+
+推荐状态保存位置：
+
+- `RelicManager` 或 `RelicTriggerDispatcher` 保存每场战斗临时状态。
+- `BattleManager.start_battle()` 调用 `relic_manager.reset_battle_relic_state()`。
+- Restart 和进入新战斗都需要清空该状态。
+
+#### Investment Ledger / 投资账本
+
+触发：`ON_ROUND_REWARD`
+
+规则：
+
+- 使用 `pre_reward_gold` 计算。
+- `extra_gold = min(floor(pre_reward_gold / 10), 3)`。
+- 10 金币：+1；20 金币：+2；30 金币及以上：+3。
+- 不使用发放后的金币计算，避免和基础胜利金币或其他结算遗物互相递归。
+
+#### Golden Armor Contract / 金甲契约
+
+触发：`BATTLE_START`
+
+规则：
+
+- 使用战斗开始瞬间的金币数。
+- `defense_bonus = min(floor(current_gold / 2), 25)`。
+- 只影响玩家前排单位。
+- 前排判定沿用现有 `Bulwark Rune` 或前排遗物使用的筛选规则，避免新增一套坐标判断。
+- 只修改本场运行时单位，不写回 `UnitData`、阵容永久属性或英雄成长。
+- 召唤物不吃战斗开始遗物，沿用当前规则。
+
+#### Golden Charm / 黄金护符
+
+触发：`BATTLE_START`
+
+规则：
+
+- 使用战斗开始瞬间的金币数。
+- `attack_bonus = min(current_gold * 0.01, 0.20)`。
+- 所有玩家非召唤单位攻击力提高对应百分比。
+- 建议复用现有运行时属性加成方式，例如 `_apply_relic_stat_multiply(unit, relic_id, "attack_damage", 1.0 + attack_bonus)`。
+
+#### Goldhunter Contract / 猎金契约
+
+触发：`ON_KILL`
+
+规则：
+
+- 玩家单位击杀敌人时触发。
+- 每次有效击杀独立进行 35% 概率判定。
+- 成功时获得 1 金币。
+- 每场战斗不设上限。
+- 推荐使用 Godot 当前随机源；如果后续要可复现战斗，需要接入统一 RNG。
+- 与 `Bounty Dagger` 可以同时触发，同一次击杀可以分别结算概率金币和计数金币。
+
+#### Compound Core / 复利核心
+
+触发：`ON_ROUND_REWARD`
+
+规则：
+
+- 使用 `pre_reward_gold` 计算。
+- `extra_gold = floor(pre_reward_gold / 8)`。
+- 不设上限。
+- 与 `Investment Ledger` 可以叠加。
+- 不使用其他 `ON_ROUND_REWARD` 遗物产生的金币继续计算，避免循环放大。
+
+#### Crown of Greed / 贪婪王冠
+
+触发：`BATTLE_START`
+
+规则：
+
+- 使用战斗开始瞬间的金币数。
+- `steps = floor(current_gold / 5)`。
+- `bonus = steps * 0.03`。
+- 不设上限。
+- 所有玩家非召唤单位获得：
+  - 攻击力乘算：`attack_damage *= 1.0 + bonus`
+  - 技能强度加算：`skill_power += bonus`
+  - 治疗强度加算：`healing_power += bonus`
+- 只影响本场运行时单位。
+- 与 `Golden Charm` 同时存在时，两个攻击力乘算效果都应可叠加。推荐都通过现有遗物属性加成入口，避免互相覆盖。
+
+### UI 与日志
+
+金币遗物会改变玩家对收益的预期，建议第一版至少补充清晰日志：
+
+- 胜利结算时显示基础金币与遗物额外金币。
+- 如果有多件 `ON_ROUND_REWARD` 遗物，日志逐条列出贡献。
+- 金币 UI 只在最终 `economy_manager.add_gold(total_reward)` 后刷新一次，避免快速跳动。
+- 击杀金币遗物可以即时刷新金币 UI，但需要避免每次击杀都刷出过长结果文本。第一版可只打印日志，UI 保持金币数字更新即可。
+
+示例日志：
+
+```text
+获得金币：12（Boss 奖励 +12）
+遗物额外金币：旧钱袋 +1，战利品账本 +4，投资账本 +2
+金币 +19，当前金币：42
+```
+
+### 测试建议
+
+新增测试脚本建议：
+
+```text
+scripts/tests/test_gold_relics.gd
+```
+
+测试清单：
+
+1. `Old Coin Pouch` 普通胜利后额外 +1。
+2. `Spoils Ledger` 普通/精英胜利后 +2，Boss 胜利后 +4。
+3. `Investment Ledger` 在 0/9/10/19/20/29/30 金币时分别得到 0/0/1/1/2/2/3。
+4. `Compound Core` 在 0/7/8/15/16/40 金币时分别得到 0/0/1/1/2/5。
+5. 多个 `ON_ROUND_REWARD` 遗物同时存在时，使用同一个 `pre_reward_gold` 计算，不互相递归。
+6. `Bounty Dagger` 每 3 次有效击杀 +1，每场最多 +3。
+7. `Bounty Dagger` 新战斗开始后计数和本场获得金币数清零。
+8. `Goldhunter Contract` 概率触发可用固定 RNG 或 mock 方式验证成功与失败分支。
+9. `Golden Armor Contract` 在 0/1/2/50/80 金币时分别给前排 +0/+0/+1/+25/+25 防御。
+10. `Golden Armor Contract` 只影响前排玩家单位，不影响后排、敌人或召唤物。
+11. `Golden Charm` 在 0/10/20/30 金币时分别给全队 +0%/+10%/+20%/+20% 攻击。
+12. `Crown of Greed` 在 0/4/5/10/25 金币时分别给全队 +0%/+0%/+3%/+6%/+15% 攻击、技能强度和治疗强度。
+13. 战斗结束后战斗开始类金币属性加成不会永久写回 `UnitData` 或阵容。
+14. Restart 后击杀计数、临时战斗状态和金币遗物状态全部清空。
+15. 商店、奖励三选一、遗物去重和遗物详情显示新遗物正常。
+
+### 实现步骤
+
+1. 新增 9 个 `data/relics/*.tres` 资源。
+2. 在 `RelicRewardPool` 中 preload 并加入奖励池。
+3. 在 `RelicTriggerDispatcher` 中新增 `ON_ROUND_REWARD` 分发入口。
+4. 在 `RelicManager` 中暴露 `trigger_round_reward_relics()` 与 `reset_battle_relic_state()`。
+5. 在 `RelicEffectResolver` 中实现每件遗物的数值计算和战斗属性应用。
+6. 在 `main.gd` 胜利金币结算处接入 `ON_ROUND_REWARD`。
+7. 在 `BattleManager.start_battle()` 或其调用方传入战斗开始金币，供 `BATTLE_START` 金币转属性遗物使用。
+8. 为 `Bounty Dagger` 和 `Goldhunter Contract` 接入击杀入口，并处理每场战斗临时状态。
+9. 更新 `docs/relic_design.md` 和 `docs/content_reference.md`。
+10. 新增并运行 `scripts/tests/test_gold_relics.gd`，再跑 `main.gd --check-only` 与项目启动退出检查。
 
 ## ~~1. 远程普攻真实弹道~~ （已完成）
 

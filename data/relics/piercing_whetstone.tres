@@ -5,8 +5,8 @@
 [resource]
 script = ExtResource("1_whetstone")
 relic_id = "piercing_whetstone"
-relic_name = "Piercing Whetstone"
-relic_name_cn = "防御穿透磨石"
+relic_name = "Armorbreaker Whetstone"
+relic_name_cn = "破甲砺石"
 description = "Aura: all player units gain +8 defense penetration."
 description_cn = "光环：所有玩家单位防御穿透 +8。"
 rarity = "COMMON"
