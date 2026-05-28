@@ -1,6 +1,6 @@
 # 当前单位与遗物信息总览
 
-更新时间：2026-05-25
+更新时间：2026-05-28
 
 > 本文档用于快速核对当前项目已实现的单位、召唤物和遗物数值。单位属性来自 `UnitData` 资源默认值与 `.tres` 配置；技能说明来自 `UnitTextFormatter`；遗物信息来自 `RelicData`。
 
@@ -68,6 +68,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --scrip
 | 精英血谕者<br>(Elite Blood Oracle) | `enemy_elite_blood_oracle` | 精英治疗辅助敌人，显著提高敌方续航。 | support | - | 星级 1<br>稀有度 COMMON<br>价格 0<br>目标 NEAREST<br>弹道 dark 450 | 生命 220<br>攻击 16<br>防御 12<br>攻速间隔 1.25s<br>范围 130<br>移速 85<br>魔力 90<br>回魔 14/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `enemy_blood_ritual`：血祭：精英血谕者存活时，敌方单位击杀玩家单位会使击杀者恢复 25 生命。<br>主动 `enemy_oracle_blessing`：神谕祝福：治疗低生命友军 50 + 150% 攻击力，并提供 20 护盾。 |
 | 精英铁壁守卫<br>(Elite Iron Warden) | `enemy_elite_iron_warden` | 精英承伤敌人，能强化敌方队伍的防线。 | tank | - | 星级 1<br>稀有度 COMMON<br>价格 0<br>目标 NEAREST | 生命 420<br>攻击 12<br>防御 45<br>攻速间隔 1.20s<br>范围 55<br>移速 60<br>魔力 110<br>回魔 9/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `enemy_iron_body`：铁躯：受到护盾后的生命伤害降低 18%。<br>主动 `enemy_fortify_allies`：加固阵线：自身获得 60 护盾，友军获得 20 护盾。 |
 | 蛆虫聚合体<br>(Maggot Amalgam) | `enemy_elite_maggot_amalgam` | 精英坦克敌人，死亡分裂召唤巨型蛆虫，主动技能释放扇形腐潮。 | tank | - | 星级 1<br>稀有度 COMMON<br>价格 0<br>目标 NEAREST | 生命 520<br>攻击 18<br>防御 28<br>攻速间隔 1.45s<br>范围 65<br>移速 42<br>魔力 110<br>回魔 9/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `amalgam_split_birth`：分裂繁殖：死亡时在附近召唤 4 只巨型蛆虫，召唤物参与胜负判定。<br>主动 `putrid_tide`：腐潮：向当前目标方向释放扇形腐潮，对命中目标造成 140% 攻击力的技能伤害；若目标已有腐痕，本次伤害提高 25%，随后施加 2 层剧毒并刷新腐痕。 |
+| 训练木桩<br>(Training Dummy) | `training_dummy` | 不会攻击的木桩，击杀后掉落随机奖励。 | tank | - | 星级 1<br>稀有度 COMMON<br>价格 0<br>目标 NEAREST | 生命 120<br>攻击 0<br>防御 0<br>攻速间隔 999s<br>范围 50<br>移速 0<br>魔力 9999<br>回魔 0/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | - |
 | 运骨者<br>(Bone Carrier) | `enemy_bone_carrier` | 死亡触发型敌方前排，死亡时召唤骷髅继续拖延战线。 | tank | - | 星级 1<br>稀有度 COMMON<br>价格 0<br>目标 NEAREST | 生命 240<br>攻击 7<br>防御 16<br>攻速间隔 1.35s<br>范围 50<br>移速 95<br>魔力 105<br>回魔 8/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `enemy_death_summons_skeletons`：骨骸爆裂：死亡时在原地召唤 2 个骷髅。<br>主动 `enemy_harden`：硬化：自身获得 40 护盾。 |
 | 黑暗侍僧<br>(Dark Acolyte) | `enemy_dark_acolyte` | 普通治疗辅助敌人，为受伤敌人恢复生命。 | support | - | 星级 1<br>稀有度 COMMON<br>价格 0<br>目标 NEAREST<br>弹道 dark 420 | 生命 100<br>攻击 10<br>防御 0<br>攻速间隔 1.35s<br>范围 120<br>移速 85<br>魔力 80<br>回魔 12/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `enemy_dark_blessing`：暗影祝福：治疗效果提高 15%。<br>主动 `enemy_dark_heal`：暗影治疗：治疗低生命友军 30 + 130% 攻击力。 |
 
@@ -102,7 +103,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --scrip
 | 奥术棱镜<br>(Arcane Prism) | `arcane_prism` | FINE | AURA | 0.15 | 光环：所有玩家单位技能强度 +15%。 |
 | 守护誓约<br>(Guardian Oath) | `guardian_oath` | RARE | BATTLE_START | 70 | 战斗开始时，玩家防御最高的单位获得 70 护盾和 +25 防御。 |
 | 幻影披风<br>(Mirage Cloak) | `mirage_cloak` | RARE | BATTLE_START | 0.10 | 战斗开始时，玩家后排单位本场战斗闪避 +10%，状态抗性 +10%。 |
-| 开场秘典<br>(Opening Tome) | `opening_tome` | FINE | BATTLE_START | 20 | 战斗开始时，玩家全队本场战斗初始魔力 +20，并立刻恢复等量魔力，不超过魔力上限。 |
+| 开场秘典<br>(Opening Tome) | `opening_tome` | FINE | BATTLE_START | 20 | 战斗开始时，玩家全队获得 20 魔力。 |
 | 慈悲香炉<br>(Mercy Censer) | `mercy_censer` | RARE | AURA | 0.20 | 光环：所有玩家单位治疗强度 +20%，护盾强度 +20%。 |
 | 战利品账本<br>(Spoils Ledger) | `spoils_ledger` | FINE | ON_ROUND_REWARD | 2 | 每次战斗胜利后，额外获得 2 金币；Boss 战胜利额外获得 4 金币。 |
 | 战斗旌旗<br>(Battle Banner) | `battle_banner` | COMMON | AURA | 0.10 | 光环：所有玩家单位攻击力 +10%。 |

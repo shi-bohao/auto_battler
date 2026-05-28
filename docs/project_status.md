@@ -1,8 +1,8 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-28（含路径选择系统、波次过渡动画、羁绊UI全面优化、战斗统计弹窗、商人悬浮提示、开场秘典修正）
+更新时间：2026-05-28（含文档整理、路径选择系统、波次过渡动画、羁绊UI全面优化、战斗统计弹窗、商人悬浮提示、开场秘典修正）
 
-> 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成或待规划的功能设计与实现入口见 `docs/future_features.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
+> 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成大型功能的设计与实现入口见 `docs/feature_design_log.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
 ## 项目概览
 
@@ -12,7 +12,17 @@
 
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
-截至 2026-05-06，`docs/refactor_plan_2026-05-06.md` 中的 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。本文档仍保留早期说明口径，但以下目录和职责已同步到当前结构。
+截至当前版本，早期 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。过期阶段总结和重构计划已从当前文档集中移除，目录和职责以本文档下方说明为准。
+
+## 2026-05-28 文档整理
+
+本轮文档整理目标是让 README 和 `docs/` 目录严格对应当前实现：
+
+- 新增根目录 `README.md`，用于 GitHub 首页展示当前项目状态、运行方式、检查命令和未纳入范围。
+- `docs/README.md` 重写为维护索引，明确“实际代码与资源 > `content_reference.md` > `project_status.md` > 专题文档 > 历史设计记录”的优先级。
+- `docs/content_reference.md` 已通过 `scripts/tools/generate_content_reference.gd` 重新生成，当前统计为 25 个玩家单位、4 个英雄、18 个敌方单位、5 个召唤物、43 个遗物。
+- `docs/future_features.md` 改名为 `docs/feature_design_log.md`，避免把已经完成的金币经济遗物、远程弹道和非圆形 AoE 继续表现为待办。
+- 移除已被覆盖的旧文档：`phase_summary_2026-05-04.md`、`refactor_plan_2026-05-06.md`、`unit_skill_design.md`、`unit_design_with_new_units.md`、`enemy_design.md`。替代入口已记录在 `docs/README.md`。
 
 ## 2026-05-28 性能与稳定性修复
 
@@ -248,7 +258,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
 - 巨剑骑士被动 `cleaving_edge`（裂刃）已改为前方扇形：半径=攻击范围，角度=120°，方向=指向目标。
 - 巨剑骑士主动 `sweeping_slash`（横扫斩）已改为前方矩形：方向=指向目标，长度=2×攻击范围，宽度=攻击范围，anchor=forward。
 - 旧技能（healing_aura、explosive_barrage、sanctuary 等）仍使用圆形，不受影响；`create_visual_field()` 保留不变。
-- `docs/future_features.md` 中非圆形瞬时 AoE 已标记为已完成。
+- `docs/feature_design_log.md` 中非圆形瞬时 AoE 已标记为已完成。
 
 本轮常用验证命令：
 
@@ -263,7 +273,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
 
 近期完成并通过 headless 检查的内容：
 
-- 远程普攻真实弹道已按 `docs/future_features.md` 设计完整实现：近战单位保持即时命中，远程单位发射飞行物并在命中后结算。
+- 远程普攻真实弹道已按 `docs/feature_design_log.md` 设计完整实现：近战单位保持即时命中，远程单位发射飞行物并在命中后结算。
 - 新增 `scripts/combat/combat_resolver.gd`：统一普攻命中结算入口，近战即时调用，远程由飞行物到达时调用；处理攻击计数、伤害、attack_landed 信号、被动、吸血、普攻回魔。
 - 新增 `scripts/combat/attack_payload.gd`：发射时快照攻击者战斗属性（暴击率、暴伤、防御穿透、吸血、基础伤害等），飞行物命中时使用快照值结算，不受飞行期间属性变化影响。
 - 新增 `scripts/combat/projectile_manager.gd` + `scripts/combat/projectile.gd` + `scenes/combat/projectile.tscn`：飞行物管理、追踪目标移动、命中判定、超时/战斗结束清理。
@@ -274,7 +284,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
 - 爆弹投手的"不稳定炸弹"已改为发射时检测（每 3 次发动触发），AoE 伤害使用发射时快照值；强化飞行物有视觉差异（尺寸 +50%、橙红色）。
 - 近战单位的普攻命中被动（cleaving_edge、nature_touch 等）保持不变，仍通过 `apply_attack_landed_passives` 即时触发。
 - 已处理的边界情况：目标飞行中死亡→飞行物销毁不造成伤害；攻击者飞行中死亡→飞行物继续飞行并造成伤害（归属正确），但跳过吸血/回魔；战斗结束→清理所有飞行物；飞行物超时→自动销毁。
-- `docs/future_features.md` 中的远程普攻真实弹道与非圆形瞬时 AoE 均已标记为已完成。
+- `docs/feature_design_log.md` 中的远程普攻真实弹道与非圆形瞬时 AoE 均已标记为已完成。
 
 本轮常用验证命令：
 
@@ -324,7 +334,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --quit
 - 主菜单仍保留背景图作为场景美术；开始游戏、镜像挑战、图鉴三个入口按钮现在同组排列、尺寸一致，并使用统一像素风按钮样式。
 - 出售区恢复并固定显示 `出售` 与 `拖拽单位到这里出售`，文字使用像素风描边样式。
 - 战斗背景与 7 格棋盘仍保留为场景素材；按钮和 UI 框体的图片皮肤已移除，最终状态以代码样式为准。
-- 新增 `docs/future_features.md`，整理远程普攻真实弹道和非圆形瞬时 AoE 的功能设计、实现入口、数据结构、推荐步骤和边界情况。
+- 新增功能设计记录文档，整理远程普攻真实弹道和非圆形瞬时 AoE 的功能设计、实现入口、数据结构、推荐步骤和边界情况；该文档现已整理为 `docs/feature_design_log.md`。
 - 整理 `docs/README.md`，将文档分为当前维护文档、UI/流程专题、历史记录和过期草案，避免把旧设计误当成当前规格。
 
 本轮常用验证命令：
@@ -435,14 +445,19 @@ res://
 │   ├── README.md                   # 文档目录与新旧关系
 │   ├── bond_system.md
 │   ├── content_reference.md        # 当前单位、英雄、敌人、召唤物和遗物数值总览
-│   ├── future_features.md          # 功能规划与实现记录
+│   ├── feature_design_log.md       # 已完成功能设计与实现记录
 │   ├── hero_design.md
 │   ├── lineup_snapshot_design.md
+│   ├── maggot_enemy_design.md
 │   ├── mirror_challenge_design.md
-│   ├── phase_summary_2026-05-04.md
-│   ├── refactor_plan_2026-05-06.md
+│   ├── path_selection_design.md
+│   ├── relic_design.md
+│   ├── reward_ui_design.md
+│   ├── shop_ui_design.md
 │   ├── stat_modifier_system_design.md
+│   ├── ui_and_stats_design.md
 │   ├── ui_layering_design.md
+│   ├── unit_design.md
 │   ├── 索敌设计.md
 │   └── project_status.md
 ├── scenes/
@@ -849,7 +864,7 @@ MIRROR_CHALLENGE
 - 主动技能 AOE 范围显示
 - 普攻 AOE 范围显示
 - 持续治疗范围显示
-- 圆形、矩形、扇形瞬时 AoE 命中与范围视觉已支持；持续伤害/治疗区域仍以圆形为主，后续扩展可继续参考 `docs/future_features.md`
+- 圆形、矩形、扇形瞬时 AoE 命中与范围视觉已支持；持续伤害/治疗区域仍以圆形为主，后续扩展可继续参考 `docs/feature_design_log.md`
 - 神官范围治疗改为 3 秒持续治疗，总治疗量保持不变
 
 ### 索敌
@@ -1005,7 +1020,7 @@ MIRROR_CHALLENGE
 3. 每次新增单位技能时优先放入 `scripts/combat/active_skill_caster.gd` 或 `scripts/combat/passive_resolver.gd`。
 4. 每次新增遗物效果时优先放入 `scripts/relic/relic_effect_resolver.gd`，触发条件放入 `scripts/relic/relic_trigger_dispatcher.gd`。
 5. 每次新增 UI 面板时优先新增 `scenes/ui/*.tscn` 和 `scripts/ui/*_controller.gd`。
-6. 远程普攻真实弹道和非圆形瞬时 AoE 已完成并保留在 `docs/future_features.md` 作为实现参考；后续扩展抛物线弹道、持续非圆形区域或新 shape 时，继续沿用 CombatResolver、ProjectileManager、AoeResolver.get_units_in_shape() 和 AoEShapeVisual 的现有边界。
+6. 远程普攻真实弹道和非圆形瞬时 AoE 已完成并保留在 `docs/feature_design_log.md` 作为实现参考；后续扩展抛物线弹道、持续非圆形区域或新 shape 时，继续沿用 CombatResolver、ProjectileManager、AoeResolver.get_units_in_shape() 和 AoEShapeVisual 的现有边界。
 
 ### 中期可考虑
 
