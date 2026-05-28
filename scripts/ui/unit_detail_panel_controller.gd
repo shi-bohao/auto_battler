@@ -27,6 +27,11 @@ var active_skill_button: Button = null
 var hero_upgrade_title_label: Label = null
 var hero_upgrade_text: RichTextLabel = null
 var skill_detail_title: Label = null
+var bond_container: HBoxContainer = null
+var bond_buttons: Array[Button] = []
+var bond_manager: Variant = null
+var bond_detail_popup: Panel = null
+var displayed_bond_tags: Array[String] = []
 
 
 func setup(
@@ -64,8 +69,177 @@ func show(unit: Unit) -> void:
 func hide() -> void:
 	selected_unit = null
 	selected_skill_type = SKILL_TYPE_NONE
+	_clear_bond_buttons()
+	_close_bond_detail_popup()
 	if panel != null:
 		panel.visible = false
+
+
+func set_bond_manager(bm: Variant) -> void:
+	bond_manager = bm
+
+
+func _refresh_bond_buttons(unit: Unit) -> void:
+	if unit == null or not is_instance_valid(unit):
+		_clear_bond_buttons()
+		return
+
+	var tags: Array = []
+	if unit.has_method("get") or "bond_tags" in unit:
+		var v: Variant = unit.get("bond_tags")
+		if v is Array:
+			tags = v as Array
+	else:
+		tags = unit.bond_tags
+
+	var tag_strings: Array[String] = []
+	for tag: Variant in tags:
+		var tag_str: String = str(tag).strip_edges()
+		if tag_str != "":
+			tag_strings.append(tag_str)
+
+	if tag_strings.is_empty():
+		_clear_bond_buttons()
+		return
+
+	_ensure_bond_container()
+	if tag_strings == displayed_bond_tags:
+		return
+
+	displayed_bond_tags = tag_strings.duplicate()
+
+	while bond_buttons.size() < tag_strings.size():
+		bond_buttons.append(_create_bond_button())
+
+	const DISPLAY_NAMES: Dictionary = {
+		"iron_wall": "铁壁", "hunter": "猎手", "arcane": "奥术",
+		"divine": "圣疗", "summon": "召唤", "venom": "剧毒",
+	}
+
+	for index: int in range(bond_buttons.size()):
+		var button: Button = bond_buttons[index]
+		if index >= tag_strings.size():
+			button.visible = false
+			button.set_meta("bond_tag", "")
+			continue
+
+		var tag_str: String = tag_strings[index]
+		button.text = DISPLAY_NAMES.get(tag_str, tag_str)
+		button.visible = true
+		button.disabled = false
+		button.set_meta("bond_tag", tag_str)
+		button.scale = Vector2.ONE
+
+
+func _ensure_bond_container() -> void:
+	if bond_container != null and is_instance_valid(bond_container):
+		return
+
+	bond_container = HBoxContainer.new()
+	bond_container.position = Vector2(170.0, 112.0)
+	bond_container.add_theme_constant_override("separation", 8)
+	panel.add_child(bond_container)
+
+
+func _create_bond_button() -> Button:
+	var button: Button = Button.new()
+	button.custom_minimum_size = Vector2(86.0, 34.0)
+	button.size = button.custom_minimum_size
+	button.focus_mode = Control.FOCUS_NONE
+	button.tooltip_text = "左键查看羁绊详情"
+	button.pivot_offset = button.custom_minimum_size * 0.5
+	button.gui_input.connect(_on_bond_button_input.bind(button))
+	bond_container.add_child(button)
+	_apply_skill_button_style(button)
+	button.add_theme_font_size_override("font_size", 15)
+	return button
+
+
+func _clear_bond_buttons() -> void:
+	for button: Button in bond_buttons:
+		if button != null and is_instance_valid(button):
+			button.visible = false
+			button.set_meta("bond_tag", "")
+			button.scale = Vector2.ONE
+	displayed_bond_tags.clear()
+
+
+func _on_bond_button_input(event: InputEvent, button: Button) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	if panel == null:
+		return
+	var mb: InputEventMouseButton = event as InputEventMouseButton
+	if mb.button_index == MOUSE_BUTTON_LEFT and mb.pressed:
+		var tag: String = str(button.get_meta("bond_tag", "")).strip_edges()
+		if tag == "":
+			return
+		_close_bond_detail_popup()
+		if bond_manager != null:
+			var text: String = bond_manager.get_bond_detail_text_for_bond(tag)
+			_show_bond_detail_popup(text, panel.get_local_mouse_position())
+		panel.get_viewport().set_input_as_handled()
+
+
+func _close_bond_detail_popup() -> void:
+	if bond_detail_popup != null:
+		bond_detail_popup.queue_free()
+		bond_detail_popup = null
+
+
+func _show_bond_detail_popup(text: String, local_mouse_position: Vector2 = Vector2.ZERO) -> void:
+	if panel == null:
+		return
+	bond_detail_popup = Panel.new()
+	var popup: Panel = bond_detail_popup
+	popup.z_index = 500
+	var popup_size: Vector2 = Vector2(420.0, 280.0)
+	popup.custom_minimum_size = popup_size
+	popup.size = popup_size
+	var style: StyleBoxFlat = StyleBoxFlat.new()
+	style.bg_color = Color(0.04, 0.05, 0.08, 0.97)
+	style.set_border_width_all(2)
+	style.border_color = Color(0.50, 0.67, 0.88, 0.88)
+	style.set_corner_radius_all(8)
+	popup.add_theme_stylebox_override("panel", style)
+
+	var rich_text: RichTextLabel = RichTextLabel.new()
+	rich_text.position = Vector2(16.0, 14.0)
+	rich_text.size = Vector2(388.0, 232.0)
+	rich_text.text = text
+	rich_text.fit_content = false
+	rich_text.scroll_active = true
+	rich_text.bbcode_enabled = false
+	rich_text.add_theme_font_size_override("normal_font_size", 14)
+	rich_text.add_theme_color_override("default_color", Color(0.90, 0.93, 0.98, 1.0))
+	popup.add_child(rich_text)
+
+	var close_btn: Button = Button.new()
+	close_btn.text = "关闭"
+	close_btn.position = Vector2(334.0, 248.0)
+	close_btn.custom_minimum_size = Vector2(70.0, 28.0)
+	close_btn.focus_mode = Control.FOCUS_NONE
+	PIXEL_UI_THEME.apply_button_style(close_btn, Color(0.22, 0.25, 0.30), Color(0.68, 0.72, 0.78), 1)
+	close_btn.pressed.connect(_close_bond_detail_popup)
+	popup.add_child(close_btn)
+
+	popup.position = _get_bond_detail_popup_position(local_mouse_position, popup_size)
+	panel.add_child(popup)
+
+
+func _get_bond_detail_popup_position(local_mouse_position: Vector2, popup_size: Vector2) -> Vector2:
+	if panel == null:
+		return Vector2.ZERO
+
+	var panel_size: Vector2 = panel.size
+	if panel_size.x <= 0.0 or panel_size.y <= 0.0:
+		panel_size = Vector2(520.0, 848.0)
+
+	var margin: float = 8.0
+	var position: Vector2 = local_mouse_position + Vector2(14.0, 12.0)
+	position.x = clampf(position.x, margin, maxf(margin, panel_size.x - popup_size.x - margin))
+	position.y = clampf(position.y, margin, maxf(margin, panel_size.y - popup_size.y - margin))
+	return position
 
 
 func refresh_if_open() -> void:
@@ -195,6 +369,7 @@ func _refresh_panel_content() -> void:
 	_refresh_skill_buttons(selected_unit)
 	_refresh_hero_upgrade_section(selected_unit)
 	_refresh_skill_detail()
+	_refresh_bond_buttons(selected_unit)
 
 
 func _refresh_hero_upgrade_section(unit: Unit) -> void:

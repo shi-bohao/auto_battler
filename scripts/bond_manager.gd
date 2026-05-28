@@ -16,6 +16,13 @@ const VENOM_EXTRA_STACK_COOLDOWN_META: String = "bond_venom_extra_stack_last_tim
 var bond_counts: Dictionary = {}
 var active_tiers: Dictionary = {}
 var counted_unit_types_by_bond: Dictionary = {}
+var unit_catalog: Variant = null
+var hero_manager: Variant = null
+
+
+func setup(catalog: Variant, hero_mgr: Variant) -> void:
+	unit_catalog = catalog
+	hero_manager = hero_mgr
 
 
 func clear() -> void:
@@ -230,7 +237,52 @@ func get_bond_detail_text_for_bond(bond_id: String) -> String:
 			prefix = "已激活  "
 		lines.append(prefix + effects[index])
 
+	lines.append("")
+	lines.append("可激活单位：")
+	var member_info: Array[String] = get_bond_member_info(bond_id)
+	for member: String in member_info:
+		lines.append("  " + member)
+
 	return "\n".join(lines)
+
+
+func get_bond_member_info(bond_id: String) -> Array[String]:
+	var members: Array[String] = []
+
+	if unit_catalog != null:
+		for unit_data: Resource in unit_catalog.get_unit_pool():
+			var tags: Variant = unit_data.get("bond_tags")
+			if not (tags is Array):
+				continue
+			var tag_list: Array = tags as Array
+			if bond_id in tag_list:
+				var cn: Variant = unit_data.get("unit_name_cn")
+				if cn != null and str(cn) != "" and str(cn) != "<null>":
+					members.append(str(cn))
+				else:
+					members.append(str(unit_data.get("unit_name")))
+
+	if hero_manager != null and hero_manager.has_method("get_available_heroes"):
+		for hero_data: Variant in hero_manager.get_available_heroes():
+			var unit_data: Variant = hero_data.get("hero_unit_data") if hero_data is Dictionary else null
+			if unit_data == null:
+				continue
+			var tags: Variant = unit_data.get("bond_tags")
+			if not (tags is Array):
+				continue
+			var tag_list: Array = tags as Array
+			if bond_id in tag_list:
+				var hero_name: Variant = unit_data.get("unit_name_cn")
+				if hero_name != null and str(hero_name) != "" and str(hero_name) != "<null>":
+					members.append("[英雄] " + str(hero_name))
+				else:
+					members.append("[英雄] " + str(unit_data.get("unit_name")))
+
+	return members
+
+
+func get_all_bonds() -> Array[String]:
+	return _get_bond_order()
 
 
 func get_bond_detail_text() -> String:

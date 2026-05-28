@@ -651,13 +651,12 @@ func _apply_bulwark_rune_relic(relic_data: Resource, player_units: Array[Unit]) 
 
 
 func _apply_opening_tome_relic(relic_data: Resource, player_units: Array[Unit]) -> void:
-	var mana_bonus: float = maxf(0.0, _get_relic_value(relic_data, 20.0))
+	var mana_amount: float = maxf(0.0, _get_relic_value(relic_data, 20.0))
 	DEBUG_LOG_SCRIPT.combat("Relic triggered: " + _get_relic_debug_name(relic_data))
 
 	for unit in player_units:
 		if _is_alive_unit(unit):
-			_apply_relic_stat_add(unit, RELIC_ID_OPENING_TOME, "initial_mana", mana_bonus)
-			_restore_mana(unit, mana_bonus)
+			_restore_mana(unit, mana_amount)
 
 
 func _apply_dynamo_needle_relic(relic_data: Resource, player_units: Array[Unit]) -> void:

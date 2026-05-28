@@ -1,0 +1,53 @@
+[gd_scene format=3]
+
+[node name="TransitionPanel Panel" type="Panel"]
+visible = false
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="Background ColorRect" type="ColorRect" parent="."]
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.04, 0.05, 0.08, 0.95)
+
+[node name="ContentVBox VBoxContainer" type="VBoxContainer" parent="."]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -80.0
+offset_right = 200.0
+offset_bottom = 80.0
+
+[node name="RoundLabel Label" type="Label" parent="ContentVBox VBoxContainer"]
+offset_left = 0.0
+offset_top = 0.0
+offset_right = 400.0
+offset_bottom = 36.0
+theme_override_font_sizes/font_size = 28
+text = "第 1 波"
+horizontal_alignment = 1
+
+[node name="NodeTypeLabel Label" type="Label" parent="ContentVBox VBoxContainer"]
+offset_left = 0.0
+offset_top = 44.0
+offset_right = 400.0
+offset_bottom = 74.0
+theme_override_font_sizes/font_size = 20
+text = ""
+horizontal_alignment = 1
+
+[node name="DescriptionLabel Label" type="Label" parent="ContentVBox VBoxContainer"]
+offset_left = 0.0
+offset_top = 82.0
+offset_right = 400.0
+offset_bottom = 120.0
+theme_override_font_sizes/font_size = 16
+text = ""
+horizontal_alignment = 1
+autowrap_mode = 3

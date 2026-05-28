@@ -30,6 +30,7 @@ const MERCHANT_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/merch
 const TRAINING_MANAGER_SCRIPT: Script = preload("res://scripts/training_manager.gd")
 const EVENT_MANAGER_SCRIPT: Script = preload("res://scripts/event_manager.gd")
 const EVENT_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/event_panel_controller.gd")
+const TRANSITION_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/transition_panel_controller.gd")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
 const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
 const INITIAL_MAX_ACTIVE_UNITS: int = 10
@@ -91,6 +92,7 @@ var merchant_panel_controller: Variant = MERCHANT_PANEL_CONTROLLER_SCRIPT.new()
 var training_manager: Variant = TRAINING_MANAGER_SCRIPT.new()
 var event_manager: Variant = EVENT_MANAGER_SCRIPT.new()
 var event_panel_controller: Variant = EVENT_PANEL_CONTROLLER_SCRIPT.new()
+var transition_panel_controller: Variant = TRANSITION_PANEL_CONTROLLER_SCRIPT.new()
 var mirror_enemy_relic_manager: RelicManager = null
 var gold_relic_logs: Array[String] = []
 var mirror_info_button: Button = null
@@ -102,6 +104,12 @@ var bond_panel_label: Label = null
 var bond_buttons_vbox: VBoxContainer = null
 var bond_detail_panel: Panel = null
 var bond_detail_text: RichTextLabel = null
+var stats_popup_panel: Panel = null
+var stats_popup_title_label: Label = null
+var stats_popup_summary_label: Label = null
+var stats_popup_scroll: ScrollContainer = null
+var stats_popup_content: VBoxContainer = null
+var stats_popup_close_button: Button = null
 var selected_bond_id: String = ""
 var pending_post_hero_upgrade_result_text: String = ""
 var pending_post_hero_upgrade_player_won: bool = false
@@ -200,6 +208,11 @@ var dynamic_stat_refresh_pending: bool = false
 @onready var event_choice_button_2: Button = $"UI CanvasLayer/EventPanel Panel/ChoiceButton2 Button"
 @onready var event_result_label: Label = $"UI CanvasLayer/EventPanel Panel/ResultText Label"
 @onready var event_continue_button: Button = $"UI CanvasLayer/EventPanel Panel/ContinueButton Button"
+@onready var transition_panel: Panel = $"UI CanvasLayer/TransitionPanel Panel"
+@onready var transition_background: ColorRect = $"UI CanvasLayer/TransitionPanel Panel/Background ColorRect"
+@onready var transition_round_label: Label = $"UI CanvasLayer/TransitionPanel Panel/ContentVBox VBoxContainer/RoundLabel Label"
+@onready var transition_node_type_label: Label = $"UI CanvasLayer/TransitionPanel Panel/ContentVBox VBoxContainer/NodeTypeLabel Label"
+@onready var transition_description_label: Label = $"UI CanvasLayer/TransitionPanel Panel/ContentVBox VBoxContainer/DescriptionLabel Label"
 
 
 func _ready() -> void:
@@ -236,16 +249,19 @@ func _ready() -> void:
 	_setup_merchant_panel_controller()
 	_setup_training_manager()
 	_setup_event_manager()
+	_setup_transition_panel()
 	_apply_main_action_button_styles()
 	_apply_battle_panel_styles()
 	_localize_static_ui()
 	unit_detail_panel_controller.setup(unit_detail_panel, unit_detail_title, unit_detail_text, unit_text_formatter, rarity_formatter, battle_board)
+	unit_detail_panel_controller.set_bond_manager(bond_manager)
 	relic_panel_controller.setup(relic_bar_panel, relic_bar_hbox, relic_detail_panel, relic_list_vbox, relic_info_text, relic_manager, rarity_formatter, MAX_RELIC_BAR_ITEMS, MAX_RELIC_BAR_NAME_LENGTH)
 	_setup_menu_panel_controller()
 	_setup_encyclopedia_panel_controller()
 	_setup_hero_selection_panel_controller()
 	_create_battle_speed_button()
 	_create_bond_panel()
+	bond_manager.setup(roster_manager.unit_catalog, hero_manager)
 	_create_mirror_info_ui()
 	_position_encounter_info_panel()
 	_enter_main_menu()
@@ -362,6 +378,10 @@ func _enter_main_menu() -> void:
 	mirror_enemy_relic_manager = null
 	economy_manager.reset()
 	event_manager.reset()
+	_battle_stats_text = ""
+	_battle_stats_units.clear()
+	_battle_stats_duration = 0.0
+	_battle_stats_relic_damage = 0
 	last_result_text = ""
 	last_player_won = false
 	pending_post_hero_upgrade_result_text = ""
@@ -375,6 +395,7 @@ func _enter_main_menu() -> void:
 	_hide_reward_panel()
 	_hide_path_selection_panel()
 	_hide_merchant_panel()
+	_hide_stats_button()
 	_hide_event_panel()
 	_hide_hero_selection_panel()
 	_hide_gameplay_menu()
@@ -415,9 +436,14 @@ func _on_hero_selected(hero_id: String) -> void:
 		return
 
 	_hide_hero_selection_panel()
-	result_label.text = "已选择英雄：" + hero_manager.get_selected_hero_name()
+	result_label.text = ""
 	_update_hero_exp_ui()
-	_enter_prepare_state()
+	run_controller.pending_node_type = ""
+	_show_transition(Callable(self, "_enter_prepare_state"))
+
+
+func _on_hero_selection_cancelled() -> void:
+	_enter_main_menu()
 
 
 func _on_game_end_confirm_pressed() -> void:
@@ -585,12 +611,14 @@ func _setup_menu_panel_controller() -> void:
 func _setup_encyclopedia_panel_controller() -> void:
 	var ui_canvas_layer: CanvasLayer = $"UI CanvasLayer"
 	encyclopedia_panel_controller.setup(ui_canvas_layer, unit_text_formatter, rarity_formatter)
+	encyclopedia_panel_controller.set_bond_manager(bond_manager)
 
 
 func _setup_hero_selection_panel_controller() -> void:
 	hero_selection_panel_controller.setup(hero_selection_panel, hero_manager, rarity_formatter)
+	hero_selection_panel_controller.set_bond_manager(bond_manager)
 	hero_selection_panel_controller.hero_selected.connect(_on_hero_selected)
-	hero_selection_panel_controller.selection_cancelled.connect(_hide_hero_selection_panel)
+	hero_selection_panel_controller.selection_cancelled.connect(_on_hero_selection_cancelled)
 
 
 func _create_battle_speed_button() -> void:
@@ -670,7 +698,7 @@ func _create_bond_panel() -> void:
 
 	bond_detail_text = RichTextLabel.new()
 	bond_detail_text.position = Vector2(18.0, 54.0)
-	bond_detail_text.size = Vector2(484.0, 346.0)
+	bond_detail_text.size = Vector2(504.0, 406.0)
 	bond_detail_text.fit_content = false
 	bond_detail_text.scroll_active = true
 	bond_detail_text.bbcode_enabled = false
@@ -691,9 +719,9 @@ func _refresh_bond_panel() -> void:
 	elif run_controller.state == GameState.BATTLE:
 		bond_manager.calculate_from_units(battle_manager.get_left_units())
 
-	_update_bond_panel_layout()
 	var should_show: bool = (run_controller.state == GameState.PREPARE or run_controller.state == GameState.BATTLE) and not shop_panel.visible
 	_refresh_bond_buttons()
+	call_deferred("_update_bond_panel_layout")
 	bond_panel.visible = should_show
 	if bond_detail_text != null:
 		if selected_bond_id != "":
@@ -709,6 +737,7 @@ func _refresh_bond_buttons() -> void:
 		return
 
 	for child: Node in bond_buttons_vbox.get_children():
+		bond_buttons_vbox.remove_child(child)
 		child.queue_free()
 
 	var bond_items: Array[Dictionary] = bond_manager.get_active_bond_button_data()
@@ -750,17 +779,12 @@ func _update_bond_panel_layout() -> void:
 	var panel_position: Vector2 = shop_button.position + Vector2(0.0, shop_button.size.y + 10.0)
 	bond_panel.position = panel_position
 
-	var content_height: float = 0.0
-	if bond_buttons_vbox != null and bond_buttons_vbox.get_child_count() > 0:
-		content_height = bond_buttons_vbox.position.y + bond_buttons_vbox.size.y + 10.0
-	else:
-		content_height = bond_buttons_vbox.position.y + 38.0
-
-	bond_panel.size = Vector2(190.0, maxf(content_height, 60.0))
+	var content_height: float = bond_buttons_vbox.position.y + bond_buttons_vbox.size.y + 12.0
+	bond_panel.size = Vector2(190.0, maxf(content_height, 72.0))
 
 	if bond_detail_panel != null:
 		bond_detail_panel.position = panel_position + Vector2(202.0, 0.0)
-		bond_detail_panel.size = Vector2(520.0, 420.0)
+		bond_detail_panel.size = Vector2(540.0, 480.0)
 
 
 func _on_bond_name_pressed(bond_id: String) -> void:
@@ -1107,8 +1131,19 @@ func _on_overtime_started() -> void:
 	DEBUG_LOG_SCRIPT.info("Overtime: started after 60 seconds. Attack damage x2, attack speed x2, escalating damage started.")
 
 
+var _battle_stats_text: String = ""
+var _battle_stats_units: Array = []
+var _battle_stats_duration: float = 0.0
+var _battle_stats_relic_damage: int = 0
+var _stats_button: Button = null
+
+
 func _show_battle_statistics(result_text: String) -> void:
-	stats_label.text = stats_manager.build_statistics_text(result_text, relic_manager.relic_damage_dealt)
+	_battle_stats_text = stats_manager.build_statistics_by_team(relic_manager.relic_damage_dealt)
+	_battle_stats_units = stats_manager.get_all_unit_stats().duplicate(true)
+	_battle_stats_duration = float(stats_manager.battle_duration)
+	_battle_stats_relic_damage = int(relic_manager.relic_damage_dealt)
+	stats_label.text = ""
 
 
 func _save_boss_victory_lineup_snapshot() -> void:
@@ -1204,19 +1239,50 @@ func _enter_reward_state(result_text: String = "", player_won: bool = true) -> v
 	_update_hero_exp_ui()
 	_set_start_button_state("请选择", false)
 	_show_reward_panel()
+	_show_stats_button()
 
 
 func _try_enter_path_select_or_next_prepare() -> void:
-	if run_controller.is_next_round_boss():
-		_enter_next_prepare_state()
+	var next_round: int = run_controller.current_round + 1
+	if next_round % 10 == 0:
+		_enter_forced_path_select_state("BOSS")
+		return
+	if next_round % 5 == 0:
+		_enter_forced_path_select_state("ELITE")
 		return
 	_enter_path_select_state()
+
+
+func _enter_forced_path_select_state(forced_type: String) -> void:
+	run_controller.enter_path_select()
+	result_label.text = "前方强敌"
+	stats_label.text = ""
+	_update_round_label()
+	_update_battle_speed_button_visibility()
+	_set_start_button_state("选择路径", false)
+	_set_board_visible(false)
+	battle_manager.clear_battlefield()
+	_hide_prepare_action_buttons()
+	_hide_shop_panel()
+	_hide_bench_panel()
+	_hide_encounter_info_panel()
+	_hide_reward_panel()
+	_hide_unit_detail_panel()
+	_hide_mirror_info_panel()
+	var candidate: Dictionary = {
+		"node_type": forced_type,
+		"display_name": path_selection_manager.DISPLAY_NAMES.get(forced_type, forced_type),
+		"description": path_selection_manager.DESCRIPTIONS.get(forced_type, ""),
+		"rarity_hint": "EPIC" if forced_type == "BOSS" else "RARE",
+	}
+	_show_path_selection_panel([candidate])
 
 
 func _enter_path_select_state() -> void:
 	run_controller.enter_path_select()
 	result_label.text = "选择下一站"
 	stats_label.text = ""
+	_update_round_label()
 	_update_battle_speed_button_visibility()
 	_set_start_button_state("选择路径", false)
 	_set_board_visible(false)
@@ -1240,22 +1306,30 @@ func _on_path_selected(candidate: Dictionary) -> void:
 	var node_type: String = candidate.get("node_type", "NORMAL")
 	run_controller.record_path_choice(node_type)
 	_hide_path_selection_panel()
+
+	run_controller.advance_round()
+	if run_controller.has_cleared_round_limit():
+		_enter_game_over_state("Victory - Run Cleared")
+		return
+
 	match node_type:
 		"NORMAL":
-			_enter_next_prepare_state()
-		"ELITE":
-			encounter_manager.forced_encounter_type = "ELITE"
-			_enter_next_prepare_state()
+			encounter_manager.forced_encounter_type = "NORMAL"
+			_show_transition(Callable(self, "_enter_prepare_state"))
+		"ELITE", "BOSS":
+			_show_transition(Callable(self, "_enter_prepare_state"))
 		"MERCHANT":
-			_enter_merchant_state()
+			_show_transition(Callable(self, "_enter_merchant_state"))
 		"TRAINING":
-			_enter_training_prepare_state()
+			var enc: Dictionary = training_manager.create_training_encounter(run_controller.current_round)
+			encounter_manager.set_override_encounter(run_controller.current_round, enc)
+			_show_transition(Callable(self, "_enter_prepare_state"))
 		"EVENT":
-			_enter_event_state()
+			_show_transition(Callable(self, "_enter_event_state"))
 		"TREASURE":
-			_enter_treasure_state()
+			_show_transition(Callable(self, "_enter_treasure_state"))
 		_:
-			_enter_next_prepare_state()
+			_show_transition(Callable(self, "_enter_prepare_state"))
 
 
 func _show_path_selection_panel(candidates: Array[Dictionary]) -> void:
@@ -1270,6 +1344,7 @@ func _enter_merchant_state() -> void:
 	run_controller.enter_merchant()
 	result_label.text = ""
 	stats_label.text = ""
+	_update_round_label()
 	_update_battle_speed_button_visibility()
 	_set_start_button_state("商人", false)
 	_set_board_visible(false)
@@ -1321,7 +1396,7 @@ func _on_merchant_item_purchased(item: Dictionary) -> void:
 
 func _on_merchant_leave() -> void:
 	_hide_merchant_panel()
-	_enter_next_prepare_state()
+	_try_enter_path_select_or_next_prepare()
 
 
 func _apply_merchant_buff(buff_data: Dictionary) -> void:
@@ -1358,19 +1433,6 @@ func _add_merchant_high_rarity_unit() -> String:
 func _setup_training_manager() -> void:
 	training_manager.setup(relic_manager, roster_manager, economy_manager)
 	battle_manager.enemy_unit_died.connect(_on_training_enemy_died)
-
-
-func _enter_training_prepare_state() -> void:
-	run_controller.enter_next_prepare()
-	_update_battle_speed_button_visibility()
-	_hide_reward_panel()
-	run_controller.advance_round()
-	if run_controller.has_cleared_round_limit():
-		_enter_game_over_state("Victory - Run Cleared")
-		return
-	var encounter: Dictionary = training_manager.create_training_encounter(run_controller.current_round)
-	encounter_manager.set_override_encounter(run_controller.current_round, encounter)
-	_enter_prepare_state()
 
 
 func _enter_training_state() -> void:
@@ -1414,6 +1476,7 @@ func _enter_treasure_state() -> void:
 	run_controller.enter_treasure()
 	result_label.text = ""
 	stats_label.text = ""
+	_update_round_label()
 	_update_battle_speed_button_visibility()
 	_set_board_visible(false)
 	_hide_prepare_action_buttons()
@@ -1445,7 +1508,7 @@ func _on_treasure_confirmed() -> void:
 		DEBUG_LOG_SCRIPT.info("[宝箱] 无可用遗物，获得 10 金币")
 	_pending_treasure_relic = null
 	_update_gold_label()
-	_enter_next_prepare_state()
+	_try_enter_path_select_or_next_prepare()
 
 
 func _on_training_summary_confirmed() -> void:
@@ -1453,16 +1516,26 @@ func _on_training_summary_confirmed() -> void:
 
 
 func _show_popup(text: String, callback: Callable = Callable()) -> void:
-	event_panel.z_index = 100
-	event_panel.offset_top = -290.0
-	event_panel.offset_bottom = 290.0
+	var popup_style: StyleBoxFlat = StyleBoxFlat.new()
+	popup_style.bg_color = Color(0.06, 0.08, 0.12, 0.98)
+	popup_style.set_border_width_all(2)
+	popup_style.border_color = Color(0.50, 0.67, 0.88, 0.88)
+	popup_style.set_corner_radius_all(8)
+	event_panel.add_theme_stylebox_override("panel", popup_style)
+	event_panel.z_index = UI_LAYER.FLOATING_POPUP + 10
+	event_panel.offset_left = -440.0
+	event_panel.offset_right = 440.0
+	event_panel.offset_top = -310.0
+	event_panel.offset_bottom = 310.0
 	event_panel.visible = true
 	event_title_label.text = ""
 	event_text_label.visible = false
 	event_choice_button_1.visible = false
 	event_choice_button_2.visible = false
+	event_result_label.offset_left = 20.0
+	event_result_label.offset_right = 860.0
 	event_result_label.offset_top = 40.0
-	event_result_label.offset_bottom = 440.0
+	event_result_label.offset_bottom = 480.0
 	event_result_label.text = text
 	event_result_label.visible = true
 	event_continue_button.offset_top = 460.0
@@ -1477,8 +1550,12 @@ func _on_popup_confirmed() -> void:
 	is_popup_active = false
 	event_panel.visible = false
 	event_panel.z_index = 0
+	event_panel.offset_left = -380.0
+	event_panel.offset_right = 380.0
 	event_panel.offset_top = -260.0
 	event_panel.offset_bottom = 260.0
+	event_result_label.offset_left = 36.0
+	event_result_label.offset_right = 724.0
 	event_result_label.offset_top = 220.0
 	event_result_label.offset_bottom = 340.0
 	event_result_label.text = ""
@@ -1586,10 +1663,62 @@ func _setup_event_manager() -> void:
 	event_panel_controller.continue_pressed.connect(_on_event_continue_pressed)
 
 
+func _setup_transition_panel() -> void:
+	transition_panel_controller.setup(
+		transition_panel, transition_background,
+		transition_round_label, transition_node_type_label, transition_description_label
+	)
+
+
+func _show_transition(on_complete: Callable = Callable()) -> void:
+	var current_round: int = run_controller.current_round
+	var pending: String = run_controller.pending_node_type
+	var node_display: String
+	var node_desc: String
+
+	# For combat nodes, always check the actual encounter — pending can be stale (e.g. forced Boss)
+	if pending == "NORMAL" or pending == "ELITE" or pending == "BOSS" or pending == "":
+		var encounter: Dictionary = encounter_manager.get_encounter(current_round)
+		var enc_type: String = str(encounter.get("encounter_type", ""))
+		match enc_type:
+			"BOSS":
+				node_display = "Boss 战"
+				node_desc = "击败强大的 Boss，推进进度。"
+			"ELITE":
+				node_display = "精英战斗"
+				node_desc = "挑战精英敌人，获得丰厚奖励。"
+			"TRAINING":
+				node_display = "训练场"
+				node_desc = "限时击杀木桩，获取掉落的奖励。"
+			_:
+				node_display = "普通战斗"
+				node_desc = "与敌人战斗，获得金币和奖励。"
+	else:
+		match pending:
+			"MERCHANT":
+				node_display = "商人"
+				node_desc = "购买遗物、强化和人口。"
+			"EVENT":
+				node_display = "随机事件"
+				node_desc = "遭遇随机事件，做出选择。"
+			"TREASURE":
+				node_display = "宝箱"
+				node_desc = "打开宝箱，获得一件遗物。"
+			"TRAINING":
+				node_display = "训练场"
+				node_desc = "限时击杀木桩，获取掉落的奖励。"
+			_:
+				node_display = "普通战斗"
+				node_desc = "与敌人战斗，获得金币和奖励。"
+
+	transition_panel_controller.show_transition(current_round, pending, node_display, node_desc, on_complete)
+
+
 func _enter_event_state() -> void:
 	run_controller.enter_event()
 	result_label.text = ""
 	stats_label.text = ""
+	_update_round_label()
 	_update_battle_speed_button_visibility()
 	_set_start_button_state("事件", false)
 	_set_board_visible(false)
@@ -1663,25 +1792,12 @@ func _on_event_continue_pressed() -> void:
 		_on_popup_confirmed()
 		return
 	_hide_event_panel()
-	_enter_next_prepare_state()
+	_try_enter_path_select_or_next_prepare()
 
 
 func _hide_event_panel() -> void:
 	event_panel_controller.hide_panel()
 
-
-func _enter_next_prepare_state() -> void:
-	run_controller.enter_next_prepare()
-	_update_battle_speed_button_visibility()
-	_hide_reward_panel()
-	_set_start_button_state("下一轮", false)
-
-	run_controller.advance_round()
-	if run_controller.has_cleared_round_limit():
-		_enter_game_over_state("Victory - Run Cleared")
-		return
-
-	_enter_prepare_state()
 
 
 func _enter_game_over_state(game_over_text: String) -> void:
@@ -1785,11 +1901,13 @@ func _create_mirror_enemy_relic_manager_for_current_round() -> RelicManager:
 func _update_round_label() -> void:
 	if run_controller.current_round > run_controller.max_round:
 		round_label.text = "已通关"
-	else:
+		return
+	round_label.text = "第 " + str(run_controller.current_round) + " / " + str(run_controller.max_round) + " 轮"
+	if run_controller.is_mirror_challenge():
+		round_label.text += " - 镜像挑战"
+	# Only append encounter info for combat states — avoids generating encounters for non-combat rounds
+	if run_controller.state == GameState.PREPARE or run_controller.state == GameState.BATTLE or run_controller.state == GameState.TRAINING:
 		var encounter: Dictionary = encounter_manager.get_encounter(run_controller.current_round) as Dictionary
-		round_label.text = "第 " + str(run_controller.current_round) + " / " + str(run_controller.max_round) + " 轮"
-		if run_controller.is_mirror_challenge():
-			round_label.text += " - 镜像挑战"
 		if not encounter.is_empty():
 			round_label.text += " - " + _format_encounter_type(str(encounter["encounter_type"]))
 			round_label.text += ": " + _get_encounter_display_name(str(encounter["encounter_name"]))
@@ -2946,6 +3064,234 @@ func _darken_color(color: Color, amount: float) -> Color:
 	return rarity_formatter.darken_color(color, amount)
 
 
+func _create_stats_button() -> void:
+	if _stats_button != null:
+		return
+	_stats_button = Button.new()
+	_stats_button.text = "战斗统计"
+	_stats_button.custom_minimum_size = Vector2(110.0, 36.0)
+	_stats_button.focus_mode = Control.FOCUS_NONE
+	_stats_button.visible = false
+	_stats_button.z_index = 200
+	PIXEL_UI_THEME.apply_button_style(_stats_button, Color(0.12, 0.18, 0.28), Color(0.40, 0.55, 0.85), 2)
+	_stats_button.pressed.connect(_on_stats_button_pressed)
+	$"UI CanvasLayer".add_child(_stats_button)
+
+
+func _show_stats_button() -> void:
+	if _stats_button == null:
+		_create_stats_button()
+	if _battle_stats_text == "":
+		return
+	_stats_button.visible = true
+	_stats_button.position = Vector2(360.0, 490.0)
+
+
+func _hide_stats_button() -> void:
+	if _stats_button != null:
+		_stats_button.visible = false
+	_hide_stats_popup()
+
+
+func _on_stats_button_pressed() -> void:
+	if _battle_stats_text == "":
+		return
+	_show_stats_popup()
+
+
+func _create_stats_popup() -> void:
+	if stats_popup_panel != null:
+		return
+
+	var ui_canvas_layer: CanvasLayer = $"UI CanvasLayer"
+	if ui_canvas_layer == null:
+		return
+
+	stats_popup_panel = Panel.new()
+	stats_popup_panel.visible = false
+	stats_popup_panel.z_index = UI_LAYER.FLOATING_POPUP + 20
+	stats_popup_panel.add_theme_stylebox_override("panel", _create_panel_style(Color(0.04, 0.05, 0.08, 0.98), Color(0.52, 0.68, 0.90, 0.95), 8, 2))
+	ui_canvas_layer.add_child(stats_popup_panel)
+
+	stats_popup_title_label = Label.new()
+	stats_popup_title_label.text = "战斗统计"
+	stats_popup_title_label.position = Vector2(24.0, 18.0)
+	stats_popup_title_label.add_theme_font_size_override("font_size", 24)
+	stats_popup_title_label.add_theme_color_override("font_color", Color(0.98, 0.86, 0.58, 1.0))
+	stats_popup_panel.add_child(stats_popup_title_label)
+
+	stats_popup_summary_label = Label.new()
+	stats_popup_summary_label.position = Vector2(24.0, 54.0)
+	stats_popup_summary_label.autowrap_mode = TextServer.AUTOWRAP_OFF
+	stats_popup_summary_label.clip_text = true
+	stats_popup_summary_label.add_theme_font_size_override("font_size", 15)
+	stats_popup_summary_label.add_theme_color_override("font_color", Color(0.90, 0.94, 1.0, 1.0))
+	stats_popup_panel.add_child(stats_popup_summary_label)
+
+	stats_popup_close_button = Button.new()
+	stats_popup_close_button.text = "关闭"
+	stats_popup_close_button.focus_mode = Control.FOCUS_NONE
+	stats_popup_close_button.pressed.connect(_hide_stats_popup)
+	_apply_menu_button_style(stats_popup_close_button, Color(0.22, 0.25, 0.30, 1.0), Color(0.68, 0.72, 0.78, 1.0))
+	stats_popup_panel.add_child(stats_popup_close_button)
+
+	stats_popup_scroll = ScrollContainer.new()
+	stats_popup_scroll.clip_contents = true
+	stats_popup_panel.add_child(stats_popup_scroll)
+
+	stats_popup_content = VBoxContainer.new()
+	stats_popup_content.add_theme_constant_override("separation", 6)
+	stats_popup_content.custom_minimum_size = Vector2(_get_stats_table_width(), 0.0)
+	stats_popup_scroll.add_child(stats_popup_content)
+
+
+func _show_stats_popup() -> void:
+	if _battle_stats_units.is_empty():
+		return
+	_create_stats_popup()
+	if stats_popup_panel == null:
+		return
+
+	_layout_stats_popup()
+	_populate_stats_popup_content()
+	stats_popup_panel.visible = true
+
+
+func _hide_stats_popup() -> void:
+	if stats_popup_panel != null:
+		stats_popup_panel.visible = false
+
+
+func _layout_stats_popup() -> void:
+	if stats_popup_panel == null:
+		return
+
+	var viewport_size: Vector2 = get_viewport_rect().size
+	var panel_size: Vector2 = Vector2(
+		minf(1620.0, maxf(760.0, viewport_size.x - 120.0)),
+		minf(860.0, maxf(520.0, viewport_size.y - 120.0))
+	)
+	stats_popup_panel.position = (viewport_size - panel_size) * 0.5
+	stats_popup_panel.size = panel_size
+
+	if stats_popup_title_label != null:
+		stats_popup_title_label.size = Vector2(panel_size.x - 160.0, 30.0)
+	if stats_popup_summary_label != null:
+		stats_popup_summary_label.size = Vector2(panel_size.x - 48.0, 24.0)
+	if stats_popup_close_button != null:
+		stats_popup_close_button.position = Vector2(panel_size.x - 104.0, 16.0)
+		stats_popup_close_button.custom_minimum_size = Vector2(80.0, 32.0)
+	if stats_popup_scroll != null:
+		stats_popup_scroll.position = Vector2(24.0, 88.0)
+		stats_popup_scroll.size = Vector2(panel_size.x - 48.0, panel_size.y - 112.0)
+
+
+func _populate_stats_popup_content() -> void:
+	if stats_popup_content == null:
+		return
+
+	for child: Node in stats_popup_content.get_children():
+		stats_popup_content.remove_child(child)
+		child.queue_free()
+
+	var player_units: Array = []
+	var enemy_units: Array = []
+	for stat: Dictionary in _battle_stats_units:
+		if int(stat.get("team_id", 0)) == 1:
+			player_units.append(stat)
+		else:
+			enemy_units.append(stat)
+
+	if stats_popup_summary_label != null:
+		stats_popup_summary_label.text = _build_stats_summary_text(player_units.size(), enemy_units.size())
+
+	_add_stats_section("我方单位", player_units)
+	_add_stats_section("敌方单位", enemy_units)
+
+
+func _build_stats_summary_text(player_count: int, enemy_count: int) -> String:
+	var text: String = "战斗时间：" + ("%0.1f" % _battle_stats_duration) + " 秒"
+	text += "    我方：" + str(player_count) + "    敌方：" + str(enemy_count)
+	if _battle_stats_relic_damage > 0:
+		text += "    遗物伤害：" + str(_battle_stats_relic_damage)
+	return text
+
+
+func _add_stats_section(section_title: String, units: Array) -> void:
+	var title_label: Label = Label.new()
+	title_label.text = section_title + "（" + str(units.size()) + "）"
+	title_label.custom_minimum_size = Vector2(_get_stats_table_width(), 28.0)
+	title_label.add_theme_font_size_override("font_size", 18)
+	title_label.add_theme_color_override("font_color", Color(0.98, 0.86, 0.58, 1.0))
+	stats_popup_content.add_child(title_label)
+
+	_add_stats_row(["单位", "伤害", "承伤", "治疗", "护盾", "回蓝", "击杀", "攻击", "存活", "状态"], true)
+	if units.is_empty():
+		var empty_label: Label = Label.new()
+		empty_label.text = "无"
+		empty_label.custom_minimum_size = Vector2(_get_stats_table_width(), 26.0)
+		empty_label.add_theme_font_size_override("font_size", 14)
+		empty_label.add_theme_color_override("font_color", Color(0.76, 0.80, 0.88, 1.0))
+		stats_popup_content.add_child(empty_label)
+		return
+
+	for stat: Dictionary in units:
+		_add_stats_row(_build_stats_row_values(stat), false)
+
+
+func _build_stats_row_values(stat: Dictionary) -> Array[String]:
+	var survival_time: float = float(stat.get("survival_time", 0.0))
+	var alive: bool = bool(stat.get("is_alive_at_end", false))
+	return [
+		str(stat.get("display_name", "未知单位")),
+		str(int(stat.get("damage_dealt", 0))),
+		str(int(stat.get("damage_taken", 0))),
+		str(int(stat.get("healing_done", 0))),
+		str(int(stat.get("shield_given", 0))),
+		"%0.1f" % float(stat.get("mana_restored", 0.0)),
+		str(int(stat.get("kill_count", 0))),
+		str(int(stat.get("attack_count", 0))),
+		("%0.1f" % survival_time) + "秒",
+		"存活" if alive else "阵亡",
+	]
+
+
+func _add_stats_row(values: Array[String], is_header: bool) -> void:
+	var row: HBoxContainer = HBoxContainer.new()
+	row.custom_minimum_size = Vector2(_get_stats_table_width(), 28.0)
+	row.add_theme_constant_override("separation", 6)
+	stats_popup_content.add_child(row)
+
+	var widths: Array[float] = _get_stats_column_widths()
+	for index: int in range(values.size()):
+		var label: Label = Label.new()
+		label.text = values[index]
+		label.custom_minimum_size = Vector2(widths[index], 26.0)
+		label.autowrap_mode = TextServer.AUTOWRAP_OFF
+		label.clip_text = true
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.add_theme_font_size_override("font_size", 14 if not is_header else 15)
+		if is_header:
+			label.add_theme_color_override("font_color", Color(0.78, 0.88, 1.0, 1.0))
+		else:
+			label.add_theme_color_override("font_color", Color(0.90, 0.93, 0.98, 1.0))
+		row.add_child(label)
+
+
+func _get_stats_column_widths() -> Array[float]:
+	return [220.0, 118.0, 118.0, 118.0, 118.0, 110.0, 82.0, 82.0, 118.0, 76.0]
+
+
+func _get_stats_table_width() -> float:
+	var width: float = 0.0
+	var widths: Array[float] = _get_stats_column_widths()
+	for column_width: float in widths:
+		width += column_width
+	width += float(maxi(0, widths.size() - 1)) * 6.0
+	return width
+
+
 func _show_reward_panel() -> void:
 	reward_panel_controller.show_reward_panel(_get_current_encounter_type())
 
@@ -2975,6 +3321,7 @@ func _on_reward_applied(_reward: Dictionary) -> void:
 	if run_controller.state != GameState.REWARD:
 		return
 
+	_hide_stats_button()
 	_refresh_relic_bar()
 	_hide_reward_panel()
 	_try_enter_path_select_or_next_prepare()

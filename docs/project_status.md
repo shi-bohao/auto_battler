@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-28（含路径选择系统、蛆虫族敌人、属性修饰器动态光环性能优化、死亡链路优化、商店单位购买预览复用）
+更新时间：2026-05-28（含路径选择系统、波次过渡动画、羁绊UI全面优化、战斗统计弹窗、商人悬浮提示、开场秘典修正）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成或待规划的功能设计与实现入口见 `docs/future_features.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
@@ -39,6 +39,29 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --scrip
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_hero_battle_spawn.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_hero_position_reservation.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
+```
+
+## 2026-05-28 羁绊UI、波次过渡、战斗统计与细节修复
+
+近期完成并通过 headless 检查的内容：
+
+- **波次过渡动画**：新建 `scenes/ui/transition_panel.tscn` + `scripts/ui/transition_panel_controller.gd`，每波次进入前播放全屏淡入→停留→淡出动画，展示回合数 + 节点类型 + 描述。所有节点类型（含非战斗节点）统一消耗 round，过渡覆盖英雄选择后首轮、路径选择后进入、Boss 强制推进等全部入口。
+- **羁绊面板尺寸修复**：子节点用 `remove_child` + `queue_free` 代替纯 `queue_free`，布局调用移至按钮刷新之后并用 `call_deferred` 延迟，面板高度通过 VBox 实际 size 计算。
+- **羁绊详情成员展示**：`BondManager` 新增 `setup(unit_catalog, hero_manager)` 和 `get_bond_member_info(bond_id)`，遍历全部单位和英雄筛选该羁绊成员，追加到详情文本末尾。
+- **单位详情面板羁绊标签**：`UnitDetailPanelController` 新增 `set_bond_manager()` / `_refresh_bond_buttons()`，在单位名下方动态生成彩色羁绊按钮（铁壁/猎手/奥术/圣疗/召唤/剧毒），左键点击弹出详情，关闭面板时自动关闭。
+- **图鉴新增羁绊分类**：`EncyclopediaCatalog` 新增 `CATEGORY_BONDS`，`EncyclopediaPanelController` 新增 `_build_bond_detail()`（复用 `BondManager.get_bond_detail_text_for_bond()`），展示全部 6 个羁绊及档位/效果/成员。
+- **战斗统计弹窗**：`StatsManager.build_statistics_by_team()` 按 team_id 分离敌我数据，固定列宽格式（伤害12/承伤12/治疗12/护盾12/回蓝12/击杀10/攻击10/存活16）；战斗结束后不再直接输出 stats_label，改为显示"战斗统计"按钮，点击弹出居中弹窗。
+- **商人悬浮提示**：商人面板遗物和奇货按钮添加 `tooltip_text`，悬浮显示名称+描述。
+- **弹窗 z_index 与背景**：`_show_popup` 改为 `UI_LAYER.FLOATING_POPUP + 10`（910），叠加不透明深色 StyleBox，解决被三选一遮挡和半透明文字不清晰问题。
+- **开场秘典修正**：实现与初始火花统一，改为仅 `_restore_mana(20)`，去掉 `_apply_relic_stat_add(initial_mana)`，描述简化为"战斗开始时，玩家全队获得 20 魔力。"
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/bond_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/stats_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/relic/relic_effect_resolver.gd
 ```
 
 ## 2026-05-27 路径选择系统

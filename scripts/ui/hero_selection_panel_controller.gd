@@ -43,12 +43,16 @@ var right_arrow: Button = null
 var return_button: Button = null
 var confirm_button: Button = null
 var hero_manager: Variant = null
+var bond_manager: Variant = null
 var rarity_formatter: Variant = null
 var unit_text_formatter: Variant = UNIT_TEXT_FORMATTER_SCRIPT.new()
 var hero_options: Array[Resource] = []
 var portrait_buttons: Array[Button] = []
 var portrait_name_labels: Array[Label] = []
 var upgrade_buttons: Array[Button] = []
+var bond_container: HBoxContainer = null
+var bond_buttons: Array[Button] = []
+var displayed_bond_tags: Array[String] = []
 var selected_hero_index: int = -1
 var selected_skill_type: String = ""
 var page_index: int = 0
@@ -66,6 +70,10 @@ func setup(hero_panel_value: Panel, hero_manager_value: Variant, rarity_formatte
 	_resolve_nodes()
 	_apply_styles()
 	hide()
+
+
+func set_bond_manager(bm: Variant) -> void:
+	bond_manager = bm
 
 
 func show_selection() -> void:
@@ -92,6 +100,7 @@ func hide() -> void:
 	if hero_panel != null:
 		hero_panel.visible = false
 	_clear_portraits()
+	_clear_bond_buttons()
 	_hide_detail()
 	_hide_popup()
 
@@ -148,13 +157,20 @@ func _resolve_nodes() -> void:
 
 
 func _on_detail_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+	if _is_popup_close_click(event):
 		_hide_popup()
 
 
 func _on_panel_gui_input(event: InputEvent) -> void:
-	if event is InputEventMouseButton and (event as InputEventMouseButton).pressed:
+	if _is_popup_close_click(event):
 		_hide_popup()
+
+
+func _is_popup_close_click(event: InputEvent) -> bool:
+	if not (event is InputEventMouseButton):
+		return false
+	var mouse_event: InputEventMouseButton = event as InputEventMouseButton
+	return mouse_event.pressed and mouse_event.button_index == MOUSE_BUTTON_LEFT
 
 
 func _apply_styles() -> void:
@@ -210,7 +226,7 @@ func _apply_styles() -> void:
 	_apply_skill_button_style(active_skill_button, false)
 	_apply_arrow_style(left_arrow, "◀")
 	_apply_arrow_style(right_arrow, "▶")
-	_apply_bottom_button_style(return_button, "返回", Color(0.22, 0.25, 0.30, 1.0))
+	_apply_bottom_button_style(return_button, "返回主菜单", Color(0.22, 0.25, 0.30, 1.0))
 	_apply_bottom_button_style(confirm_button, "确认选择", Color(0.16, 0.30, 0.48, 0.96))
 
 
@@ -332,7 +348,6 @@ func _shift_portrait_window(step: int) -> void:
 func _on_return_pressed() -> void:
 	_hide_popup()
 	selection_cancelled.emit()
-	hide()
 
 
 func _on_confirm_pressed() -> void:
@@ -524,6 +539,7 @@ func _refresh_hero_detail(hero: Resource) -> void:
 		unit_meta_label.text = _get_meta_line(hero)
 
 	_refresh_base_stats(unit_data)
+	_refresh_bond_buttons(unit_data)
 	_refresh_skill_buttons(hero)
 	_refresh_hero_upgrades(hero)
 
@@ -540,6 +556,7 @@ func _show_placeholder() -> void:
 		detail_scroll.visible = false
 	if placeholder_label != null:
 		placeholder_label.visible = true
+	_clear_bond_buttons()
 
 
 func _hide_detail() -> void:
@@ -547,6 +564,7 @@ func _hide_detail() -> void:
 		detail_scroll.visible = false
 	if placeholder_label != null:
 		placeholder_label.visible = true
+	_clear_bond_buttons()
 
 
 func _get_portrait_frame_color(hero: Resource) -> Color:
@@ -581,6 +599,106 @@ func _refresh_base_stats(unit_data: Resource) -> void:
 		var stat_label: Label = base_stats_grid.get_child(index) as Label
 		if stat_label != null:
 			stat_label.text = _format_stat_cell(stats[index])
+
+
+func _refresh_bond_buttons(unit_data: Resource) -> void:
+	if unit_data == null:
+		_clear_bond_buttons()
+		return
+
+	var tags_value: Variant = unit_data.get("bond_tags")
+	var tag_strings: Array[String] = []
+	if tags_value is Array:
+		for tag: Variant in (tags_value as Array):
+			var tag_str: String = str(tag).strip_edges()
+			if tag_str != "":
+				tag_strings.append(tag_str)
+
+	if tag_strings.is_empty():
+		_clear_bond_buttons()
+		return
+
+	_ensure_bond_container()
+	if tag_strings == displayed_bond_tags:
+		return
+
+	displayed_bond_tags = tag_strings.duplicate()
+	while bond_buttons.size() < tag_strings.size():
+		bond_buttons.append(_create_bond_button())
+
+	const DISPLAY_NAMES: Dictionary = {
+		"iron_wall": "铁壁", "hunter": "猎手", "arcane": "奥术",
+		"divine": "圣疗", "summon": "召唤", "venom": "剧毒",
+	}
+
+	for index: int in range(bond_buttons.size()):
+		var button: Button = bond_buttons[index]
+		if index >= tag_strings.size():
+			button.visible = false
+			button.set_meta("bond_tag", "")
+			continue
+
+		var tag_str: String = tag_strings[index]
+		button.text = DISPLAY_NAMES.get(tag_str, tag_str)
+		button.visible = true
+		button.disabled = false
+		button.scale = Vector2.ONE
+		button.set_meta("bond_tag", tag_str)
+
+
+func _ensure_bond_container() -> void:
+	if bond_container != null and is_instance_valid(bond_container):
+		return
+	if detail_content == null:
+		return
+
+	bond_container = HBoxContainer.new()
+	bond_container.position = Vector2(170.0, 74.0)
+	bond_container.add_theme_constant_override("separation", 8)
+	detail_content.add_child(bond_container)
+
+
+func _create_bond_button() -> Button:
+	var button: Button = Button.new()
+	button.custom_minimum_size = Vector2(110.0, 34.0)
+	button.size = button.custom_minimum_size
+	button.focus_mode = Control.FOCUS_NONE
+	button.tooltip_text = "左键查看羁绊详情"
+	button.pivot_offset = button.custom_minimum_size * 0.5
+	button.gui_input.connect(_on_bond_button_input.bind(button))
+	bond_container.add_child(button)
+	_apply_skill_button_style(button, false)
+	button.add_theme_font_size_override("font_size", 15)
+	return button
+
+
+func _clear_bond_buttons() -> void:
+	for button: Button in bond_buttons:
+		if button != null and is_instance_valid(button):
+			button.visible = false
+			button.set_meta("bond_tag", "")
+			button.scale = Vector2.ONE
+	displayed_bond_tags.clear()
+
+
+func _on_bond_button_input(event: InputEvent, button: Button) -> void:
+	if not (event is InputEventMouseButton):
+		return
+	var mb: InputEventMouseButton = event as InputEventMouseButton
+	if mb.button_index != MOUSE_BUTTON_LEFT or not mb.pressed:
+		return
+
+	var bond_id: String = str(button.get_meta("bond_tag", "")).strip_edges()
+	if bond_id == "":
+		return
+
+	selected_skill_type = SKILL_NONE
+	_update_skill_button_states()
+	if bond_manager != null and bond_manager.has_method("get_bond_detail_text_for_bond"):
+		var detail_text: String = str(bond_manager.get_bond_detail_text_for_bond(bond_id)).replace("[英雄]", "【英雄】")
+		_show_popup(detail_text, button)
+	if hero_panel != null:
+		hero_panel.get_viewport().set_input_as_handled()
 
 
 func _get_stat_items(unit_data: Resource) -> Array[Dictionary]:

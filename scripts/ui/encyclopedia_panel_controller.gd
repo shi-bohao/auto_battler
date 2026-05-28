@@ -24,6 +24,7 @@ var selected_filter: String = ""
 var selected_entry_id: String = ""
 var category_buttons: Dictionary = {}
 var filter_buttons: Dictionary = {}
+var bond_manager: Variant = null
 
 
 func setup(canvas_layer: CanvasLayer, unit_text_formatter_value: Variant, rarity_formatter_value: Variant) -> void:
@@ -278,6 +279,8 @@ func _show_entry_detail(entry: Dictionary) -> void:
 			detail_text.text = _build_relic_detail(entry)
 		"hero":
 			detail_text.text = _build_hero_detail(entry)
+		"bond":
+			detail_text.text = _build_bond_detail(entry)
 		_:
 			detail_text.text = _build_unit_detail(entry)
 
@@ -363,6 +366,18 @@ func _build_hero_detail(entry: Dictionary) -> String:
 		lines.append_array(upgrade_lines)
 
 	return _join_lines(lines)
+
+
+func set_bond_manager(bm: Variant) -> void:
+	bond_manager = bm
+	catalog.set_bond_manager(bm)
+
+
+func _build_bond_detail(entry: Dictionary) -> String:
+	var bond_id: String = str(entry.get("bond_id", ""))
+	if bond_id == "" or bond_manager == null:
+		return "羁绊数据不可用"
+	return bond_manager.get_bond_detail_text_for_bond(bond_id)
 
 
 func _get_category_meta_text(category: String, unit_data: Resource) -> String:

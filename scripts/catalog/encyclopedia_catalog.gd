@@ -7,6 +7,7 @@ const CATEGORY_ENEMY_UNITS: String = "enemy_units"
 const CATEGORY_SUMMONS: String = "summons"
 const CATEGORY_RELICS: String = "relics"
 const CATEGORY_HEROES: String = "heroes"
+const CATEGORY_BONDS: String = "bonds"
 
 const FILTER_ALL: String = "全部"
 const ENEMY_TYPE_NORMAL: String = "普通敌人"
@@ -23,6 +24,7 @@ const ENEMY_DATA_DIR: String = "res://data/enemies"
 const SUMMON_DATA_DIR: String = "res://data/summons"
 
 var entries_by_category: Dictionary = {}
+var bond_manager: Variant = null
 
 
 func refresh() -> void:
@@ -35,16 +37,40 @@ func refresh() -> void:
 	_collect_unit_dir(CATEGORY_ENEMY_UNITS, ENEMY_DATA_DIR)
 	_collect_unit_dir(CATEGORY_SUMMONS, SUMMON_DATA_DIR)
 	_collect_heroes()
+	_collect_bonds()
 	_sort_all_categories()
+
+
+func _collect_bonds() -> void:
+	if bond_manager == null or not bond_manager.has_method("get_all_bonds"):
+		return
+	const DISPLAY_NAMES: Dictionary = {
+		"iron_wall": "铁壁", "hunter": "猎手", "arcane": "奥术",
+		"divine": "圣疗", "summon": "召唤", "venom": "剧毒",
+	}
+	for bond_id: String in bond_manager.get_all_bonds():
+		entries_by_category[CATEGORY_BONDS].append({
+			"id": bond_id,
+			"name": DISPLAY_NAMES.get(bond_id, bond_id),
+			"sort_name": DISPLAY_NAMES.get(bond_id, bond_id),
+			"category": CATEGORY_BONDS,
+			"kind": "bond",
+			"bond_id": bond_id,
+		})
+
+
+func set_bond_manager(bm: Variant) -> void:
+	bond_manager = bm
 
 
 func get_category_order() -> Array[String]:
 	return [
 		CATEGORY_PLAYER_UNITS,
+		CATEGORY_HEROES,
+		CATEGORY_BONDS,
 		CATEGORY_ENEMY_UNITS,
 		CATEGORY_SUMMONS,
 		CATEGORY_RELICS,
-		CATEGORY_HEROES,
 	]
 
 
@@ -60,6 +86,8 @@ func get_category_display_name(category: String) -> String:
 			return "遗物"
 		CATEGORY_HEROES:
 			return "英雄"
+		CATEGORY_BONDS:
+			return "羁绊"
 		_:
 			return category
 

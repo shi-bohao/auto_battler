@@ -281,20 +281,74 @@ func _format_top_stat(stat: Dictionary, stat_key: String) -> String:
 	return str(stat["display_name"]) + " - " + _format_stat_value(stat, stat_key)
 
 
-func _format_unit_stat(stat: Dictionary) -> String:
-	var alive_text: String = "存活" if bool(stat["is_alive_at_end"]) else "死亡"
-	var survival_text: String = "%0.1f" % float(stat["survival_time"])
-	var text: String = str(stat["display_name"])
+func _format_unit_stat(stat: Dictionary, name_width: int = 8) -> String:
+	var damage: int = int(stat["damage_dealt"])
+	var taken: int = int(stat["damage_taken"])
+	var healing: int = int(stat["healing_done"])
+	var shield: int = int(stat["shield_given"])
+	var mana: float = float(stat["mana_restored"])
+	var kills: int = int(stat["kill_count"])
+	var attacks: int = int(stat["attack_count"])
+	var survival: float = float(stat["survival_time"])
+	var alive: bool = bool(stat["is_alive_at_end"])
 
-	text += "：伤害 " + str(stat["damage_dealt"])
-	text += " / 承伤 " + str(stat["damage_taken"])
-	text += " / 治疗 " + str(stat["healing_done"])
-	text += " / 护盾 " + str(stat["shield_given"])
-	text += " / 回蓝 " + _format_float(float(stat["mana_restored"]))
-	text += " / 击杀 " + str(stat["kill_count"])
-	text += " / 攻击 " + str(stat["attack_count"])
-	text += " / 存活 " + survival_text + "秒"
-	text += " / " + alive_text
+	var name: String = _pad_right(str(stat["display_name"]), name_width)
+	var col_dmg: String = _pad_right("伤害:" + str(damage), 12)
+	var col_taken: String = _pad_right("承伤:" + str(taken), 12)
+	var col_heal: String = _pad_right("治疗:" + str(healing), 12)
+	var col_shield: String = _pad_right("护盾:" + str(shield), 12)
+	var col_mana: String = _pad_right("回蓝:" + _format_float(mana), 12)
+	var col_kills: String = _pad_right("击杀:" + str(kills), 10)
+	var col_atk: String = _pad_right("攻击:" + str(attacks), 10)
+	var col_surv: String = _pad_right("存活:" + ("%0.1f" % survival) + "秒", 16)
+	var alive_text: String = "" if alive else " [阵亡]"
+
+	return name + "  " + col_dmg + col_taken + col_heal + col_shield + col_mana + col_kills + col_atk + col_surv + alive_text
+
+
+func _pad_right(s: String, width: int) -> String:
+	var result: String = s
+	while result.length() < width:
+		result += " "
+	return result
+
+
+func build_statistics_by_team(relic_damage_dealt: int) -> String:
+	var all_stats: Array[Dictionary] = get_all_unit_stats()
+	var left_units: Array[Dictionary] = []
+	var right_units: Array[Dictionary] = []
+	for stat: Dictionary in all_stats:
+		if int(stat.get("team_id", 0)) == 1:
+			left_units.append(stat)
+		else:
+			right_units.append(stat)
+
+	var max_name_width: int = 8
+	for stat: Dictionary in all_stats:
+		var name_len: int = str(stat.get("display_name", "")).length()
+		if name_len > max_name_width:
+			max_name_width = name_len
+
+	var header: String = _pad_right("单位", max_name_width) + "  " \
+		+ _pad_right("伤害", 12) + _pad_right("承伤", 12) + _pad_right("治疗", 12) \
+		+ _pad_right("护盾", 12) + _pad_right("回蓝", 12) + _pad_right("击杀", 10) \
+		+ _pad_right("攻击", 10) + _pad_right("存活", 16)
+
+	var text: String = ""
+	text += "战斗时间：" + _format_float(battle_duration) + " 秒"
+	if relic_damage_dealt > 0:
+		text += "    遗物伤害：" + str(relic_damage_dealt)
+
+	text += "\n\n[b]我方单位[/b]\n"
+	text += header + "\n"
+	for stat: Dictionary in left_units:
+		text += _format_unit_stat(stat, max_name_width) + "\n"
+
+	text += "\n[b]敌方单位[/b]\n"
+	text += header + "\n"
+	for stat: Dictionary in right_units:
+		text += _format_unit_stat(stat, max_name_width) + "\n"
+
 	return text
 
 

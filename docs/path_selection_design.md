@@ -1,8 +1,9 @@
 # 路径选择系统设计
 
-> 最后更新：2026-05-27。本文档记录战斗胜利后"节点三选一"系统的完整设计、实现细节和数值表，是后续维护和扩展的权威参考。
-> 
-> 已修复的关键 bug：弹道系统路由错误（`battle_manager` → `projectile_manager`）、AoE 技能未命中时重复释放、商人遗物重复/稀有度不符、人口可重复购买+实时价格、高稀有度单位稀有度筛选替代价格筛选。
+> 最后更新：2026-05-28。本文档记录战斗胜利后"节点三选一"系统的完整设计、实现细节和数值表，是后续维护和扩展的权威参考。
+>
+> 已实现：波次过渡动画（全屏淡入/停留/淡出）、所有节点统一消耗 round、强制精英/Boss 节点选择（单选项）、非战斗节点退出回到路径选择。
+> 已修复：弹道路由、AoE 重复释放、商人遗物去重、人口可重复购买、高稀有度单位稀有度筛选、事件/宝箱过渡信息错误、round_label 非战斗状态不更新。
 
 ## 1. 目标
 
@@ -30,15 +31,26 @@
 ### 3.1 改造后流程
 
 ```
-Battle End → Reward Panel → [新] Path Select Panel → 根据选择分发
-  NORMAL/ELITE → advance_round + 进入准备（遭遇按选择类型生成）
-  MERCHANT     → 进入商人面板 → 离开后 advance_round + 进入准备
-  TRAINING     → advance_round + 进入准备 → 手动开始训练战斗 → 计时结束或全灭 → 奖励总结 → 路径选择
-  EVENT        → 事件面板 → 选择后显示结果 → 继续后 advance_round + 进入准备
-  TREASURE     → 展示遗物 → 确认 → advance_round + 进入准备
+Battle End → Reward Panel → Path Select Panel
+  → advance_round（所有类型统一消耗 round）
+  → 过渡动画（全屏淡入→停留→淡出，展示回合数+节点类型+描述）
+  → 进入节点状态
+  NORMAL/ELITE → prepare → 战斗
+  MERCHANT     → 商人面板 → 离开 → 回到 Path Select
+  TRAINING     → 注入训练遭遇 → prepare → 战斗 → 奖励总结 → 回到 Path Select
+  EVENT        → 事件面板 → 选择 → 继续 → 回到 Path Select
+  TREASURE     → 展示遗物 → 确认 → 回到 Path Select
+  BOSS/ELITE   → 强制单选项路径选择 → 同上
 ```
 
-### 3.2 GameState 扩展
+### 3.2 波次过渡动画
+
+`scenes/ui/transition_panel.tscn` + `scripts/ui/transition_panel_controller.gd`：
+- 全屏深色背景 + 居中显示：回合数、节点类型中文名、描述
+- 动画：淡入 0.25s → 停留 0.4s → 淡出 0.25s → 回调进入目标状态
+- 所有状态入口统一：英雄选择后首轮、路径选择后、Boss 强制推进
+
+### 3.4 GameState 扩展
 
 ```gdscript
 const PATH_SELECT: int = 8
@@ -48,11 +60,11 @@ const TRAINING: int = 11
 const TREASURE: int = 12
 ```
 
-### 3.3 Boss 锁定
+### 3.5 Boss 锁定
 
 `current_round + 1` 在 BOSS_ROUNDS [10, 20, 30] 中时，不显示选择面板，直接进入 Boss 准备。
 
-### 3.4 非战斗节点 UI 清理
+### 3.6 非战斗节点 UI 清理
 
 进入 PATH_SELECT/MERCHANT/EVENT/TREASURE 状态时，隐藏战斗棋盘、清除战场单位（`clear_battlefield()`）、清空战斗统计文本、隐藏所有战斗相关面板。进入准备阶段时重新显示棋盘。
 
@@ -283,6 +295,9 @@ PATH_SELECT → TREASURE
 | `scripts/ui/event_panel_controller.gd` | **新建** 事件面板 |
 | `scenes/ui/event_panel.tscn` | **新建** |
 | `scripts/ui/reward_panel_controller.gd` | 新增 show_custom_options() |
+| `scripts/ui/transition_panel_controller.gd` | **新建** 波次过渡动画控制器 |
+| `scenes/ui/transition_panel.tscn` | **新建** |
+| `scripts/stats_manager.gd` | 新增 build_statistics_by_team() 敌我分离统计 |
 | `data/enemies/training_dummy.tres` | **新建** 木桩单位 |
-| `scripts/main.gd` | 接入全部 6 种节点流程、UI 切换、全局强化应用、高费单位添加 |
+| `scripts/main.gd` | 接入全部 6 种节点流程、过渡动画、UI 切换、战斗统计按钮、弹窗系统、全局强化、高费单位 |
 | `scenes/main.tscn` | 新增 PathSelectionPanel/MerchantPanel/EventPanel 实例 |
