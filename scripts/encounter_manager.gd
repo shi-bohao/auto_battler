@@ -21,6 +21,7 @@ var default_encounter_builder: Variant = DEFAULT_ENCOUNTER_BUILDER_SCRIPT.new()
 var encounter_generator: Variant = ENCOUNTER_GENERATOR_SCRIPT.new()
 var enemy_scaling_service: Variant = ENEMY_SCALING_SERVICE_SCRIPT.new()
 var mirror_unit_scaling_service: Variant = UNIT_SCALING_SERVICE_SCRIPT.new()
+var forced_encounter_type: String = ""
 
 
 func setup(
@@ -50,6 +51,10 @@ func set_mirror_boss_encounters(encounters_by_round: Dictionary) -> void:
 func clear_mirror_boss_encounters() -> void:
 	mirror_boss_encounters_by_round.clear()
 	random_encounter_cache.clear()
+
+
+func set_override_encounter(current_round: int, encounter: Dictionary) -> void:
+	random_encounter_cache[current_round] = encounter
 
 
 func get_encounter(current_round: int) -> Dictionary:
@@ -156,7 +161,7 @@ func get_encounter_debug_text(current_round: int) -> String:
 
 
 func _get_or_create_random_encounter(current_round: int) -> Dictionary:
-	if random_encounter_cache.has(current_round):
+	if random_encounter_cache.has(current_round) and forced_encounter_type == "":
 		return random_encounter_cache[current_round] as Dictionary
 
 	var encounter: Dictionary = _create_random_encounter(current_round)
@@ -165,7 +170,9 @@ func _get_or_create_random_encounter(current_round: int) -> Dictionary:
 
 
 func _create_random_encounter(current_round: int) -> Dictionary:
-	return encounter_generator.create_random_encounter(current_round)
+	var override: String = forced_encounter_type
+	forced_encounter_type = ""
+	return encounter_generator.create_random_encounter(current_round, override)
 
 
 func _build_default_encounters() -> void:

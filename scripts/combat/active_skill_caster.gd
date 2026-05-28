@@ -2,6 +2,7 @@ class_name ActiveSkillCaster
 extends RefCounted
 
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const StatusEffectFactory: Script = preload("res://scripts/combat/status_effect_factory.gd")
 const PassiveResolver: Script = preload("res://scripts/combat/passive_resolver.gd")
 const AoeResolver: Script = preload("res://scripts/combat/aoe_resolver.gd")
@@ -57,6 +58,8 @@ const SKILL_BELL_OF_SANCTUARY: String = "bell_of_sanctuary"
 const SKILL_REAPING_COMMAND: String = "reaping_command"
 const SKILL_BLOOD_DEBT_SLASH: String = "blood_debt_slash"
 const SKILL_FOCUS_BEAM: String = "focus_beam"
+const SKILL_SEPTIC_SPIT: String = "septic_spit"
+const SKILL_PUTRID_TIDE: String = "putrid_tide"
 
 const REGROWTH_DURATION: float = 5.0
 const REGROWTH_HEAL_BASE: float = 18.0
@@ -99,6 +102,19 @@ const SUMMONED_PUPPET_GUARD_BASE_SHIELD: int = 25
 const SUMMONED_PUPPET_GUARD_BASE_SHIELD_STAR_3: int = 40
 const SUMMONED_PUPPET_GUARD_MAX_HP_RATIO: float = 0.18
 const SUMMONED_PUPPET_GUARD_MAX_HP_RATIO_STAR_3: float = 0.25
+const SEPTIC_SPIT_DAMAGE_MULTIPLIER: float = 1.2
+const SEPTIC_SPIT_VENOM_DURATION: float = 5.0
+const SEPTIC_SPIT_VENOM_STACKS: int = 2
+const SEPTIC_SPIT_MARK_DURATION: float = 6.0
+const PUTRID_TIDE_DAMAGE_MULTIPLIER: float = 1.4
+const PUTRID_TIDE_SECTOR_RADIUS: float = 130.0
+const PUTRID_TIDE_SECTOR_ANGLE: float = 90.0
+const PUTRID_TIDE_MARK_BONUS_MULTIPLIER: float = 1.25
+const PUTRID_TIDE_VENOM_DURATION: float = 4.0
+const PUTRID_TIDE_VENOM_STACKS: int = 2
+const PUTRID_TIDE_MARK_DURATION: float = 5.0
+const EFFECT_PUTRID_MARK: String = "putrid_mark"
+const PUTRID_TIDE_VISUAL_COLOR: Color = Color(0.42, 0.82, 0.28, 0.22)
 
 const SWEEPING_SLASH_DAMAGE_MULTIPLIER: float = 1.6
 const SWEEPING_SLASH_DAMAGE_MULTIPLIER_STAR_3: float = 2.0
@@ -377,6 +393,10 @@ func try_cast_active_skill(unit: Variant) -> bool:
 			return _cast_blood_debt_slash(unit)
 		SKILL_FOCUS_BEAM:
 			return _cast_focus_beam(unit)
+		SKILL_SEPTIC_SPIT:
+			return _cast_septic_spit(unit)
+		SKILL_PUTRID_TIDE:
+			return _cast_putrid_tide(unit)
 		_:
 			return false
 
@@ -600,7 +620,7 @@ func _cast_sweeping_slash(unit: Variant) -> bool:
 
 	# Always show visual for player feedback
 	_create_aoe_shape_visual(unit, shape_data, INSTANT_AOE_VISUAL_DURATION, SWEEPING_SLASH_VISUAL_COLOR)
-	print(unit.display_name + " sweeping slash: " + str(hit_count) + " targets hit for " + str(skill_damage) + " damage each")
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " sweeping slash: " + str(hit_count) + " targets hit for " + str(skill_damage) + " damage each")
 
 	if hit_count <= 0:
 		return false
@@ -1800,6 +1820,93 @@ func _get_source_scoped_effect_id(effect_id: String, unit: Variant) -> String:
 	return effect_id + "_" + str(unit.unit_id)
 
 
+
+
+func _cast_septic_spit(unit: Variant) -> bool:
+	var target: Variant = unit.current_target
+	if not unit._is_valid_target(target):
+		return false
+
+	var damage_multiplier: float = _get_active_skill_damage_multiplier(unit)
+	var skill_damage: int = maxi(1, int(round(float(unit.attack_damage) * SEPTIC_SPIT_DAMAGE_MULTIPLIER * damage_multiplier)))
+	if not target.is_alive:
+		return false
+
+	target.take_damage(skill_damage, unit, false)
+	_apply_venom_stacks_with_duration(unit, target, SEPTIC_SPIT_VENOM_STACKS, SEPTIC_SPIT_VENOM_DURATION)
+	_apply_putrid_mark_effect(unit, target, SEPTIC_SPIT_MARK_DURATION)
+	unit.unit_feedback.play_skill_feedback(unit, "Septic Spit")
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " septic spit: " + str(skill_damage) + " damage to " + target.display_name)
+	return true
+
+
+func _cast_putrid_tide(unit: Variant) -> bool:
+	var target: Variant = unit.current_target
+	if not unit._is_valid_target(target):
+		return false
+
+	var damage_multiplier: float = _get_active_skill_damage_multiplier(unit)
+	var base_damage: int = maxi(1, int(round(float(unit.attack_damage) * PUTRID_TIDE_DAMAGE_MULTIPLIER * damage_multiplier)))
+	var direction: Vector2 = (target.global_position - unit.global_position).normalized()
+	var shape_data: Dictionary = {
+		"shape_type": "sector",
+		"origin": unit.global_position,
+		"direction": direction,
+		"radius": PUTRID_TIDE_SECTOR_RADIUS,
+		"angle_degrees": PUTRID_TIDE_SECTOR_ANGLE,
+	}
+	var targets: Array = aoe_resolver.get_enemy_units_in_shape(unit, shape_data)
+
+	_create_aoe_shape_visual(unit, shape_data, INSTANT_AOE_VISUAL_DURATION, PUTRID_TIDE_VISUAL_COLOR)
+
+	if targets.is_empty():
+		return false
+
+	var hit_count: int = 0
+	for target_value: Variant in targets:
+		var enemy: Variant = target_value
+		if not _is_valid_unit(enemy) or not enemy.is_alive:
+			continue
+		var final_damage: int = base_damage
+		if _has_putrid_mark(enemy):
+			final_damage = maxi(1, int(round(float(base_damage) * PUTRID_TIDE_MARK_BONUS_MULTIPLIER)))
+		enemy.take_damage(final_damage, unit, false)
+		_apply_venom_stacks_with_duration(unit, enemy, PUTRID_TIDE_VENOM_STACKS, PUTRID_TIDE_VENOM_DURATION)
+		_apply_putrid_mark_effect(unit, enemy, PUTRID_TIDE_MARK_DURATION)
+		hit_count += 1
+
+	unit.unit_feedback.play_skill_feedback(unit, "Putrid Tide")
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " putrid tide: " + str(hit_count) + " targets hit for up to " + str(base_damage) + " base damage")
+	return hit_count > 0
+
+
+func _apply_venom_stacks_with_duration(unit: Variant, target: Variant, count: int, duration: float) -> void:
+	if not _is_valid_unit(unit) or not _is_valid_unit(target) or count <= 0:
+		return
+	for _index: int in range(count):
+		_apply_status_effect(target, VENOM_STACK_EFFECT, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, unit, duration, STATUS_EFFECT_TICK_INTERVAL, VENOM_STACK_DAMAGE, "", {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_STACK_INDEPENDENT_DURATION,
+			"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+			"category": StatusEffectFactory.CATEGORY_DOT,
+		})
+
+
+func _apply_putrid_mark_effect(unit: Variant, target: Variant, duration: float) -> void:
+	if not _is_valid_unit(unit) or not _is_valid_unit(target):
+		return
+	_apply_status_effect(target, EFFECT_PUTRID_MARK, StatusEffectFactory.EFFECT_TYPE_STAT_MULTIPLY, unit, duration, 0.0, PUTRID_TIDE_MARK_BONUS_MULTIPLIER, "damage_taken_multiplier", {
+		"stack_policy": StatusEffectFactory.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH,
+		"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+		"category": StatusEffectFactory.CATEGORY_MARK,
+	})
+
+
+func _has_putrid_mark(target: Variant) -> bool:
+	if not _is_valid_unit(target) or not target.is_alive:
+		return false
+	if target.has_method("get_status_effect_count"):
+		return int(target.get_status_effect_count(EFFECT_PUTRID_MARK)) > 0
+	return false
 func _is_valid_unit(unit: Variant) -> bool:
 	return unit != null and is_instance_valid(unit)
 

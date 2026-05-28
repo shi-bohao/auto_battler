@@ -73,11 +73,23 @@
 | --- | --- |
 | `scripts/shop_manager.gd` | 生成 10 格商品、区分已解锁单位/新单位/遗物、遗物去重、定价 |
 | `scripts/roster_manager.gd` | 维护已解锁单位池、判断可升星目标 |
-| `scripts/main.gd` | 刷新商店 UI、购买处理、按钮状态、遗物详情入口 |
+| `scripts/ui/shop_panel_controller.gd` | 商店面板 UI 刷新、按钮状态与交互 |
+| `scripts/main.gd` | 购买流程、金币扣除、阵容/遗物写入、刷新调用、商店开关、遗物详情入口 |
+| `scripts/battle_manager.gd` | 备战预览单位刷新；按 `roster_id` 复用上场、英雄和备战单位节点，避免购买单位后整队重建 |
+| `scripts/unit.gd` | `reset_prepare_preview()` 为被复用的备战预览单位清理运行时状态 |
+| `scripts/combat/unit_stat_controller.gd` | `clear_runtime_state()` 清理复用节点的运行时属性 modifier 和基础属性缓存 |
 | `scripts/unit_text_formatter.gd` | 为单位商品简介提供被动和主动技能描述 |
 | `scenes/main.tscn` | 商店面板、10 个商品栏位和购买按钮 |
 
-## 7. 验证清单
+## 7. 性能实现说明
+
+- 购买单位、出售单位、上下阵和合成后仍由 `main.gd` 调用 `_refresh_player_preview_from_roster()` 刷新棋盘预览。
+- `BattleManager.refresh_player_and_bench_units()` 不再直接释放所有预览单位并重新生成，而是按 `roster_id` 查找可复用节点。
+- 复用节点会记录 `prepare_unit_signature`。当单位资源、星级、阵营、显示名和当前遗物签名没有变化时，只更新位置、拖拽状态、可选中状态和身体样式，跳过 `UnitDataApplier`、美术重载、属性重置和常驻光环重套。
+- 当单位发生合成、出售、上下阵、新增或遗物状态变化时，相关节点会走完整重配置，未被复用的旧节点才会释放。
+- 遗物购买不会像单位购买一样刷新整队棋盘预览；获得常驻或动态光环遗物后，只刷新对应光环和遗物 UI。
+
+## 8. 验证清单
 
 1. 初始商店前 5 格只刷新战士、弓手和刺客。
 2. 第 6-7 格刷新未解锁单位，购买后该单位进入已解锁刷新池。
@@ -85,3 +97,4 @@
 4. 购买第三个同名 1 星单位时，商品名和按钮应显示升星提醒。
 5. 遗物商品点击后应打开详情面板。
 6. 所有 10 个商品栏位和刷新按钮应在商店边框内。
+7. 后期阵容较大时，连续购买普通单位不应出现随阵容规模明显增长的整队重建卡顿。

@@ -38,7 +38,8 @@ func update(unit: Variant, delta: float) -> void:
 		unit.restore_mana(unit.mana_regen_per_second * delta, unit)
 
 	if unit.current_mana >= float(unit.max_mana):
-		if try_cast_active_skill(unit):
+		var cast_success: bool = try_cast_active_skill(unit)
+		if cast_success:
 			var post_skill_mana_restore: float = _consume_post_skill_mana_restore(unit)
 			unit.current_mana = 0.0
 			if post_skill_mana_restore > 0.0:
@@ -46,6 +47,10 @@ func update(unit: Variant, delta: float) -> void:
 			unit._update_mana_bar()
 			unit.update_info_display()
 			passive_resolver.notify_active_skill_cast(unit)
+		elif unit._is_valid_target(unit.current_target):
+			unit.current_mana = 0.0
+			unit._update_mana_bar()
+			unit.update_info_display()
 
 
 func try_cast_active_skill(unit: Variant) -> bool:

@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_elite_shadow_reaper")
+enemy_tier = "ELITE"
 unit_name = "Elite Shadow Reaper"
 unit_name_cn = "精英影刃收割者"
 description_cn = "精英收割敌人，擅长威胁低血量单位。"

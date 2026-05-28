@@ -66,10 +66,15 @@ func update_effects(target_unit: Variant, delta: float) -> void:
 	_remove_expired_effects()
 
 
-func clear_effects(_target_unit: Variant) -> void:
+func clear_effects(_target_unit: Variant, should_update_display: bool = true, should_recalculate_stats: bool = true) -> void:
+	var stat_context: Dictionary = {}
+	if not should_recalculate_stats:
+		stat_context["skip_recalculate"] = true
+		stat_context["skip_stat_restore"] = true
+
 	for effect: StatusEffect in effects:
 		if effect != null:
-			effect.expire()
+			effect.expire(should_update_display, stat_context)
 
 	effects.clear()
 

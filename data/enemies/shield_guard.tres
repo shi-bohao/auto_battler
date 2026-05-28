@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_shield_guard")
+enemy_tier = "NORMAL"
 unit_name = "Shield Guard"
 unit_name_cn = "盾卫"
 description_cn = "基础前排敌人，通过护盾拖延战斗。"

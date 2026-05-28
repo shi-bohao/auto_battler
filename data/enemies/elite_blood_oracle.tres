@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_elite_blood_oracle")
+enemy_tier = "ELITE"
 unit_name = "Elite Blood Oracle"
 unit_name_cn = "精英血谕者"
 description_cn = "精英治疗辅助敌人，显著提高敌方续航。"

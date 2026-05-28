@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_elite_iron_warden")
+enemy_tier = "ELITE"
 unit_name = "Elite Iron Warden"
 unit_name_cn = "精英铁壁守卫"
 description_cn = "精英承伤敌人，能强化敌方队伍的防线。"

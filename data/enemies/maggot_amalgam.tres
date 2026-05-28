@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_maggot_amalgam"]
+
+[resource]
+script = ExtResource("1_maggot_amalgam")
+enemy_tier = "ELITE"
+unit_name = "Maggot Amalgam"
+unit_name_cn = "蛆虫聚合体"
+description_cn = "精英坦克敌人，死亡分裂召唤巨型蛆虫，主动技能释放扇形腐潮。"
+unit_type = "enemy_elite_maggot_amalgam"
+role = "tank"
+price = 0
+max_hp = 520
+attack_damage = 18
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 28
+attack_interval = 1.45
+attack_range = 65.0
+search_range = 999.0
+move_speed = 42.0
+passive_id = "amalgam_split_birth"
+active_skill_id = "putrid_tide"
+max_mana = 110
+mana_regen_per_second = 9.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

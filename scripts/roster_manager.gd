@@ -1,6 +1,7 @@
 class_name RosterManager
 extends RefCounted
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const UNIT_CATALOG_SCRIPT: Script = preload("res://scripts/catalog/unit_catalog.gd")
 const UNIT_SCALING_SERVICE_SCRIPT: Script = preload("res://scripts/roster/unit_scaling_service.gd")
 const ROSTER_POSITION_SERVICE_SCRIPT: Script = preload("res://scripts/roster/roster_position_service.gd")
@@ -17,6 +18,8 @@ var max_total_units: int = 25
 var max_bench_units: int = 15
 var player_hp_multiplier: float = 1.0
 var player_attack_multiplier: float = 1.0
+var global_stat_bonuses: Dictionary = {}
+var has_death_prevention: bool = false
 var next_roster_id: int = 1
 var unlocked_unit_ids: Array[String] = []
 var unit_catalog: Variant = UNIT_CATALOG_SCRIPT.new()
@@ -81,16 +84,36 @@ func reset_roster() -> void:
 	active_roster.append(create_roster_item(assassin_data))
 	player_hp_multiplier = 1.0
 	player_attack_multiplier = 1.0
+	global_stat_bonuses.clear()
+	has_death_prevention = false
 
 
 func apply_team_hp_bonus(percent: float) -> void:
 	player_hp_multiplier *= 1.0 + percent
-	print("Player team HP multiplier: " + str(player_hp_multiplier))
+	DEBUG_LOG_SCRIPT.info("Player team HP multiplier: " + str(player_hp_multiplier))
 
 
 func apply_team_attack_bonus(percent: float) -> void:
 	player_attack_multiplier *= 1.0 + percent
-	print("Player team attack multiplier: " + str(player_attack_multiplier))
+	DEBUG_LOG_SCRIPT.info("Player team attack multiplier: " + str(player_attack_multiplier))
+
+
+func apply_permanent_percent_bonus(stat: String, ratio: float) -> void:
+	if stat == "":
+		return
+	var key: String = stat + "_percent"
+	global_stat_bonuses[key] = float(global_stat_bonuses.get(key, 0.0)) + ratio
+
+
+func apply_permanent_flat_bonus(stat: String, amount: float) -> void:
+	if stat == "":
+		return
+	var key: String = stat + "_flat"
+	global_stat_bonuses[key] = float(global_stat_bonuses.get(key, 0.0)) + amount
+
+
+func get_global_stat_bonuses() -> Dictionary:
+	return global_stat_bonuses
 
 
 func add_random_unit() -> bool:
@@ -117,19 +140,19 @@ func add_unit(unit_data: Resource, base_price: int = -1) -> bool:
 		return false
 
 	if not can_add_unit():
-		print("Cannot add unit: roster is full.")
+		DEBUG_LOG_SCRIPT.info("Cannot add unit: roster is full.")
 		return false
 
 	var roster_item: Dictionary = create_roster_item(unit_data, 1, base_price)
 	if get_active_count() < max_active_units:
 		active_roster.append(roster_item)
-		print("Added active unit: " + get_unit_display_name_with_star(roster_item))
+		DEBUG_LOG_SCRIPT.info("Added active unit: " + get_unit_display_name_with_star(roster_item))
 	else:
 		if get_bench_count() >= max_bench_units:
-			print("Cannot add unit: bench is full.")
+			DEBUG_LOG_SCRIPT.info("Cannot add unit: bench is full.")
 			return false
 		bench_roster.append(roster_item)
-		print("Added bench unit: " + get_unit_display_name_with_star(roster_item))
+		DEBUG_LOG_SCRIPT.info("Added bench unit: " + get_unit_display_name_with_star(roster_item))
 
 	unlock_unit_data(unit_data)
 	check_auto_merge()
@@ -157,13 +180,13 @@ func move_bench_to_active(index: int) -> bool:
 		return false
 
 	if get_active_count() >= max_active_units:
-		print("Cannot move unit to active: active roster is full.")
+		DEBUG_LOG_SCRIPT.info("Cannot move unit to active: active roster is full.")
 		return false
 
 	var roster_item: Dictionary = bench_roster[index]
 	bench_roster.remove_at(index)
 	active_roster.append(roster_item)
-	print("Moved to active: " + get_unit_display_name_with_star(roster_item))
+	DEBUG_LOG_SCRIPT.info("Moved to active: " + get_unit_display_name_with_star(roster_item))
 	return true
 
 
@@ -172,13 +195,13 @@ func move_active_to_bench(index: int) -> bool:
 		return false
 
 	if get_bench_count() >= max_bench_units:
-		print("Cannot move unit to bench: bench is full.")
+		DEBUG_LOG_SCRIPT.info("Cannot move unit to bench: bench is full.")
 		return false
 
 	var roster_item: Dictionary = active_roster[index]
 	active_roster.remove_at(index)
 	bench_roster.append(roster_item)
-	print("Moved to bench: " + get_unit_display_name_with_star(roster_item))
+	DEBUG_LOG_SCRIPT.info("Moved to bench: " + get_unit_display_name_with_star(roster_item))
 	return true
 
 
@@ -199,7 +222,7 @@ func sell_active_unit(index: int) -> int:
 	var roster_item: Dictionary = active_roster[index]
 	var sell_price: int = get_sell_price(roster_item)
 	active_roster.remove_at(index)
-	print("Sold active unit: " + get_unit_display_name_with_star(roster_item) + " for " + str(sell_price) + " gold.")
+	DEBUG_LOG_SCRIPT.info("Sold active unit: " + get_unit_display_name_with_star(roster_item) + " for " + str(sell_price) + " gold.")
 	return sell_price
 
 
@@ -210,7 +233,7 @@ func sell_bench_unit(index: int) -> int:
 	var roster_item: Dictionary = bench_roster[index]
 	var sell_price: int = get_sell_price(roster_item)
 	bench_roster.remove_at(index)
-	print("Sold bench unit: " + get_unit_display_name_with_star(roster_item) + " for " + str(sell_price) + " gold.")
+	DEBUG_LOG_SCRIPT.info("Sold bench unit: " + get_unit_display_name_with_star(roster_item) + " for " + str(sell_price) + " gold.")
 	return sell_price
 
 
@@ -252,6 +275,21 @@ func add_permanent_stat_bonus_by_roster_id(roster_id: int, stat_name: String, am
 	return _add_permanent_stat_bonus_to_roster(bench_roster, roster_id, stat_name, amount)
 
 
+func set_unit_star_by_roster_id(roster_id: int, new_star: int) -> bool:
+	if roster_id <= 0:
+		return false
+	var safe_star: int = clampi(new_star, 1, MAX_STAR)
+	for roster_item: Dictionary in active_roster:
+		if int(roster_item.get("roster_id", -1)) == roster_id:
+			roster_item["star"] = safe_star
+			return true
+	for roster_item: Dictionary in bench_roster:
+		if int(roster_item.get("roster_id", -1)) == roster_id:
+			roster_item["star"] = safe_star
+			return true
+	return false
+
+
 func get_permanent_stat_bonuses_by_roster_id(roster_id: int) -> Dictionary:
 	var roster_item: Dictionary = _find_roster_item_by_id(roster_id)
 	if roster_item.is_empty():
@@ -267,6 +305,12 @@ func restore_lineup_snapshot(active_units: Array, bench_units: Array, global_eff
 	unlocked_unit_ids.clear()
 	player_hp_multiplier = maxf(0.01, float(global_effects.get("player_hp_multiplier", 1.0)))
 	player_attack_multiplier = maxf(0.01, float(global_effects.get("player_attack_multiplier", 1.0)))
+	var saved_bonuses: Variant = global_effects.get("global_stat_bonuses", {})
+	if saved_bonuses is Dictionary:
+		global_stat_bonuses = (saved_bonuses as Dictionary).duplicate()
+	else:
+		global_stat_bonuses.clear()
+	has_death_prevention = bool(global_effects.get("has_death_prevention", false))
 	max_active_units = maxi(1, int(global_effects.get("max_active_units", max_active_units)))
 	max_total_units = maxi(max_active_units, int(global_effects.get("max_total_units", max_total_units)))
 	max_bench_units = maxi(0, max_total_units - max_active_units)
@@ -645,7 +689,21 @@ func get_unit_data_name(unit_data: Resource) -> String:
 
 
 func _create_scaled_unit_data(roster_item: Dictionary, hp_multiplier: float, attack_multiplier: float) -> Resource:
-	return unit_scaling_service.create_scaled_unit_data(roster_item, hp_multiplier, attack_multiplier)
+	return unit_scaling_service.create_scaled_unit_data(roster_item, hp_multiplier, attack_multiplier, global_stat_bonuses)
+
+
+func get_all_unit_pool() -> Array[Resource]:
+	return unit_catalog.get_unit_pool()
+
+
+func get_high_rarity_unit_pool(min_rarity: String = "RARE") -> Array[Resource]:
+	var min_index: int = unit_catalog.get_rarity_index(min_rarity)
+	var pool: Array[Resource] = []
+	for unit_data: Resource in unit_catalog.get_unit_pool():
+		var rarity: String = str(unit_data.get("rarity"))
+		if unit_catalog.get_rarity_index(rarity) >= min_index:
+			pool.append(unit_data)
+	return pool
 
 
 func _get_unit_data_pool() -> Array[Resource]:

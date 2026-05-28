@@ -1,5 +1,6 @@
-﻿extends Node2D
+extends Node2D
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const GameState: Script = preload("res://scripts/game/game_state.gd")
 const STATS_MANAGER_SCRIPT: Script = preload("res://scripts/stats_manager.gd")
 const ROSTER_MANAGER_SCRIPT: Script = preload("res://scripts/roster_manager.gd")
@@ -22,9 +23,16 @@ const HERO_MANAGER_SCRIPT: Script = preload("res://scripts/hero_manager.gd")
 const HERO_SELECTION_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/hero_selection_panel_controller.gd")
 const BATTLE_TIME_MANAGER_SCRIPT: Script = preload("res://scripts/battle_time_manager.gd")
 const BOND_MANAGER_SCRIPT: Script = preload("res://scripts/bond_manager.gd")
+const PATH_SELECTION_MANAGER_SCRIPT: Script = preload("res://scripts/path_selection_manager.gd")
+const PATH_SELECTION_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/path_selection_panel_controller.gd")
+const MERCHANT_MANAGER_SCRIPT: Script = preload("res://scripts/merchant_manager.gd")
+const MERCHANT_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/merchant_panel_controller.gd")
+const TRAINING_MANAGER_SCRIPT: Script = preload("res://scripts/training_manager.gd")
+const EVENT_MANAGER_SCRIPT: Script = preload("res://scripts/event_manager.gd")
+const EVENT_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/event_panel_controller.gd")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
 const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
-const MAX_ACTIVE_UNITS: int = 10
+const INITIAL_MAX_ACTIVE_UNITS: int = 10
 const MAX_TOTAL_UNITS: int = 25
 const MAX_RELIC_BAR_ITEMS: int = 5
 const MAX_RELIC_BAR_NAME_LENGTH: int = 14
@@ -76,6 +84,13 @@ var hero_manager: Variant = HERO_MANAGER_SCRIPT.new()
 var hero_selection_panel_controller: Variant = HERO_SELECTION_PANEL_CONTROLLER_SCRIPT.new()
 var battle_time_manager: Variant = BATTLE_TIME_MANAGER_SCRIPT.new()
 var bond_manager: Variant = BOND_MANAGER_SCRIPT.new()
+var path_selection_manager: Variant = PATH_SELECTION_MANAGER_SCRIPT.new()
+var path_selection_panel_controller: Variant = PATH_SELECTION_PANEL_CONTROLLER_SCRIPT.new()
+var merchant_manager: Variant = MERCHANT_MANAGER_SCRIPT.new()
+var merchant_panel_controller: Variant = MERCHANT_PANEL_CONTROLLER_SCRIPT.new()
+var training_manager: Variant = TRAINING_MANAGER_SCRIPT.new()
+var event_manager: Variant = EVENT_MANAGER_SCRIPT.new()
+var event_panel_controller: Variant = EVENT_PANEL_CONTROLLER_SCRIPT.new()
 var mirror_enemy_relic_manager: RelicManager = null
 var gold_relic_logs: Array[String] = []
 var mirror_info_button: Button = null
@@ -92,6 +107,10 @@ var pending_post_hero_upgrade_result_text: String = ""
 var pending_post_hero_upgrade_player_won: bool = false
 var is_sell_zone_highlighted: bool = false
 var sell_zone_feedback_tween: Tween = null
+var _pending_treasure_relic: Variant = null
+var is_popup_active: bool = false
+var _popup_callback: Callable = Callable()
+var dynamic_stat_refresh_pending: bool = false
 
 @onready var battle_board: Variant = $"BoardBackground Node2D"
 @onready var result_label: Label = $"UI CanvasLayer/ResultLabel Label"
@@ -142,6 +161,24 @@ var sell_zone_feedback_tween: Tween = null
 @onready var bench_units_vbox: VBoxContainer = $"UI CanvasLayer/BenchPanel Panel/BenchUnitsScroll ScrollContainer/BenchUnitsVBox VBoxContainer"
 @onready var bench_close_button: Button = $"UI CanvasLayer/BenchPanel Panel/BenchCloseButton Button"
 @onready var reward_panel: Panel = $"UI CanvasLayer/RewardPanel Panel"
+@onready var path_selection_panel: Panel = $"UI CanvasLayer/PathSelectionPanel Panel"
+@onready var path_selection_title: Label = $"UI CanvasLayer/PathSelectionPanel Panel/Title Label"
+@onready var path_button_1: Button = $"UI CanvasLayer/PathSelectionPanel Panel/PathButton1 Button"
+@onready var path_button_2: Button = $"UI CanvasLayer/PathSelectionPanel Panel/PathButton2 Button"
+@onready var path_button_3: Button = $"UI CanvasLayer/PathSelectionPanel Panel/PathButton3 Button"
+@onready var merchant_panel: Panel = $"UI CanvasLayer/MerchantPanel Panel"
+@onready var merchant_title_label: Label = $"UI CanvasLayer/MerchantPanel Panel/Title Label"
+@onready var merchant_gold_label: Label = $"UI CanvasLayer/MerchantPanel Panel/GoldLabel Label"
+@onready var merchant_refresh_button: Button = $"UI CanvasLayer/MerchantPanel Panel/RefreshButton Button"
+@onready var merchant_leave_button: Button = $"UI CanvasLayer/MerchantPanel Panel/LeaveButton Button"
+@onready var merchant_relic_button_1: Button = $"UI CanvasLayer/MerchantPanel Panel/RelicItem1 Button"
+@onready var merchant_relic_button_2: Button = $"UI CanvasLayer/MerchantPanel Panel/RelicItem2 Button"
+@onready var merchant_relic_button_3: Button = $"UI CanvasLayer/MerchantPanel Panel/RelicItem3 Button"
+@onready var merchant_relic_button_4: Button = $"UI CanvasLayer/MerchantPanel Panel/RelicItem4 Button"
+@onready var merchant_special_button_1: Button = $"UI CanvasLayer/MerchantPanel Panel/SpecialItem1 Button"
+@onready var merchant_special_button_2: Button = $"UI CanvasLayer/MerchantPanel Panel/SpecialItem2 Button"
+@onready var merchant_special_button_3: Button = $"UI CanvasLayer/MerchantPanel Panel/SpecialItem3 Button"
+@onready var merchant_special_button_4: Button = $"UI CanvasLayer/MerchantPanel Panel/SpecialItem4 Button"
 @onready var reward_button_1: Button = $"UI CanvasLayer/RewardPanel Panel/RewardButton1 Button"
 @onready var reward_button_2: Button = $"UI CanvasLayer/RewardPanel Panel/RewardButton2 Button"
 @onready var reward_button_3: Button = $"UI CanvasLayer/RewardPanel Panel/RewardButton3 Button"
@@ -156,12 +193,19 @@ var sell_zone_feedback_tween: Tween = null
 @onready var relic_detail_close_button: Button = $"UI CanvasLayer/RelicDetailPanel Panel/RelicDetailCloseButton Button"
 @onready var relic_list_vbox: VBoxContainer = $"UI CanvasLayer/RelicDetailPanel Panel/RelicListScroll ScrollContainer/RelicListVBox VBoxContainer"
 @onready var relic_info_text: RichTextLabel = $"UI CanvasLayer/RelicDetailPanel Panel/RelicInfo RichTextLabel"
+@onready var event_panel: Panel = $"UI CanvasLayer/EventPanel Panel"
+@onready var event_title_label: Label = $"UI CanvasLayer/EventPanel Panel/Title Label"
+@onready var event_text_label: RichTextLabel = $"UI CanvasLayer/EventPanel Panel/EventText RichTextLabel"
+@onready var event_choice_button_1: Button = $"UI CanvasLayer/EventPanel Panel/ChoiceButton1 Button"
+@onready var event_choice_button_2: Button = $"UI CanvasLayer/EventPanel Panel/ChoiceButton2 Button"
+@onready var event_result_label: Label = $"UI CanvasLayer/EventPanel Panel/ResultText Label"
+@onready var event_continue_button: Button = $"UI CanvasLayer/EventPanel Panel/ContinueButton Button"
 
 
 func _ready() -> void:
 	randomize()
 	roster_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data)
-	roster_manager.max_active_units = MAX_ACTIVE_UNITS
+	roster_manager.max_active_units = INITIAL_MAX_ACTIVE_UNITS
 	roster_manager.max_total_units = MAX_TOTAL_UNITS
 	encounter_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data)
 	encounter_manager.use_random_encounters = use_random_encounters
@@ -188,6 +232,10 @@ func _ready() -> void:
 	relic_detail_close_button.pressed.connect(_on_relic_detail_close_button_pressed)
 	_setup_shop_panel_controller()
 	_setup_reward_panel_controller()
+	_setup_path_selection_panel_controller()
+	_setup_merchant_panel_controller()
+	_setup_training_manager()
+	_setup_event_manager()
 	_apply_main_action_button_styles()
 	_apply_battle_panel_styles()
 	_localize_static_ui()
@@ -204,8 +252,14 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	var battle_delta: float = battle_time_manager.update(delta, run_controller.state == GameState.BATTLE and battle_manager.is_battle_active)
-	if run_controller.state != GameState.MAIN_MENU:
+	var is_battle_running: bool = (run_controller.state == GameState.BATTLE and battle_manager.is_battle_active) or (run_controller.state == GameState.TRAINING and training_manager.is_training_active)
+	var battle_delta: float = battle_time_manager.update(delta, is_battle_running)
+	if run_controller.state == GameState.TRAINING and training_manager.is_training_active:
+		battle_manager.update(battle_delta)
+		if training_manager.tick(battle_delta):
+			_on_training_timer_expired()
+			return
+	elif run_controller.state != GameState.MAIN_MENU:
 		battle_manager.update(battle_delta)
 		_update_sell_zone_highlight()
 	_refresh_unit_detail_panel_if_open()
@@ -307,6 +361,7 @@ func _enter_main_menu() -> void:
 	encounter_manager.clear_mirror_boss_encounters()
 	mirror_enemy_relic_manager = null
 	economy_manager.reset()
+	event_manager.reset()
 	last_result_text = ""
 	last_player_won = false
 	pending_post_hero_upgrade_result_text = ""
@@ -318,6 +373,9 @@ func _enter_main_menu() -> void:
 	_hide_shop_panel()
 	_hide_bench_panel()
 	_hide_reward_panel()
+	_hide_path_selection_panel()
+	_hide_merchant_panel()
+	_hide_event_panel()
 	_hide_hero_selection_panel()
 	_hide_gameplay_menu()
 	_hide_unit_detail_panel()
@@ -456,6 +514,42 @@ func _setup_reward_panel_controller() -> void:
 	reward_panel_controller.setup(reward_panel, buttons, reward_manager, roster_manager, relic_manager, rarity_formatter)
 	reward_panel_controller.reward_applied.connect(_on_reward_applied)
 	reward_panel_controller.hero_upgrade_selected.connect(_on_hero_upgrade_selected)
+
+
+func _setup_path_selection_panel_controller() -> void:
+	var buttons: Array[Button] = []
+	buttons.append(path_button_1)
+	buttons.append(path_button_2)
+	buttons.append(path_button_3)
+	path_selection_panel_controller.setup(path_selection_panel, path_selection_title, buttons)
+	path_selection_panel_controller.path_selected.connect(_on_path_selected)
+
+
+func _setup_merchant_panel_controller() -> void:
+	merchant_manager.setup(relic_manager, roster_manager)
+	var relic_btns: Array[Button] = []
+	relic_btns.append(merchant_relic_button_1)
+	relic_btns.append(merchant_relic_button_2)
+	relic_btns.append(merchant_relic_button_3)
+	relic_btns.append(merchant_relic_button_4)
+	var special_btns: Array[Button] = []
+	special_btns.append(merchant_special_button_1)
+	special_btns.append(merchant_special_button_2)
+	special_btns.append(merchant_special_button_3)
+	special_btns.append(merchant_special_button_4)
+	merchant_panel_controller.setup(
+		merchant_panel,
+		merchant_title_label,
+		merchant_gold_label,
+		merchant_refresh_button,
+		merchant_leave_button,
+		relic_btns,
+		special_btns,
+		merchant_manager,
+		economy_manager
+	)
+	merchant_panel_controller.item_purchased.connect(_on_merchant_item_purchased)
+	merchant_panel_controller.leave_requested.connect(_on_merchant_leave)
 
 
 func _setup_shop_panel_controller() -> void:
@@ -729,7 +823,7 @@ func _update_battle_speed_button_visibility() -> void:
 	if battle_speed_button == null:
 		return
 
-	battle_speed_button.visible = run_controller.state == GameState.PREPARE or run_controller.state == GameState.BATTLE
+	battle_speed_button.visible = run_controller.state == GameState.PREPARE or run_controller.state == GameState.BATTLE or run_controller.state == GameState.TRAINING
 	battle_speed_button.disabled = false
 
 
@@ -877,6 +971,7 @@ func _enter_prepare_state() -> void:
 	_update_gold_label()
 	_update_hero_exp_ui()
 	_set_board_bench_visible(true)
+	_set_board_visible(true)
 	_show_encounter_info_panel()
 	_show_prepare_action_buttons()
 	_hide_shop_panel()
@@ -887,7 +982,7 @@ func _enter_prepare_state() -> void:
 	_hide_mirror_info_panel()
 	_refresh_relic_bar()
 	_set_start_button_state("开始战斗", true)
-	print(encounter_manager.get_encounter_debug_text(run_controller.current_round))
+	DEBUG_LOG_SCRIPT.info(encounter_manager.get_encounter_debug_text(run_controller.current_round))
 	relic_manager.print_player_relics()
 
 	var player_unit_configs: Array[Dictionary] = roster_manager.get_player_battle_unit_configs(battle_board, _get_reserved_hero_cells_for_roster())
@@ -904,9 +999,15 @@ func start_battle() -> void:
 	if run_controller.state != GameState.PREPARE:
 		return
 
+	var current_encounter: Dictionary = encounter_manager.get_encounter(run_controller.current_round)
+	var is_training: bool = str(current_encounter.get("encounter_type", "")) == "TRAINING"
+
 	_save_player_start_positions()
-	run_controller.enter_battle()
-	result_label.text = "战斗开始"
+	if is_training:
+		_enter_training_state()
+	else:
+		run_controller.enter_battle()
+	result_label.text = "训练场 - 战斗中" if is_training else "战斗开始"
 	battle_time_manager.reset_battle_clock()
 	_apply_current_battle_speed()
 	_update_round_label()
@@ -923,7 +1024,7 @@ func start_battle() -> void:
 	_hide_unit_detail_panel()
 	_hide_mirror_info_panel()
 	_refresh_relic_bar()
-	_set_start_button_state("战斗中", false)
+	_set_start_button_state("训练中" if is_training else "战斗中", false)
 	battle_manager.start_battle()
 	_refresh_bond_panel()
 
@@ -949,13 +1050,14 @@ func _has_required_unit_data() -> bool:
 
 
 func _on_start_button_pressed() -> void:
-	if run_controller.state != GameState.PREPARE:
-		return
-
-	start_battle()
+	if run_controller.state == GameState.PREPARE:
+		start_battle()
 
 
 func _on_battle_ended(result_text: String, player_won: bool) -> void:
+	if run_controller.state == GameState.TRAINING:
+		_on_training_timer_expired()
+		return
 	var encounter_type: String = _get_current_encounter_type()
 	gold_relic_logs.clear()
 	if player_won:
@@ -976,7 +1078,7 @@ func _on_battle_ended(result_text: String, player_won: bool) -> void:
 			if extra_gold > 0:
 				log_text += "，遗物额外金币：" + ", ".join(logs)
 			log_text += "，金币 +" + str(total_gold) + "，当前金币：" + str(economy_manager.gold)
-			print(log_text)
+			DEBUG_LOG_SCRIPT.info(log_text)
 
 	_show_battle_statistics(result_text)
 	if player_won and encounter_type == "BOSS":
@@ -1002,7 +1104,7 @@ func _on_overtime_started() -> void:
 
 	result_label.text = "进入加时赛！"
 	stats_label.text = "60 秒已到，进入加时赛\n全体攻击力 x2，攻击速度 x2\n所有存活单位每秒承受递增伤害"
-	print("Overtime: started after 60 seconds. Attack damage x2, attack speed x2, escalating damage started.")
+	DEBUG_LOG_SCRIPT.info("Overtime: started after 60 seconds. Attack damage x2, attack speed x2, escalating damage started.")
 
 
 func _show_battle_statistics(result_text: String) -> void:
@@ -1022,7 +1124,7 @@ func _save_boss_victory_lineup_snapshot() -> void:
 		push_warning("Boss victory lineup snapshot was not saved.")
 		return
 
-	print("Saved boss victory lineup snapshot: " + str(snapshot.get("snapshot_id", "")))
+	DEBUG_LOG_SCRIPT.info("Saved boss victory lineup snapshot: " + str(snapshot.get("snapshot_id", "")))
 
 
 func _enter_result_state(result_text: String, player_won: bool) -> void:
@@ -1104,6 +1206,470 @@ func _enter_reward_state(result_text: String = "", player_won: bool = true) -> v
 	_show_reward_panel()
 
 
+func _try_enter_path_select_or_next_prepare() -> void:
+	if run_controller.is_next_round_boss():
+		_enter_next_prepare_state()
+		return
+	_enter_path_select_state()
+
+
+func _enter_path_select_state() -> void:
+	run_controller.enter_path_select()
+	result_label.text = "选择下一站"
+	stats_label.text = ""
+	_update_battle_speed_button_visibility()
+	_set_start_button_state("选择路径", false)
+	_set_board_visible(false)
+	battle_manager.clear_battlefield()
+	_hide_prepare_action_buttons()
+	_hide_shop_panel()
+	_hide_bench_panel()
+	_hide_encounter_info_panel()
+	_hide_reward_panel()
+	_hide_unit_detail_panel()
+	_hide_mirror_info_panel()
+	var candidates: Array[Dictionary] = path_selection_manager.generate_candidates(
+		run_controller.current_round, run_controller.path_history
+	)
+	_show_path_selection_panel(candidates)
+
+
+func _on_path_selected(candidate: Dictionary) -> void:
+	if run_controller.state != GameState.PATH_SELECT:
+		return
+	var node_type: String = candidate.get("node_type", "NORMAL")
+	run_controller.record_path_choice(node_type)
+	_hide_path_selection_panel()
+	match node_type:
+		"NORMAL":
+			_enter_next_prepare_state()
+		"ELITE":
+			encounter_manager.forced_encounter_type = "ELITE"
+			_enter_next_prepare_state()
+		"MERCHANT":
+			_enter_merchant_state()
+		"TRAINING":
+			_enter_training_prepare_state()
+		"EVENT":
+			_enter_event_state()
+		"TREASURE":
+			_enter_treasure_state()
+		_:
+			_enter_next_prepare_state()
+
+
+func _show_path_selection_panel(candidates: Array[Dictionary]) -> void:
+	path_selection_panel_controller.show_panel(candidates)
+
+
+func _hide_path_selection_panel() -> void:
+	path_selection_panel_controller.hide_panel()
+
+
+func _enter_merchant_state() -> void:
+	run_controller.enter_merchant()
+	result_label.text = ""
+	stats_label.text = ""
+	_update_battle_speed_button_visibility()
+	_set_start_button_state("商人", false)
+	_set_board_visible(false)
+	_hide_prepare_action_buttons()
+	_hide_shop_panel()
+	_hide_bench_panel()
+	_hide_encounter_info_panel()
+	_hide_reward_panel()
+	_hide_unit_detail_panel()
+	_hide_mirror_info_panel()
+	_show_merchant_panel()
+
+
+func _show_merchant_panel() -> void:
+	merchant_panel_controller.show_panel()
+
+
+func _hide_merchant_panel() -> void:
+	merchant_panel_controller.hide_panel()
+
+
+func _on_merchant_item_purchased(item: Dictionary) -> void:
+	var item_type: String = item.get("type", "")
+	var popup_text: String = ""
+	if item_type == "relic":
+		var relic_data: Variant = item.get("relic_data", null)
+		if relic_data != null:
+			relic_manager.add_relic(relic_data)
+			_refresh_relic_bar()
+			var relic_name: String = _get_relic_name_cn(relic_data)
+			popup_text = "[center]购买成功[/center]\n\n获得遗物：" + relic_name
+	elif item_type == "buff":
+		var buff_data: Dictionary = item.get("buff_data", {})
+		_apply_merchant_buff(buff_data)
+		var buff_name: String = buff_data.get("name_cn", "全局强化")
+		var buff_desc: String = buff_data.get("description_cn", "")
+		popup_text = "[center]购买成功[/center]\n\n获得全局强化：" + buff_name + "\n" + buff_desc
+	elif item_type == "unit":
+		var unit_name: String = _add_merchant_high_rarity_unit()
+		if unit_name != "":
+			popup_text = "[center]购买成功[/center]\n\n获得单位：" + unit_name
+	elif item_type == "population":
+		pass
+	_update_gold_label()
+	_refresh_bench_panel()
+	if popup_text != "":
+		_show_popup(popup_text)
+
+
+func _on_merchant_leave() -> void:
+	_hide_merchant_panel()
+	_enter_next_prepare_state()
+
+
+func _apply_merchant_buff(buff_data: Dictionary) -> void:
+	var stat: String = buff_data.get("stat", "")
+	var ratio: float = float(buff_data.get("ratio", 0.0))
+	var mode: String = buff_data.get("mode", "percent")
+	if stat == "death_prevention":
+		roster_manager.has_death_prevention = true
+		return
+	if stat == "":
+		return
+	if mode == "percent":
+		roster_manager.apply_permanent_percent_bonus(stat, ratio)
+	elif mode == "flat":
+		roster_manager.apply_permanent_flat_bonus(stat, ratio)
+
+
+func _add_merchant_high_rarity_unit() -> String:
+	var pool: Array[Resource] = roster_manager.get_high_rarity_unit_pool("RARE")
+	if pool.is_empty():
+		pool = roster_manager.get_all_unit_pool()
+	if pool.is_empty():
+		return ""
+	var selected: Resource = pool[randi() % pool.size()]
+	if not roster_manager.is_unit_unlocked(selected):
+		roster_manager.unlock_unit_data(selected)
+	roster_manager.add_unit(selected)
+	var name_cn: Variant = selected.get("unit_name_cn")
+	if name_cn != null and str(name_cn) != "" and str(name_cn) != "<null>":
+		return str(name_cn)
+	return str(selected.get("unit_name"))
+
+
+func _setup_training_manager() -> void:
+	training_manager.setup(relic_manager, roster_manager, economy_manager)
+	battle_manager.enemy_unit_died.connect(_on_training_enemy_died)
+
+
+func _enter_training_prepare_state() -> void:
+	run_controller.enter_next_prepare()
+	_update_battle_speed_button_visibility()
+	_hide_reward_panel()
+	run_controller.advance_round()
+	if run_controller.has_cleared_round_limit():
+		_enter_game_over_state("Victory - Run Cleared")
+		return
+	var encounter: Dictionary = training_manager.create_training_encounter(run_controller.current_round)
+	encounter_manager.set_override_encounter(run_controller.current_round, encounter)
+	_enter_prepare_state()
+
+
+func _enter_training_state() -> void:
+	run_controller.enter_training()
+	training_manager.start_training()
+	result_label.text = "训练场 - 战斗中"
+	_update_battle_speed_button_visibility()
+	_set_start_button_state("训练中", false)
+
+
+func _on_training_enemy_died(_unit: Unit) -> void:
+	if run_controller.state != GameState.TRAINING:
+		return
+	var drop: Dictionary = training_manager.on_dummy_killed()
+	var display: String = drop.get("display", "")
+	if display != "":
+		DEBUG_LOG_SCRIPT.info("[训练场掉落] " + display)
+	_update_gold_label()
+	_refresh_relic_bar()
+
+
+func _on_training_timer_expired() -> void:
+	if not training_manager.is_training_active and run_controller.state != GameState.TRAINING:
+		return
+	training_manager.end_training()
+	battle_manager.force_end_battle()
+	var drops: Array[Dictionary] = training_manager.get_drops_collected()
+	var summary_lines: Array[String] = ["[center]训练结束！[/center]", ""]
+	for drop: Dictionary in drops:
+		summary_lines.append("· " + drop.get("display", ""))
+	summary_lines.append("")
+	summary_lines.append("共获得 " + str(drops.size()) + " 个奖励")
+	DEBUG_LOG_SCRIPT.info("[训练场] " + "训练结束，获得 " + str(drops.size()) + " 个奖励")
+	_set_board_bench_visible(true)
+	_update_gold_label()
+	_refresh_relic_bar()
+	_show_popup("\n".join(summary_lines), Callable(self, "_on_training_summary_confirmed"))
+
+
+func _enter_treasure_state() -> void:
+	run_controller.enter_treasure()
+	result_label.text = ""
+	stats_label.text = ""
+	_update_battle_speed_button_visibility()
+	_set_board_visible(false)
+	_hide_prepare_action_buttons()
+	_hide_shop_panel()
+	_hide_bench_panel()
+	_hide_encounter_info_panel()
+	_hide_reward_panel()
+	_hide_unit_detail_panel()
+	_hide_mirror_info_panel()
+	_pending_treasure_relic = _roll_treasure_relic()
+	if _pending_treasure_relic != null:
+		var relic_name: String = _get_relic_name_cn(_pending_treasure_relic)
+		var relic_desc: String = _get_relic_description_cn(_pending_treasure_relic)
+		var relic_rarity: String = _get_relic_rarity_str(_pending_treasure_relic)
+		var text: String = "[center]宝箱[/center]\n\n获得遗物：[b]" + relic_name + "[/b]  [" + relic_rarity + "]\n" + relic_desc
+		_show_popup(text, Callable(self, "_on_treasure_confirmed"))
+	else:
+		_show_popup("[center]宝箱[/center]\n\n宝箱为空，获得 10 金币", Callable(self, "_on_treasure_confirmed"))
+
+
+func _on_treasure_confirmed() -> void:
+	if _pending_treasure_relic != null:
+		relic_manager.add_relic(_pending_treasure_relic)
+		var relic_name: String = _get_relic_name_cn(_pending_treasure_relic)
+		DEBUG_LOG_SCRIPT.info("[宝箱] 获得遗物: " + relic_name)
+		_refresh_relic_bar()
+	else:
+		economy_manager.add_gold(10)
+		DEBUG_LOG_SCRIPT.info("[宝箱] 无可用遗物，获得 10 金币")
+	_pending_treasure_relic = null
+	_update_gold_label()
+	_enter_next_prepare_state()
+
+
+func _on_training_summary_confirmed() -> void:
+	_try_enter_path_select_or_next_prepare()
+
+
+func _show_popup(text: String, callback: Callable = Callable()) -> void:
+	event_panel.z_index = 100
+	event_panel.offset_top = -290.0
+	event_panel.offset_bottom = 290.0
+	event_panel.visible = true
+	event_title_label.text = ""
+	event_text_label.visible = false
+	event_choice_button_1.visible = false
+	event_choice_button_2.visible = false
+	event_result_label.offset_top = 40.0
+	event_result_label.offset_bottom = 440.0
+	event_result_label.text = text
+	event_result_label.visible = true
+	event_continue_button.offset_top = 460.0
+	event_continue_button.offset_bottom = 500.0
+	event_continue_button.visible = true
+	PIXEL_UI_THEME.apply_button_style(event_continue_button, Color(0.15, 0.25, 0.15), Color(0.35, 0.60, 0.35), 2)
+	is_popup_active = true
+	_popup_callback = callback
+
+
+func _on_popup_confirmed() -> void:
+	is_popup_active = false
+	event_panel.visible = false
+	event_panel.z_index = 0
+	event_panel.offset_top = -260.0
+	event_panel.offset_bottom = 260.0
+	event_result_label.offset_top = 220.0
+	event_result_label.offset_bottom = 340.0
+	event_result_label.text = ""
+	event_result_label.visible = false
+	event_continue_button.offset_top = 400.0
+	event_continue_button.offset_bottom = 440.0
+	event_continue_button.visible = false
+	var callback: Callable = _popup_callback
+	_popup_callback = Callable()
+	if not callback.is_null():
+		callback.call()
+
+
+func _get_relic_name_cn(relic_data: Variant) -> String:
+	if relic_data == null:
+		return "未知遗物"
+	var name_cn: Variant = relic_data.get("relic_name_cn")
+	if name_cn != null and str(name_cn) != "" and str(name_cn) != "<null>":
+		return str(name_cn)
+	var name_en: Variant = relic_data.get("relic_name")
+	if name_en != null:
+		return str(name_en)
+	return "遗物"
+
+
+func _get_relic_description_cn(relic_data: Variant) -> String:
+	if relic_data == null:
+		return ""
+	var desc_cn: Variant = relic_data.get("description_cn")
+	if desc_cn != null and str(desc_cn) != "" and str(desc_cn) != "<null>":
+		return str(desc_cn)
+	var desc: Variant = relic_data.get("description")
+	if desc != null:
+		return str(desc)
+	return ""
+
+
+func _get_relic_rarity_str(relic_data: Variant) -> String:
+	if relic_data == null:
+		return ""
+	var rarity: Variant = relic_data.get("rarity")
+	if rarity == null:
+		return ""
+	match str(rarity):
+		"COMMON":
+			return "普通"
+		"FINE":
+			return "精良"
+		"RARE":
+			return "稀有"
+		"EPIC":
+			return "史诗"
+		"LEGENDARY":
+			return "传说"
+		"MYTHIC":
+			return "神话"
+		_:
+			return str(rarity)
+
+
+func _roll_treasure_relic() -> Variant:
+	var all_options: Array = relic_manager.get_available_relic_reward_options()
+	if all_options.is_empty():
+		return null
+	var rare_pool: Array[Dictionary] = []
+	var epic_pool: Array[Dictionary] = []
+	var legendary_pool: Array[Dictionary] = []
+	for option: Dictionary in all_options:
+		var rarity: String = str(option.get("rarity", ""))
+		match rarity:
+			"RARE":
+				rare_pool.append(option)
+			"EPIC":
+				epic_pool.append(option)
+			"LEGENDARY":
+				legendary_pool.append(option)
+	var roll: int = randi() % 100
+	var selected_pool: Array[Dictionary] = []
+	if roll < 50 and not rare_pool.is_empty():
+		selected_pool = rare_pool
+	elif roll < 85 and not epic_pool.is_empty():
+		selected_pool = epic_pool
+	elif not legendary_pool.is_empty():
+		selected_pool = legendary_pool
+	else:
+		selected_pool = rare_pool if not rare_pool.is_empty() else epic_pool if not epic_pool.is_empty() else legendary_pool
+	if selected_pool.is_empty():
+		if not all_options.is_empty():
+			return all_options[randi() % all_options.size()].get("relic_data", null)
+		return null
+	return selected_pool[randi() % selected_pool.size()].get("relic_data", null)
+
+
+func _setup_event_manager() -> void:
+	event_manager.setup(relic_manager, roster_manager, economy_manager)
+	var choice_buttons: Array[Button] = []
+	choice_buttons.append(event_choice_button_1)
+	choice_buttons.append(event_choice_button_2)
+	event_panel_controller.setup(
+		event_panel, event_title_label, event_text_label,
+		choice_buttons, event_result_label, event_continue_button,
+		event_manager
+	)
+	event_panel_controller.choice_resolved.connect(_on_event_choice_resolved)
+	event_panel_controller.continue_pressed.connect(_on_event_continue_pressed)
+
+
+func _enter_event_state() -> void:
+	run_controller.enter_event()
+	result_label.text = ""
+	stats_label.text = ""
+	_update_battle_speed_button_visibility()
+	_set_start_button_state("事件", false)
+	_set_board_visible(false)
+	_hide_prepare_action_buttons()
+	_hide_shop_panel()
+	_hide_bench_panel()
+	_hide_encounter_info_panel()
+	_hide_reward_panel()
+	_hide_unit_detail_panel()
+	_hide_mirror_info_panel()
+	var event: Dictionary = event_manager.get_random_event(run_controller.current_round)
+	event_panel_controller.show_panel(event)
+
+
+func _on_event_choice_resolved(result: Dictionary) -> void:
+	var pending_relic: bool = result.get("pending_relic_choice", false)
+	if pending_relic:
+		_show_event_relic_choice()
+	_update_gold_label()
+	_refresh_relic_bar()
+	_refresh_bench_panel()
+
+
+func _show_event_relic_choice() -> void:
+	event_panel.visible = false
+	var rarity_pool: Array[String] = ["EPIC"]
+	var current_event: Dictionary = event_manager.get_current_event()
+	var choices: Array = current_event.get("choices", [])
+	for choice: Dictionary in choices:
+		var effects: Array = choice.get("effects", [])
+		for effect: Dictionary in effects:
+			if effect.get("effect_id", "") == "relic_choice_3":
+				var params: Dictionary = effect.get("params", {})
+				var pool: Array = params.get("rarity_pool", ["EPIC"])
+				rarity_pool.clear()
+				for r: Variant in pool:
+					rarity_pool.append(str(r))
+	var all_options: Array = relic_manager.get_available_relic_reward_options()
+	var filtered: Array[Dictionary] = []
+	for option: Dictionary in all_options:
+		if str(option.get("rarity", "")) in rarity_pool:
+			filtered.append(option)
+	if filtered.size() < 3:
+		filtered.clear()
+		for option: Dictionary in all_options:
+			filtered.append(option)
+	var reward_options: Array[Dictionary] = []
+	var used_indices: Array[int] = []
+	for i: int in range(mini(3, filtered.size())):
+		var idx: int = randi() % filtered.size()
+		while idx in used_indices and used_indices.size() < filtered.size():
+			idx = randi() % filtered.size()
+		used_indices.append(idx)
+		var option: Dictionary = filtered[idx]
+		reward_options.append({
+			"type": "RELIC",
+			"name": option.get("name", "遗物"),
+			"description": option.get("description", ""),
+			"rarity": option.get("rarity", "RARE"),
+			"relic_data": option.get("relic_data", null),
+		})
+	if reward_options.is_empty():
+		economy_manager.add_gold(8)
+		_update_gold_label()
+		return
+	reward_panel_controller.show_custom_options(reward_options)
+
+
+func _on_event_continue_pressed() -> void:
+	if is_popup_active:
+		_on_popup_confirmed()
+		return
+	_hide_event_panel()
+	_enter_next_prepare_state()
+
+
+func _hide_event_panel() -> void:
+	event_panel_controller.hide_panel()
+
+
 func _enter_next_prepare_state() -> void:
 	run_controller.enter_next_prepare()
 	_update_battle_speed_button_visibility()
@@ -1130,6 +1696,8 @@ func _enter_game_over_state(game_over_text: String) -> void:
 	_hide_shop_panel()
 	_hide_bench_panel()
 	_hide_reward_panel()
+	_hide_path_selection_panel()
+	_hide_event_panel()
 	_hide_unit_detail_panel()
 	_hide_mirror_info_panel()
 	_refresh_relic_bar()
@@ -1160,6 +1728,7 @@ func _restart_run(selected_game_mode: String = "") -> void:
 	if next_game_mode == "":
 		next_game_mode = run_controller.game_mode
 	run_controller.start_run(next_game_mode)
+	dynamic_stat_refresh_pending = false
 	economy_manager.reset()
 	last_result_text = ""
 	last_player_won = false
@@ -1168,7 +1737,7 @@ func _restart_run(selected_game_mode: String = "") -> void:
 	battle_manager.clear_battlefield()
 	stats_manager.clear()
 	roster_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data)
-	roster_manager.max_active_units = MAX_ACTIVE_UNITS
+	roster_manager.max_active_units = INITIAL_MAX_ACTIVE_UNITS
 	roster_manager.max_total_units = MAX_TOTAL_UNITS
 	roster_manager.reset_roster()
 	encounter_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data)
@@ -1251,7 +1820,7 @@ func _add_gold(amount: int) -> void:
 
 	economy_manager.add_gold(amount)
 	_update_gold_label()
-	print("金币 +" + str(amount) + "，当前金币：" + str(economy_manager.gold))
+	DEBUG_LOG_SCRIPT.info("金币 +" + str(amount) + "，当前金币：" + str(economy_manager.gold))
 
 
 func _on_relic_gold_added(amount: int) -> void:
@@ -1260,10 +1829,29 @@ func _on_relic_gold_added(amount: int) -> void:
 
 
 func _on_gold_changed(_new_gold: int, _delta: int) -> void:
+	if relic_manager == null or not relic_manager.has_method("has_dynamic_gold_relics"):
+		return
+
+	if not bool(relic_manager.has_dynamic_gold_relics()):
+		return
+
+	if dynamic_stat_refresh_pending:
+		return
+
+	dynamic_stat_refresh_pending = true
+	call_deferred("_flush_dynamic_stat_modifier_refresh")
+
+
+func _flush_dynamic_stat_modifier_refresh() -> void:
+	dynamic_stat_refresh_pending = false
 	_refresh_dynamic_stat_modifiers()
 
 
 func _refresh_dynamic_stat_modifiers() -> void:
+	if relic_manager != null and relic_manager.has_method("has_dynamic_gold_relics"):
+		if not bool(relic_manager.has_dynamic_gold_relics()):
+			return
+
 	if battle_manager != null and battle_manager.has_method("refresh_dynamic_relic_auras"):
 		battle_manager.refresh_dynamic_relic_auras()
 
@@ -1411,10 +1999,13 @@ func mark_puppet_summon_target(source_unit: Unit, target: Unit) -> bool:
 
 	return bool(current_summon_manager.mark_puppet_target(source_unit, target))
 
-func spawn_basic_attack_projectile(attacker: Unit, target: Unit, payload: Variant) -> void:
-	if battle_manager == null or not battle_manager.has_method("spawn_basic_attack_projectile"):
+func spawn_basic_attack_projectile(attacker: Unit, target: Unit, payload: Variant, projectile_speed: float) -> void:
+	if battle_manager == null:
 		return
-	battle_manager.spawn_basic_attack_projectile(attacker, target, payload)
+	var pm: Variant = battle_manager.projectile_manager
+	if pm == null or not pm.has_method("spawn_basic_attack_projectile"):
+		return
+	pm.spawn_basic_attack_projectile(attacker, target, payload, projectile_speed)
 
 
 
@@ -1540,7 +2131,7 @@ func _on_shop_buy_button_pressed(shop_index: int) -> void:
 	var item_name: String = str(shop_item["name"])
 	if not economy_manager.can_spend(price):
 		result_label.text = "金币不足"
-		print("Cannot buy " + item_name + ": need " + str(price) + " gold, current gold: " + str(economy_manager.gold))
+		DEBUG_LOG_SCRIPT.info("Cannot buy " + item_name + ": need " + str(price) + " gold, current gold: " + str(economy_manager.gold))
 		return
 
 	var item_type: String = str(shop_item.get("type", "UNIT"))
@@ -1557,7 +2148,7 @@ func _on_shop_buy_button_pressed(shop_index: int) -> void:
 func _buy_shop_unit(shop_index: int, shop_item: Dictionary, price: int, unit_name: String) -> void:
 	if not roster_manager.can_add_unit():
 		result_label.text = "单位数量已满"
-		print("Cannot buy unit: roster is full.")
+		DEBUG_LOG_SCRIPT.info("Cannot buy unit: roster is full.")
 		_refresh_shop_panel()
 		_refresh_bench_panel()
 		return
@@ -1577,7 +2168,7 @@ func _buy_shop_unit(shop_index: int, shop_item: Dictionary, price: int, unit_nam
 	if not added_unit:
 		economy_manager.refund_gold(price)
 		result_label.text = "单位数量已满"
-		print("Cannot buy " + unit_name + ": roster is full.")
+		DEBUG_LOG_SCRIPT.info("Cannot buy " + unit_name + ": roster is full.")
 		_update_gold_label()
 		_refresh_shop_panel()
 		_refresh_bench_panel()
@@ -1589,7 +2180,7 @@ func _buy_shop_unit(shop_index: int, shop_item: Dictionary, price: int, unit_nam
 	_refresh_shop_panel()
 	_refresh_bench_panel()
 	result_label.text = "已解锁并购买 " + unit_name if bool(shop_item.get("is_unlock_offer", false)) else "已购买 " + unit_name
-	print("Bought " + unit_name + " for " + str(price) + " gold. Current gold: " + str(economy_manager.gold))
+	DEBUG_LOG_SCRIPT.info("Bought " + unit_name + " for " + str(price) + " gold. Current gold: " + str(economy_manager.gold))
 
 
 func _buy_shop_relic(shop_index: int, shop_item: Dictionary, price: int, relic_name: String) -> void:
@@ -1615,7 +2206,7 @@ func _buy_shop_relic(shop_index: int, shop_item: Dictionary, price: int, relic_n
 	_refresh_shop_panel()
 	_refresh_relic_bar()
 	result_label.text = "已购买 " + relic_name
-	print("Bought " + relic_name + " for " + str(price) + " gold. Current gold: " + str(economy_manager.gold))
+	DEBUG_LOG_SCRIPT.info("Bought " + relic_name + " for " + str(price) + " gold. Current gold: " + str(economy_manager.gold))
 
 
 func _on_refresh_shop_button_pressed() -> void:
@@ -1625,7 +2216,7 @@ func _on_refresh_shop_button_pressed() -> void:
 	var refresh_cost: int = shop_manager.get_refresh_cost()
 	if not economy_manager.can_spend(refresh_cost):
 		result_label.text = "金币不足"
-		print("Cannot refresh shop: need " + str(refresh_cost) + " gold, current gold: " + str(economy_manager.gold))
+		DEBUG_LOG_SCRIPT.info("Cannot refresh shop: need " + str(refresh_cost) + " gold, current gold: " + str(economy_manager.gold))
 		return
 
 	economy_manager.spend_gold(refresh_cost)
@@ -1635,7 +2226,7 @@ func _on_refresh_shop_button_pressed() -> void:
 	_update_gold_label()
 	_refresh_shop_panel()
 	result_label.text = "商店已刷新"
-	print("Shop refreshed for " + str(refresh_cost) + " gold. Current gold: " + str(economy_manager.gold))
+	DEBUG_LOG_SCRIPT.info("Shop refreshed for " + str(refresh_cost) + " gold. Current gold: " + str(economy_manager.gold))
 
 
 func _refresh_player_preview_from_roster() -> void:
@@ -1786,7 +2377,7 @@ func _move_active_unit_to_bench_from_drop(unit: Unit, fallback_position: Vector2
 
 func _handle_bench_unit_drop(unit: Unit, fallback_position: Vector2, drop_cell: Vector2i, drop_bench_slot: int) -> void:
 	if battle_board.is_valid_player_cell(drop_cell):
-		if roster_manager.get_active_count() >= MAX_ACTIVE_UNITS:
+		if roster_manager.get_active_count() >= roster_manager.max_active_units:
 			result_label.text = "上场单位已满"
 			unit.position = fallback_position
 			return
@@ -1844,7 +2435,7 @@ func _try_sell_unit_from_drop(unit: Unit, fallback_position: Vector2) -> bool:
 	_refresh_shop_panel()
 	_refresh_bench_panel()
 	result_label.text = "已出售单位，金币 +" + str(sell_price)
-	print("Sold dropped unit for " + str(sell_price) + " gold. Current gold: " + str(economy_manager.gold))
+	DEBUG_LOG_SCRIPT.info("Sold dropped unit for " + str(sell_price) + " gold. Current gold: " + str(economy_manager.gold))
 	return true
 
 
@@ -1935,7 +2526,7 @@ func _hide_bench_panel() -> void:
 
 
 func _refresh_bench_panel() -> void:
-	active_count_label.text = "上场：" + str(roster_manager.get_active_count()) + " / " + str(MAX_ACTIVE_UNITS)
+	active_count_label.text = "上场：" + str(roster_manager.get_active_count()) + " / " + str(roster_manager.max_active_units)
 	total_units_label.text = "拥有：" + str(roster_manager.get_total_unit_count()) + " / " + str(MAX_TOTAL_UNITS)
 
 	_rebuild_roster_rows(active_units_vbox, roster_manager.get_active_roster(), "移入备战", true)
@@ -1993,9 +2584,9 @@ func _on_bench_unit_deploy_button_pressed(bench_index: int) -> void:
 	if run_controller.state != GameState.PREPARE:
 		return
 
-	if roster_manager.get_active_count() >= MAX_ACTIVE_UNITS:
+	if roster_manager.get_active_count() >= roster_manager.max_active_units:
 		result_label.text = "上场单位已满"
-		print("Cannot deploy unit: active team is full.")
+		DEBUG_LOG_SCRIPT.info("Cannot deploy unit: active team is full.")
 		return
 
 	if roster_manager.move_bench_to_active(bench_index):
@@ -2280,9 +2871,12 @@ func _get_encounter_display_name(encounter_name: String) -> String:
 
 
 func _set_start_button_state(button_text: String, is_enabled: bool) -> void:
-	start_button.text = "开始战斗" if run_controller.state == GameState.PREPARE else button_text
+	if run_controller.state == GameState.PREPARE:
+		start_button.text = "开始战斗"
+	else:
+		start_button.text = button_text
 	start_button.disabled = not is_enabled
-	start_button.visible = run_controller.state == GameState.PREPARE and is_enabled
+	start_button.visible = is_enabled
 
 
 func _apply_menu_button_style(button: Button, base_color: Color, border_color: Color) -> void:
@@ -2369,12 +2963,21 @@ func _hide_hero_selection_panel() -> void:
 
 
 func _on_reward_applied(_reward: Dictionary) -> void:
+	if run_controller.state == GameState.EVENT:
+		_refresh_relic_bar()
+		_hide_reward_panel()
+		event_panel.visible = true
+		event_result_label.text = "已获得遗物"
+		event_result_label.visible = true
+		event_continue_button.visible = true
+		PIXEL_UI_THEME.apply_button_style(event_continue_button, Color(0.15, 0.25, 0.15), Color(0.35, 0.60, 0.35), 2)
+		return
 	if run_controller.state != GameState.REWARD:
 		return
 
 	_refresh_relic_bar()
 	_hide_reward_panel()
-	_enter_next_prepare_state()
+	_try_enter_path_select_or_next_prepare()
 
 
 func _get_current_encounter_type() -> String:

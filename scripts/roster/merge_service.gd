@@ -2,6 +2,9 @@ class_name MergeService
 extends RefCounted
 
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
+
+
 func get_unit_upgrade_target_star(
 	active_roster: Array[Dictionary],
 	bench_roster: Array[Dictionary],
@@ -134,7 +137,7 @@ func merge_units(
 	else:
 		bench_roster.append(merged_item)
 
-	print(_get_unit_data_name(source_data, get_unit_data_name_func) + " merged to " + str(star + 1) + " star.")
+	DEBUG_LOG_SCRIPT.info(_get_unit_data_name(source_data, get_unit_data_name_func) + " merged to " + str(star + 1) + " star.")
 	return true
 
 

@@ -24,11 +24,13 @@ const ENEMY_ID_BOSS_ABYSS_HIEROPHANT: String = "enemy_boss_abyss_hierophant"
 const ENEMY_ID_GRAVE_CALLER: String = "enemy_grave_caller"
 const ENEMY_ID_BONE_CARRIER: String = "enemy_bone_carrier"
 const ENEMY_ID_PUPPET_BINDER: String = "enemy_puppet_binder"
+const ENEMY_ID_GIANT_MAGGOT: String = "enemy_giant_maggot"
+const ENEMY_ID_ELITE_MAGGOT_AMALGAM: String = "enemy_elite_maggot_amalgam"
 
 const NORMAL_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_SHIELD_GUARD, ENEMY_ID_STONEBACK_BEAST, ENEMY_ID_BONE_CARRIER]
-const ELITE_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_IRON_WARDEN]
+const ELITE_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_IRON_WARDEN, ENEMY_ID_ELITE_MAGGOT_AMALGAM]
 const BOSS_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_EARTHBREAKER_COLOSSUS]
-const NORMAL_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_CROSSBOW_RAIDER, ENEMY_ID_FLAME_IMP]
+const NORMAL_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_CROSSBOW_RAIDER, ENEMY_ID_FLAME_IMP, ENEMY_ID_GIANT_MAGGOT]
 const ELITE_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_SHADOW_REAPER]
 const BOSS_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_VOID_CANNON]
 const NORMAL_SUPPORT_ENEMY_IDS: Array[String] = [ENEMY_ID_DARK_ACOLYTE, ENEMY_ID_WAR_DRUMMER, ENEMY_ID_GRAVE_CALLER]
@@ -50,6 +52,8 @@ const BOSS_ABYSS_HIEROPHANT_DATA: Resource = preload("res://data/enemies/boss_ab
 const GRAVE_CALLER_DATA: Resource = preload("res://data/enemies/grave_caller.tres")
 const BONE_CARRIER_DATA: Resource = preload("res://data/enemies/bone_carrier.tres")
 const PUPPET_BINDER_DATA: Resource = preload("res://data/enemies/puppet_binder.tres")
+const GIANT_MAGGOT_DATA: Resource = preload("res://data/enemies/giant_maggot.tres")
+const MAGGOT_AMALGAM_DATA: Resource = preload("res://data/enemies/maggot_amalgam.tres")
 
 
 func get_unit_data_by_id(unit_id: String) -> Resource:
@@ -84,6 +88,10 @@ func get_unit_data_by_id(unit_id: String) -> Resource:
 			return BONE_CARRIER_DATA
 		ENEMY_ID_PUPPET_BINDER:
 			return PUPPET_BINDER_DATA
+		ENEMY_ID_GIANT_MAGGOT:
+			return GIANT_MAGGOT_DATA
+		ENEMY_ID_ELITE_MAGGOT_AMALGAM:
+			return MAGGOT_AMALGAM_DATA
 		_:
 			push_warning("Unknown encounter unit id: " + unit_id)
 			return null
@@ -137,6 +145,17 @@ func get_star_text(star: int) -> String:
 
 
 func is_elite_enemy_id(unit_id: String) -> bool:
+	var unit_data: Resource = get_unit_data_by_id(unit_id)
+	if unit_data != null:
+		var tier: Variant = unit_data.get("enemy_tier")
+		if tier != null:
+			var tier_str: String = str(tier)
+			if tier_str == "ELITE":
+				return true
+			if tier_str == "BOSS":
+				return false
+			if tier_str == "NORMAL":
+				return false
 	return unit_id.begins_with("enemy_elite_")
 
 

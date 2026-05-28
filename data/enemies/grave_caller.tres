@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_grave")
+enemy_tier = "NORMAL"
 unit_name = "Grave Caller"
 unit_name_cn = "唤墓者"
 description_cn = "召唤型敌方辅助，主动技能召唤骷髅加入战斗。"

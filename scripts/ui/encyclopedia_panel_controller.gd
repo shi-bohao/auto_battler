@@ -12,6 +12,7 @@ var card_panel: Panel = null
 var close_button: Button = null
 var title_label: Label = null
 var category_hbox: HBoxContainer = null
+var filter_hbox: HBoxContainer = null
 var entry_list_vbox: VBoxContainer = null
 var detail_text: RichTextLabel = null
 var count_label: Label = null
@@ -19,8 +20,10 @@ var catalog: Variant = ENCYCLOPEDIA_CATALOG_SCRIPT.new()
 var unit_text_formatter: Variant = null
 var rarity_formatter: Variant = null
 var selected_category: String = ""
+var selected_filter: String = ""
 var selected_entry_id: String = ""
 var category_buttons: Dictionary = {}
+var filter_buttons: Dictionary = {}
 
 
 func setup(canvas_layer: CanvasLayer, unit_text_formatter_value: Variant, rarity_formatter_value: Variant) -> void:
@@ -49,6 +52,8 @@ func show() -> void:
 	var category_order: Array[String] = catalog.get_category_order()
 	if selected_category == "" and not category_order.is_empty():
 		selected_category = category_order[0]
+	selected_filter = catalog.FILTER_ALL
+	_rebuild_filter_buttons()
 	_rebuild_entry_list()
 	panel.visible = true
 
@@ -70,6 +75,7 @@ func _bind_nodes() -> void:
 	title_label = panel.get_node_or_null("Card/TitleLabel") as Label
 	close_button = panel.get_node_or_null("Card/CloseButton") as Button
 	category_hbox = panel.get_node_or_null("Card/CategoryHBox") as HBoxContainer
+	filter_hbox = panel.get_node_or_null("Card/FilterHBox") as HBoxContainer
 	entry_list_vbox = panel.get_node_or_null("Card/ListPanel/EntryListScroll/EntryListVBox") as VBoxContainer
 	detail_text = panel.get_node_or_null("Card/DetailPanel/DetailScroll/DetailText") as RichTextLabel
 	count_label = panel.get_node_or_null("Card/CountLabel") as Label
@@ -147,7 +153,7 @@ func _rebuild_entry_list() -> void:
 		entry_list_vbox.remove_child(child)
 		child.queue_free()
 
-	var entries: Array[Dictionary] = catalog.get_entries(selected_category)
+	var entries: Array[Dictionary] = catalog.get_entries_filtered(selected_category, selected_filter)
 	if count_label != null:
 		count_label.text = catalog.get_category_display_name(selected_category) + "：" + str(entries.size()) + " 项"
 
@@ -185,7 +191,9 @@ func _on_category_pressed(category: String) -> void:
 
 	selected_category = category
 	selected_entry_id = ""
+	selected_filter = catalog.FILTER_ALL
 	_update_category_button_styles()
+	_rebuild_filter_buttons()
 	_rebuild_entry_list()
 
 
@@ -200,6 +208,60 @@ func _update_category_button_styles() -> void:
 		if button == null:
 			continue
 		_apply_button_style(button, category == selected_category, Color(0.12, 0.20, 0.33, 1.0), Color(0.62, 0.78, 0.96, 1.0))
+
+
+func _rebuild_filter_buttons() -> void:
+	if filter_hbox == null:
+		return
+
+	for child: Node in filter_hbox.get_children():
+		filter_hbox.remove_child(child)
+		child.queue_free()
+	filter_buttons.clear()
+
+	if not _should_show_filter():
+		filter_hbox.visible = false
+		return
+
+	filter_hbox.visible = true
+	for option: Dictionary in catalog.get_filter_options(selected_category):
+		var key: String = str(option.get("key", ""))
+		var label: String = str(option.get("label", key))
+		var button: Button = Button.new()
+		button.text = label
+		button.custom_minimum_size = Vector2(70.0, 28.0)
+		button.focus_mode = Control.FOCUS_NONE
+		button.pressed.connect(_on_filter_pressed.bind(key))
+		filter_hbox.add_child(button)
+		filter_buttons[key] = button
+
+	_update_filter_button_styles()
+
+
+func _on_filter_pressed(filter_key: String) -> void:
+	if selected_filter == filter_key:
+		return
+
+	selected_filter = filter_key
+	selected_entry_id = ""
+	_update_filter_button_styles()
+	_rebuild_entry_list()
+
+
+func _update_filter_button_styles() -> void:
+	for filter_key: String in filter_buttons.keys():
+		var button: Button = filter_buttons[filter_key] as Button
+		if button == null:
+			continue
+		_apply_button_style(button, filter_key == selected_filter, Color(0.10, 0.14, 0.22, 1.0), Color(0.44, 0.48, 0.54, 1.0))
+
+
+func _should_show_filter() -> bool:
+	match selected_category:
+		catalog.CATEGORY_PLAYER_UNITS, catalog.CATEGORY_RELICS, catalog.CATEGORY_ENEMY_UNITS:
+			return true
+		_:
+			return false
 
 
 func _show_empty_detail() -> void:

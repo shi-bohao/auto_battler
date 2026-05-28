@@ -32,6 +32,9 @@
 [ext_resource type="Texture2D" path="res://assets/game/ui/battle/battle_background.png" id="23_battle_background"]
 [ext_resource type="Texture2D" path="res://assets/game/ui/battle/battle_board.png" id="24_battle_board"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hero_selection_panel.tscn" id="36_hero_selection_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/path_selection_panel.tscn" id="37_path_selection_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/merchant_panel.tscn" id="38_merchant_panel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/event_panel.tscn" id="39_event_panel"]
 
 [node name="Main Node2D" type="Node2D" unique_id=275014805]
 script = ExtResource("1_0wfyh")
@@ -178,6 +181,12 @@ text = "阵容"
 [node name="StatsPanel RichTextLabel" parent="UI CanvasLayer" instance=ExtResource("22_stats_panel")]
 
 [node name="RewardPanel Panel" parent="UI CanvasLayer" instance=ExtResource("14_reward_panel")]
+
+[node name="PathSelectionPanel Panel" parent="UI CanvasLayer" instance=ExtResource("37_path_selection_panel")]
+
+[node name="MerchantPanel Panel" parent="UI CanvasLayer" instance=ExtResource("38_merchant_panel")]
+
+[node name="EventPanel Panel" parent="UI CanvasLayer" instance=ExtResource("39_event_panel")]
 
 [node name="HeroSelectionPanel Panel" parent="UI CanvasLayer" instance=ExtResource("36_hero_selection_panel")]
 z_index = 20

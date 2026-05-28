@@ -63,6 +63,20 @@ offset_right = -28.0
 offset_bottom = 116.0
 theme_override_constants/separation = 10
 
+[node name="FilterHBox" type="HBoxContainer" parent="Card"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = 28.0
+offset_top = 124.0
+offset_right = -28.0
+offset_bottom = 158.0
+theme_override_constants/separation = 8
+
 [node name="ListPanel" type="Panel" parent="Card"]
 layout_mode = 1
 anchors_preset = -1
@@ -71,7 +85,7 @@ anchor_top = 0.0
 anchor_right = 0.0
 anchor_bottom = 1.0
 offset_left = 28.0
-offset_top = 134.0
+offset_top = 166.0
 offset_right = 378.0
 offset_bottom = -66.0
 
@@ -101,7 +115,7 @@ anchor_top = 0.0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = 398.0
-offset_top = 134.0
+offset_top = 166.0
 offset_right = -28.0
 offset_bottom = -66.0
 

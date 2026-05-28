@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_stoneback_beast")
+enemy_tier = "NORMAL"
 unit_name = "Stoneback Beast"
 unit_name_cn = "石背巨兽"
 description_cn = "高生命高防御的承伤敌人。"

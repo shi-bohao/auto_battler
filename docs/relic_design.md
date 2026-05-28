@@ -16,7 +16,8 @@
 | `relic_id` | `String` | 遗物唯一 ID，用于去重和逻辑匹配 |
 | `relic_name` | `String` | 英文名称 / 显示回退名称 |
 | `relic_name_cn` | `String` | 中文显示名称；非空时 UI 优先显示该字段 |
-| `description` | `String` | UI 和奖励详情显示描述 |
+| `description` | `String` | 英文描述 |
+| `description_cn` | `String` | 中文描述；非空时 `get_relic_description()` 优先返回该字段 |
 | `rarity` | `String` | 稀有度 |
 | `trigger_type` | `String` | 触发类型 |
 | `value` | `float` | 遗物主数值 |
@@ -42,7 +43,7 @@
 
 玩家当前拥有的遗物：
 
-- `RelicManager.player_relics`
+- `RelicManager.get_player_relics()`
 
 Restart 时调用：
 
@@ -55,7 +56,7 @@ Restart 时调用：
 | `apply_always_on_relics_to_runtime_unit(unit)` | `BattleManager` 生成玩家单位、英雄或召唤物后 | 常驻光环类遗物 |
 | `trigger_battle_start_relics(player_units)` | `BattleManager.start_battle()` | 战斗开始类遗物 |
 | `trigger_attack_relics(attacker, target)` | `BattleManager._on_unit_attack_landed()` | 普通攻击命中类遗物 |
-| `trigger_kill_relics(attacker, target)` | `BattleManager._on_unit_killed_target()` | 击杀类遗物 |
+| `trigger_kill_relics(attacker, target, roster_manager, hero_manager)` | `BattleManager._on_unit_killed_target()` | 击杀类遗物；后两个参数用于永久属性成长（如血誓杯叠加 `permanent_stat_bonuses`） |
 | `trigger_death_relics(dead_unit, enemy_units, is_battle_active, player_units)` | `BattleManager._on_unit_died()` | 死亡类遗物 |
 
 通用规则：
@@ -148,7 +149,7 @@ Restart 时调用：
 - 新生成的玩家单位会在生成后立刻应用当前光环；召唤物会在生成时标记 `is_summon`，避免吃已定义为开战型旧 Buff 的光环。
 - 已接入光环的遗物不会再通过 `BATTLE_START` 入口重复叠加。
 - 每个运行时单位会记录已应用的光环 `meta`，避免同一光环重复应用。
-- 金币类光环通过 `RelicManager.get_live_gold()` 读取实时金币数，并通过动态 modifier 在金币变化、购买遗物、调整站位和单位生成后重新计算。
+- 金币类光环通过 `RelicManager.get_live_gold()` 读取实时金币数，并通过动态 modifier 在金币变化、购买遗物、调整站位和单位生成后重新计算；无动态金币光环遗物时，金币变化不会触发全队属性刷新。
 
 ### BATTLE_START
 
@@ -260,6 +261,8 @@ Restart 时调用：
 - 通过 `RelicManager.get_live_gold()` → `EconomyManager.get_gold()` 读取实时金币数。
 - 在单位生成时（备战、战斗召唤）注册动态 modifier，并在金币变化、购买遗物和站位变化时刷新。
 - 与现有 AURA 遗物同一入口（`apply_always_on_relics_to_unit`），但动态金币光环会先移除同来源 modifier 再按当前上下文重建。
+- `main.gd` 会先通过 `RelicManager.has_dynamic_gold_relics()` 过滤无关金币变化；存在动态金币光环时，再 deferred 合并当前帧内的多次金币变化，统一刷新运行时单位。
+- 单个单位刷新动态金币光环时，会批量移除和添加 modifier，并使用 `skip_recalculate` / `preserve_base_stats` 让中间步骤不反复重算，最后只重算一次。
 - 金甲契约依赖前排判定，单位拖动到前排或离开前排后会刷新防御加成。
 
 ## 5. 奖励池规则

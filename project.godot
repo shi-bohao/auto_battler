@@ -15,6 +15,11 @@ run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.6", "Forward Plus")
 config/icon="res://icon.svg"
 
+[auto_battler]
+
+debug/combat_log_enabled=false
+debug/info_log_enabled=false
+
 [display]
 
 window/size/viewport_width=1920

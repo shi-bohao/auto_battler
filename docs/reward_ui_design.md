@@ -1,6 +1,6 @@
 # 奖励选择 UI 设计
 
-> 维护提示：本文档仍可作为奖励三选一的 UI 规则参考，但后续实现已加入悬停详情、单位技能详情和更多奖励来源。当前单位/遗物奖励内容以 `docs/content_reference.md` 和实际 `RewardManager` 为准。
+> 维护提示：本文档仍可作为奖励三选一的 UI 规则参考。当前实现已加入悬停详情、单位技能详情和更多奖励来源；单位奖励池已扩展至 17 个指定单位，具体内容以 `docs/content_reference.md` 和实际 `RewardManager` 为准。
 
 本文档记录当前奖励选择界面的布局、长文本处理、单位升星提示和稀有度颜色规则。
 
@@ -34,23 +34,11 @@ UI CanvasLayer
 
 主要逻辑位于：
 
-- `res://scripts/main.gd`
+- `res://scripts/ui/reward_panel_controller.gd` — 奖励面板 UI 展示、按钮交互、稀有度样式
+- `res://scripts/reward_manager.gd` — 奖励生成（三选一抽取、属性/单位/遗物类型分发）
+- `res://scripts/main.gd` — 流程调度（进入奖励状态、调用 controller 展示、处理玩家选择后的阵容/遗物写入）
 
-相关函数：
-
-| 函数 | 说明 |
-| --- | --- |
-| `_enter_reward_state()` | 战斗胜利后进入奖励状态并生成奖励 |
-| `_show_reward_panel()` | 显示奖励面板 |
-| `_refresh_reward_buttons()` | 刷新三个奖励按钮 |
-| `_build_reward_button_text()` | 生成按钮文字 |
-| `_build_reward_button_tooltip()` | 生成 tooltip 文本 |
-| `_get_reward_unit_upgrade_hint()` | 根据当前阵容生成单位奖励升星提醒 |
-| `_apply_reward_button_style()` | 根据稀有度设置按钮样式 |
-| `_get_reward_rarity()` | 读取奖励稀有度 |
-| `_get_reward_rarity_display_name()` | 将稀有度转为中文显示 |
-| `_get_reward_rarity_color()` | 将稀有度转为底色 |
-| `_normalize_reward_rarity()` | 兼容中文和英文稀有度输入 |
+相关 UI 工具函数位于 `RewardPanelController` 和 `PixelUITheme`，负责读取奖励稀有度、转换中文显示、设置像素风按钮样式和展示悬停详情。
 
 ## 3. 布局规则
 
@@ -93,7 +81,7 @@ Mage Lens  [稀有]
 
 ## 5. 稀有度颜色
 
-奖励项使用 `reward["rarity"]` 控制显示。遗物奖励优先读取 `relic_data.rarity`，普通属性奖励默认 `COMMON`，单位奖励按奖励池配置读取，其中四个新增单位和刺客为 `FINE`。
+奖励项使用 `reward["rarity"]` 控制显示。遗物奖励优先读取 `relic_data.rarity`，普通属性奖励默认 `COMMON`，单位奖励按奖励池配置读取；当前指定单位奖励包含基础单位、中期单位与召唤相关单位，实际列表以 `RewardManager._build_reward_pool()` 为准。
 
 | 中文 | 标准枚举 | 兼容输入 | 底色 |
 | --- | --- | --- | --- |

@@ -142,6 +142,52 @@ func _ready() -> void:
 	refresh_unit_art()
 
 
+func reset_prepare_preview(configured_unit_data: Resource, configured_display_name: String) -> void:
+	stop_battle()
+	clear_status_effects(false, false)
+	if stat_controller != null and stat_controller.has_method("clear_runtime_state"):
+		stat_controller.clear_runtime_state()
+	_clear_prepare_runtime_meta()
+
+	unit_data = configured_unit_data
+	display_name = configured_display_name
+	unit_data_applier.apply_unit_data(self, unit_data)
+	hp = max_hp
+	shield = 0
+	current_mana = 0.0
+	active_skill_damage_multiplier = 1.0
+	active_heal_multiplier = 1.0
+	damage_taken_multiplier = maxf(0.0, damage_taken_multiplier)
+	is_alive = true
+	is_targetable = true
+	unit_state = UnitState.IDLE
+	is_battle_active = false
+	current_target = null
+	attack_cooldown = 0.0
+	target_search_timer = 0.0
+	retarget_timer = 0.0
+	stuck_check_timer = 0.5
+	last_ai_position = global_position
+	attack_count = 0
+	launch_count = 0
+	last_attack_count = 0
+	enemy_units.clear()
+	ally_units.clear()
+	if stat_controller != null:
+		stat_controller.capture_base_stats(self)
+	_update_hp_bar()
+	_update_mana_bar()
+	update_info_display()
+	unit_skill.reset_mana(self)
+
+
+func _clear_prepare_runtime_meta() -> void:
+	for meta_name_value: Variant in get_meta_list():
+		var meta_name: String = str(meta_name_value)
+		if meta_name.begins_with("always_on_relic_"):
+			remove_meta(meta_name)
+
+
 func _input(event: InputEvent) -> void:
 	if _handle_detail_input(event):
 		return
@@ -401,12 +447,13 @@ func update_status_effects(delta: float) -> void:
 	effect_controller.update_effects(self, delta)
 
 
-func clear_status_effects() -> void:
+func clear_status_effects(should_update_display: bool = true, should_recalculate_stats: bool = true) -> void:
 	if effect_controller == null:
 		return
 
-	effect_controller.clear_effects(self)
-	update_info_display()
+	effect_controller.clear_effects(self, should_update_display, should_recalculate_stats)
+	if should_update_display:
+		update_info_display()
 
 
 func remove_status_effect(effect_id: String) -> int:
@@ -531,7 +578,7 @@ func _spawn_basic_attack_projectile(target: Unit, payload: Variant) -> void:
 		return
 	if not battle_root.has_method("spawn_basic_attack_projectile"):
 		return
-	battle_root.spawn_basic_attack_projectile(self, target, payload)
+	battle_root.spawn_basic_attack_projectile(self, target, payload, projectile_speed)
 
 
 func refresh_unit_art() -> void:

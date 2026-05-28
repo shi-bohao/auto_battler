@@ -1,0 +1,30 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_giant_maggot"]
+
+[resource]
+script = ExtResource("1_giant_maggot")
+enemy_tier = "NORMAL"
+unit_name = "Giant Maggot"
+unit_name_cn = "巨型蛆虫"
+description_cn = "普通敌人，死亡自爆并施加剧毒与腐痕，主动技能喷吐毒液。"
+unit_type = "enemy_giant_maggot"
+role = "damage"
+price = 0
+max_hp = 160
+attack_damage = 14
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 8
+attack_interval = 1.35
+attack_range = 55.0
+search_range = 999.0
+move_speed = 55.0
+passive_id = "maggot_death_burst"
+active_skill_id = "septic_spit"
+max_mana = 85
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

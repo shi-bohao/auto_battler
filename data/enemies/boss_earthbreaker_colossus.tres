@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_boss_earthbreaker_colossus")
+enemy_tier = "BOSS"
 unit_name = "Boss: Earthbreaker Colossus"
 unit_name_cn = "Boss：裂地巨像"
 description_cn = "高压迫感承伤 Boss，依靠阶段护盾拖入持久战。"

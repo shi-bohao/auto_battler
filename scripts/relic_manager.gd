@@ -79,13 +79,26 @@ func reset_battle_relic_state() -> void:
 
 
 func refresh_dynamic_relic_auras_for_unit(unit: Unit) -> void:
+	if not has_dynamic_gold_relics():
+		return
+
 	if relic_effect_resolver != null and relic_effect_resolver.has_method("refresh_dynamic_gold_relics_to_unit"):
 		relic_effect_resolver.refresh_dynamic_gold_relics_to_unit(unit)
 
 
 func refresh_dynamic_relic_auras_for_units(units: Array[Unit]) -> void:
+	if not has_dynamic_gold_relics():
+		return
+
 	for unit: Unit in units:
 		refresh_dynamic_relic_auras_for_unit(unit)
+
+
+func has_dynamic_gold_relics() -> bool:
+	if relic_effect_resolver == null or not relic_effect_resolver.has_method("has_dynamic_gold_relics"):
+		return false
+
+	return bool(relic_effect_resolver.has_dynamic_gold_relics())
 
 
 func set_owner_team_id(team_id: int) -> void:

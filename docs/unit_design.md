@@ -1,33 +1,50 @@
 # Unit Design Document
 
-> 维护提示：本文档仍作为单位设计长表使用，但当前可核对数值请优先查看自动生成的 `docs/content_reference.md`。新增单位资源应放入 `data/units`，召唤物放入 `data/summons`，敌人放入 `data/enemies`。
+> 维护提示：本文档仍作为玩家单位设计长表使用。当前可核对数值请优先查看自动生成的 `docs/content_reference.md`；英雄见 `hero_design.md`，敌人和召唤物以 `content_reference.md` 与对应资源文件为准。新增玩家单位资源应放入 `data/units`，召唤物放入 `data/summons`，敌人放入 `data/enemies`。
 
 This document is the design source for unit attributes, passives, active skills, and star growth.
-When adding a new unit later, add its design here first. Implementation should then update:
+When adding a new unit later, add its design here first. Implementation should create the matching `.tres` resource and then update the relevant registration points:
 
-- `scripts/unit_data.gd`
+- `scripts/unit_data.gd` only when the shared UnitData schema needs a new exported field
 - `data/units/*.tres` / `data/summons/*.tres` / `data/enemies/*.tres`
-- `scripts/unit_skill.gd`
-- `scripts/roster_manager.gd`
+- `scripts/combat/passive_resolver.gd`, `scripts/combat/active_skill_caster.gd`, or related combat resolver files when adding new skill logic
+- `scripts/catalog/unit_catalog.gd`, `scripts/roster_manager.gd`, or encounter catalogs when the unit needs to enter a runtime pool
+- `scripts/unit_text_formatter.gd` and `scripts/tools/generate_content_reference.gd` when skill or content reference text needs to be shown
 - shop, encounter, or reward pools if the unit should appear there
 
 ## Runtime Attribute Model
 
-`UnitData` currently supports these unit fields:
+`UnitData` currently supports these unit fields. Runtime combat bonuses are layered through `UnitStatController` in the order `BASE_OVERRIDE -> PERMANENT_FLAT -> PERMANENT_PERCENT -> RUNTIME_FLAT -> RUNTIME_PERCENT -> FINAL_FLAT -> FINAL_PERCENT -> FINAL_MULTIPLY`; resource values below are the base values captured before runtime modifiers.
 
 | Field | Meaning | Default |
 | --- | --- | --- |
 | `unit_name` | English name / display fallback | `Unit` |
 | `unit_name_cn` | Chinese display name. UI prefers this when non-empty. | empty |
+| `description_cn` | Chinese short description used by shop, details, and content reference | empty |
 | `unit_type` | Unit id / type key | `unit` |
 | `role` | Main lineup role: `tank`, `damage`, or `support` | `damage` |
+| `bond_tags` | Synergy/bond tags counted by BondManager | empty |
 | `star` | Star level | `1` |
+| `rarity` | Unit rarity | `COMMON` |
+| `enemy_tier` | Enemy tier override, `NORMAL`, `ELITE`, or `BOSS`; empty for player units | empty |
 | `price` | 1-star shop price and sell base price | `2` |
 | `max_hp` | Max HP | `100` |
 | `attack_damage` | Basic attack damage | `10` |
 | `crit_chance` | Critical chance, from `0.0` to `1.0` | `0.0` |
 | `crit_damage_multiplier` | Critical damage multiplier | `1.5` |
 | `defense` | Defense value | `0` |
+| `skill_power` | Active skill damage/healing scaling bonus | `0.0` |
+| `healing_power` | Healing output bonus | `0.0` |
+| `shield_power` | Shield output bonus | `0.0` |
+| `defense_penetration` | Flat defense penetration | `0` |
+| `life_steal` | Lifesteal ratio | `0.0` |
+| `damage_reduction` | Incoming life damage reduction after shield | `0.0` |
+| `damage_taken_multiplier` | Final incoming damage multiplier | `1.0` |
+| `initial_mana` | Initial mana at battle start | `0.0` |
+| `mana_on_attack` | Mana restored on basic attack hit | `0.0` |
+| `mana_on_hit_taken` | Mana restored when taking damage | `0.0` |
+| `status_resistance` | Status/debuff resistance ratio | `0.0` |
+| `dodge_chance` | Chance to dodge incoming attack | `0.0` |
 | `attack_interval` | Seconds between attacks. Lower is faster. | `1.0` |
 | `attack_range` | Attack range | `80.0` |
 | `search_range` | Target search range | `999.0` |
@@ -39,6 +56,14 @@ When adding a new unit later, add its design here first. Implementation should t
 | `target_mode` | Target mode, `NEAREST` or `LOWEST_HP` | `NEAREST` |
 | `retarget_interval` | Retarget check interval | `0.4` |
 | `lowest_hp_switch_threshold` | LOWEST_HP switch threshold | `0.1` |
+| `basic_attack_type` | Basic attack presentation, `melee` or `projectile` | `melee` |
+| `projectile_speed` | Projectile speed for ranged basic attacks | `500.0` |
+| `projectile_visual_type` | Projectile visual style | `arrow` |
+| `board_sprite` | Board icon/sprite texture | null |
+| `portrait_texture` | UI portrait texture | null |
+| `icon_texture` | UI icon/avatar texture | null |
+| `art_scale` | Board art scale multiplier | `1.0` |
+| `art_offset` | Board art offset | `Vector2.ZERO` |
 
 ## Damage Rules
 

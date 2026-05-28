@@ -153,6 +153,8 @@ func _build_global_effects_snapshot(roster_manager: Variant) -> Dictionary:
 		"max_active_units": _get_int_property(roster_manager, "max_active_units", 10),
 		"max_total_units": _get_int_property(roster_manager, "max_total_units", 25),
 		"unlocked_unit_ids": unlocked_unit_ids,
+		"global_stat_bonuses": roster_manager.get_global_stat_bonuses() if roster_manager != null and roster_manager.has_method("get_global_stat_bonuses") else {},
+		"has_death_prevention": roster_manager.has_death_prevention if roster_manager != null else false,
 	}
 
 

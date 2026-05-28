@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_flame_imp")
+enemy_tier = "NORMAL"
 unit_name = "Flame Imp"
 unit_name_cn = "烈焰小鬼"
 description_cn = "法术爆发敌人，技能能制造瞬时伤害压力。"

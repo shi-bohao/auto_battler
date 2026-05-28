@@ -3,7 +3,9 @@ extends RefCounted
 
 signal battle_ended(result_text: String, player_won: bool)
 signal overtime_started()
+signal enemy_unit_died(unit: Unit)
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const OVERTIME_START_TIME: float = 60.0
 const OVERTIME_DAMAGE_PER_SECOND: int = 10
 const FIELD_EFFECT_MANAGER_SCRIPT: Script = preload("res://scripts/combat/field_effect_manager.gd")
@@ -40,6 +42,8 @@ var overtime_damage_timer: float = 0.0
 var overtime_damage_second: int = 0
 var is_resolving_overtime_damage: bool = false
 var field_effect_manager: Variant = FIELD_EFFECT_MANAGER_SCRIPT.new()
+var enemy_list_refresh_batch_depth: int = 0
+var enemy_list_refresh_pending: bool = false
 
 
 func setup(
@@ -84,6 +88,8 @@ func set_enemy_relic_manager(configured_enemy_relic_manager: RelicManager) -> vo
 
 func set_battle_speed_multiplier(value: float) -> void:
 	battle_speed_multiplier = maxf(value, 0.01)
+	if projectile_manager != null and projectile_manager.has_method("set_battle_time_scale"):
+		projectile_manager.set_battle_time_scale(battle_speed_multiplier)
 	for unit: Unit in all_units:
 		if is_instance_valid(unit):
 			unit.set_battle_time_scale(battle_speed_multiplier)
@@ -98,7 +104,7 @@ func spawn_battle(player_unit_configs: Array[Dictionary], enemy_unit_configs: Ar
 	_spawn_player_hero()
 	_spawn_enemy_team(enemy_unit_configs)
 	_spawn_bench_team(bench_unit_configs)
-	_assign_enemy_lists()
+	_request_assign_enemy_lists()
 
 
 func start_battle() -> void:
@@ -170,6 +176,22 @@ func clear_battlefield() -> void:
 		summon_manager.clear()
 	if bond_manager != null and bond_manager.has_method("clear"):
 		bond_manager.clear()
+
+
+func force_end_battle() -> void:
+	is_battle_active = false
+	for unit in right_units.duplicate():
+		if is_instance_valid(unit):
+			unit.stop_battle()
+			unit.queue_free()
+	for unit in left_units.duplicate():
+		if is_instance_valid(unit):
+			unit.stop_battle()
+			unit.queue_free()
+	_clear_bench_units()
+	left_units.clear()
+	right_units.clear()
+	all_units.clear()
 	if projectile_manager != null and projectile_manager.has_method("clear_all"):
 		projectile_manager.clear_all()
 	next_unit_id = 1
@@ -272,7 +294,10 @@ func summon_units(source_unit: Unit, summon_unit_data: Resource, count: int, con
 		var empty_units: Array[Unit] = []
 		return empty_units
 
-	return summon_manager.summon_units(source_unit, summon_unit_data, count, context)
+	_begin_enemy_list_refresh_batch()
+	var summoned_units: Array[Unit] = summon_manager.summon_units(source_unit, summon_unit_data, count, context)
+	_end_enemy_list_refresh_batch()
+	return summoned_units
 
 
 func spawn_summoned_unit(source_unit: Unit, summon_unit_data: Resource, spawn_position: Vector2, context: Dictionary = {}) -> Unit:
@@ -299,7 +324,7 @@ func spawn_summoned_unit(source_unit: Unit, summon_unit_data: Resource, spawn_po
 	if bond_manager != null and bond_manager.has_method("apply_bonds_to_summoned_unit"):
 		bond_manager.apply_bonds_to_summoned_unit(summoned_unit)
 
-	_assign_enemy_lists()
+	_request_assign_enemy_lists()
 	return summoned_unit
 
 
@@ -325,7 +350,7 @@ func remove_summoned_unit(unit: Unit) -> void:
 	right_units.erase(unit)
 	all_units.erase(unit)
 	unit.queue_free()
-	_assign_enemy_lists()
+	_request_assign_enemy_lists()
 	_check_battle_result()
 
 
@@ -361,7 +386,7 @@ func add_player_unit(unit_data: Resource) -> void:
 
 	var unit_index: int = left_units.size()
 	_spawn_unit(1, unit_data, _get_player_unit_position(unit_index), _get_unit_display_name(1, unit_data))
-	_assign_enemy_lists()
+	_request_assign_enemy_lists()
 	_reset_prepare_stats_registration()
 
 
@@ -373,14 +398,20 @@ func refresh_player_and_bench_units(player_unit_configs: Array[Dictionary], benc
 	if is_battle_active:
 		return
 
-	_clear_left_units()
-	_clear_bench_units()
+	var old_left_units: Array[Unit] = left_units.duplicate()
+	var old_bench_units: Array[Unit] = bench_units.duplicate()
+	var reusable_active_units: Dictionary = _collect_reusable_roster_units(old_left_units, "active")
+	var reusable_bench_units: Dictionary = _collect_reusable_roster_units(old_bench_units, "bench")
+	var reusable_hero: Unit = _find_reusable_hero_unit(old_left_units)
 
 	left_units.clear()
-	_spawn_player_team(player_unit_configs)
-	_spawn_player_hero()
-	_spawn_bench_team(bench_unit_configs)
-	_assign_enemy_lists()
+	bench_units.clear()
+	_refresh_player_team_reusing(player_unit_configs, reusable_active_units)
+	_refresh_player_hero_reusing(reusable_hero)
+	_refresh_bench_team_reusing(bench_unit_configs, reusable_bench_units)
+	_free_unused_prepare_units(old_left_units, left_units)
+	_free_unused_prepare_units(old_bench_units, bench_units)
+	_request_assign_enemy_lists()
 	_reset_prepare_stats_registration()
 
 
@@ -397,7 +428,8 @@ func _spawn_player_team(player_unit_configs: Array[Dictionary]) -> void:
 		var position: Vector2 = unit_config.get("position", _get_player_unit_position(index)) as Vector2
 		var display_name: String = str(unit_config.get("display_name", _get_unit_display_name(1, unit_data)))
 		var roster_id: int = int(unit_config.get("roster_id", -1))
-		_spawn_unit(1, unit_data, position, display_name, roster_id, "active")
+		var spawned_unit: Unit = _spawn_unit(1, unit_data, position, display_name, roster_id, "active")
+		_set_prepare_unit_signature(spawned_unit, unit_data, display_name, "active", 1)
 
 
 func _spawn_player_hero() -> void:
@@ -421,6 +453,7 @@ func _spawn_player_hero() -> void:
 	var position: Vector2 = hero_config.get("position", _get_player_unit_position(left_units.size())) as Vector2
 	var display_name: String = str(hero_config.get("display_name", _get_unit_display_name(1, unit_data)))
 	var hero_unit: Unit = _spawn_unit(1, unit_data, position, display_name, -1, "hero")
+	_set_prepare_unit_signature(hero_unit, unit_data, display_name, "hero", 1)
 	if hero_unit != null and hero_manager.has_method("apply_hero_runtime_state"):
 		hero_manager.apply_hero_runtime_state(hero_unit, hero_config)
 
@@ -438,7 +471,8 @@ func _spawn_bench_team(bench_unit_configs: Array[Dictionary]) -> void:
 		var position: Vector2 = unit_config.get("position", Vector2.ZERO) as Vector2
 		var display_name: String = str(unit_config.get("display_name", _get_unit_display_name(1, unit_data)))
 		var roster_id: int = int(unit_config.get("roster_id", -1))
-		_spawn_bench_unit(unit_data, position, display_name, roster_id)
+		var spawned_unit: Unit = _spawn_bench_unit(unit_data, position, display_name, roster_id)
+		_set_prepare_unit_signature(spawned_unit, unit_data, display_name, "bench", 1)
 
 
 func _spawn_enemy_team(enemy_unit_configs: Array[Dictionary]) -> void:
@@ -496,13 +530,7 @@ func _spawn_unit(team_id: int, unit_data: Resource, spawn_position: Vector2, dis
 	if battle_root != null and battle_root.has_method("_on_unit_detail_requested"):
 		unit.detail_requested.connect(Callable(battle_root, "_on_unit_detail_requested"))
 
-	var body: ColorRect = unit.get_node("Body ColorRect") as ColorRect
-	if team_id == 1 and roster_area == "hero":
-		body.color = Color(0.95, 0.65, 0.22)
-	elif roster_area == "summon":
-		body.color = Color(0.36, 0.82, 0.95) if team_id == 1 else Color(0.72, 0.35, 0.88)
-	else:
-		body.color = Color(0.2, 0.55, 1.0) if team_id == 1 else Color(1.0, 0.35, 0.25)
+	_apply_unit_body_style(unit, team_id, roster_area)
 
 	battle_root.add_child(unit)
 	_apply_always_on_relics_to_unit(unit)
@@ -518,7 +546,7 @@ func _spawn_unit(team_id: int, unit_data: Resource, spawn_position: Vector2, dis
 	return unit
 
 
-func _spawn_bench_unit(unit_data: Resource, spawn_position: Vector2, display_name: String, roster_id: int) -> void:
+func _spawn_bench_unit(unit_data: Resource, spawn_position: Vector2, display_name: String, roster_id: int) -> Unit:
 	var unit: Unit = unit_scene.instantiate() as Unit
 	unit.team_id = 1
 	unit.unit_id = next_unit_id
@@ -535,8 +563,7 @@ func _spawn_bench_unit(unit_data: Resource, spawn_position: Vector2, display_nam
 	if battle_root != null and battle_root.has_method("_on_unit_detail_requested"):
 		unit.detail_requested.connect(Callable(battle_root, "_on_unit_detail_requested"))
 
-	var body: ColorRect = unit.get_node("Body ColorRect") as ColorRect
-	body.color = Color(0.25, 0.45, 0.75, 0.75)
+	_apply_unit_body_style(unit, 1, "bench")
 
 	battle_root.add_child(unit)
 	_apply_always_on_relics_to_unit(unit)
@@ -544,6 +571,285 @@ func _spawn_bench_unit(unit_data: Resource, spawn_position: Vector2, display_nam
 	unit.is_targetable = false
 	unit.set_can_drag(true)
 	bench_units.append(unit)
+	return unit
+
+
+func _refresh_player_team_reusing(player_unit_configs: Array[Dictionary], reusable_active_units: Dictionary) -> void:
+	if unit_scene == null or battle_root == null:
+		return
+
+	for index: int in range(player_unit_configs.size()):
+		var unit_config: Dictionary = player_unit_configs[index]
+		var unit_data: Resource = unit_config.get("unit_data", null) as Resource
+		if unit_data == null:
+			continue
+
+		var position: Vector2 = unit_config.get("position", _get_player_unit_position(index)) as Vector2
+		var display_name: String = str(unit_config.get("display_name", _get_unit_display_name(1, unit_data)))
+		var roster_id: int = int(unit_config.get("roster_id", -1))
+		var reusable_unit: Unit = _take_reusable_roster_unit(reusable_active_units, roster_id)
+		if reusable_unit == null:
+			var spawned_unit: Unit = _spawn_unit(1, unit_data, position, display_name, roster_id, "active")
+			_set_prepare_unit_signature(spawned_unit, unit_data, display_name, "active", 1)
+			continue
+
+		_reconfigure_prepare_unit(reusable_unit, 1, unit_data, position, display_name, roster_id, "active", stats_manager, true, true)
+		left_units.append(reusable_unit)
+
+
+func _refresh_player_hero_reusing(reusable_hero: Unit) -> void:
+	if unit_scene == null or battle_root == null:
+		return
+	if hero_manager == null:
+		return
+	if not hero_manager.has_method("get_hero_battle_unit_config"):
+		return
+
+	var hero_config: Dictionary = hero_manager.get_hero_battle_unit_config(battle_board, left_units)
+	if hero_config.is_empty():
+		return
+
+	var unit_data: Resource = hero_config.get("unit_data", null) as Resource
+	if unit_data == null:
+		return
+
+	var position: Vector2 = hero_config.get("position", _get_player_unit_position(left_units.size())) as Vector2
+	var display_name: String = str(hero_config.get("display_name", _get_unit_display_name(1, unit_data)))
+	var hero_unit: Unit = reusable_hero
+	if hero_unit == null:
+		hero_unit = _spawn_unit(1, unit_data, position, display_name, -1, "hero")
+		_set_prepare_unit_signature(hero_unit, unit_data, display_name, "hero", 1)
+	else:
+		_reconfigure_prepare_unit(hero_unit, 1, unit_data, position, display_name, -1, "hero", stats_manager, true, true)
+		left_units.append(hero_unit)
+
+	if hero_unit != null and hero_manager.has_method("apply_hero_runtime_state"):
+		hero_manager.apply_hero_runtime_state(hero_unit, hero_config)
+
+
+func _refresh_bench_team_reusing(bench_unit_configs: Array[Dictionary], reusable_bench_units: Dictionary) -> void:
+	if unit_scene == null or battle_root == null:
+		return
+
+	for index: int in range(bench_unit_configs.size()):
+		var unit_config: Dictionary = bench_unit_configs[index]
+		var unit_data: Resource = unit_config.get("unit_data", null) as Resource
+		if unit_data == null:
+			continue
+
+		var position: Vector2 = unit_config.get("position", Vector2.ZERO) as Vector2
+		var display_name: String = str(unit_config.get("display_name", _get_unit_display_name(1, unit_data)))
+		var roster_id: int = int(unit_config.get("roster_id", -1))
+		var reusable_unit: Unit = _take_reusable_roster_unit(reusable_bench_units, roster_id)
+		if reusable_unit == null:
+			var spawned_unit: Unit = _spawn_bench_unit(unit_data, position, display_name, roster_id)
+			_set_prepare_unit_signature(spawned_unit, unit_data, display_name, "bench", 1)
+			continue
+
+		_reconfigure_prepare_unit(reusable_unit, 1, unit_data, position, display_name, roster_id, "bench", null, true, false)
+		bench_units.append(reusable_unit)
+
+
+func _reconfigure_prepare_unit(
+	unit: Unit,
+	team_id: int,
+	unit_data: Resource,
+	position: Vector2,
+	display_name: String,
+	roster_id: int,
+	roster_area: String,
+	unit_stats_manager: Variant,
+	can_drag: bool,
+	is_targetable: bool
+) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+
+	unit.team_id = team_id
+	unit.position = position
+	unit.roster_id = roster_id
+	unit.roster_area = roster_area
+	unit.stats_manager = unit_stats_manager
+	unit.battle_board = battle_board
+	unit.prepare_drop_handler = prepare_drop_handler
+	unit.set_battle_time_scale(battle_speed_multiplier)
+	var signature: String = _build_prepare_unit_signature(unit_data, display_name, roster_area, team_id)
+	if str(unit.get_meta("prepare_unit_signature", "")) == signature:
+		unit.stop_battle()
+		unit.is_alive = true
+		unit.is_targetable = is_targetable
+		unit.current_target = null
+		unit.enemy_units.clear()
+		unit.ally_units.clear()
+		unit.set_can_drag(can_drag)
+		_apply_unit_body_style(unit, team_id, roster_area)
+		return
+
+	unit.reset_prepare_preview(unit_data, display_name)
+	unit.is_targetable = is_targetable
+	unit.set_can_drag(can_drag)
+	if roster_area != "summon" and unit.has_meta("is_summon"):
+		unit.remove_meta("is_summon")
+	_apply_unit_body_style(unit, team_id, roster_area)
+	_apply_always_on_relics_to_unit(unit)
+	unit.set_meta("prepare_unit_signature", signature)
+
+
+func _collect_reusable_roster_units(units: Array[Unit], roster_area: String) -> Dictionary:
+	var reusable_units: Dictionary = {}
+	for unit: Unit in units:
+		if unit == null or not is_instance_valid(unit):
+			continue
+		if unit.roster_area != roster_area:
+			continue
+		if unit.roster_id <= 0:
+			continue
+
+		reusable_units[unit.roster_id] = unit
+
+	return reusable_units
+
+
+func _take_reusable_roster_unit(reusable_units: Dictionary, roster_id: int) -> Unit:
+	if roster_id <= 0 or not reusable_units.has(roster_id):
+		return null
+
+	var unit: Unit = reusable_units[roster_id] as Unit
+	reusable_units.erase(roster_id)
+	if unit == null or not is_instance_valid(unit):
+		return null
+
+	return unit
+
+
+func _find_reusable_hero_unit(units: Array[Unit]) -> Unit:
+	for unit: Unit in units:
+		if unit != null and is_instance_valid(unit) and unit.roster_area == "hero":
+			return unit
+
+	return null
+
+
+func _free_unused_prepare_units(old_units: Array[Unit], kept_units: Array[Unit]) -> void:
+	for unit: Unit in old_units:
+		if unit == null or not is_instance_valid(unit):
+			continue
+		if kept_units.has(unit):
+			continue
+
+		all_units.erase(unit)
+		unit.stop_battle()
+		unit.queue_free()
+
+
+func _apply_unit_body_style(unit: Unit, team_id: int, roster_area: String) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+	if not unit.has_node("Body ColorRect"):
+		return
+
+	var body: ColorRect = unit.get_node("Body ColorRect") as ColorRect
+	if body == null:
+		return
+
+	if team_id == 1 and roster_area == "hero":
+		body.color = Color(0.95, 0.65, 0.22)
+	elif roster_area == "summon":
+		body.color = Color(0.36, 0.82, 0.95) if team_id == 1 else Color(0.72, 0.35, 0.88)
+	elif roster_area == "bench":
+		body.color = Color(0.25, 0.45, 0.75, 0.75)
+	else:
+		body.color = Color(0.2, 0.55, 1.0) if team_id == 1 else Color(1.0, 0.35, 0.25)
+
+
+func _set_prepare_unit_signature(unit: Unit, unit_data: Resource, display_name: String, roster_area: String, team_id: int) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+
+	unit.set_meta("prepare_unit_signature", _build_prepare_unit_signature(unit_data, display_name, roster_area, team_id))
+
+
+func _build_prepare_unit_signature(unit_data: Resource, display_name: String, roster_area: String, team_id: int) -> String:
+	if unit_data == null:
+		return ""
+
+	var parts: PackedStringArray = PackedStringArray()
+	parts.append(display_name)
+	parts.append(roster_area)
+	parts.append(str(team_id))
+	parts.append(_get_relic_signature_for_team(team_id))
+	for property_name: String in [
+		"unit_type",
+		"unit_name",
+		"unit_name_cn",
+		"star",
+		"rarity",
+		"max_hp",
+		"attack_damage",
+		"defense",
+		"attack_interval",
+		"attack_range",
+		"move_speed",
+		"crit_chance",
+		"crit_damage_multiplier",
+		"skill_power",
+		"healing_power",
+		"shield_power",
+		"defense_penetration",
+		"life_steal",
+		"damage_reduction",
+		"damage_taken_multiplier",
+		"initial_mana",
+		"mana_on_attack",
+		"mana_on_hit_taken",
+		"status_resistance",
+		"dodge_chance",
+		"passive_id",
+		"active_skill_id",
+		"max_mana",
+		"mana_regen_per_second",
+		"target_mode",
+		"basic_attack_type",
+		"projectile_speed",
+		"projectile_visual_type",
+	]:
+		parts.append(str(unit_data.get(property_name)))
+
+	parts.append(_get_resource_path_signature(unit_data.get("board_sprite")))
+	parts.append(_get_resource_path_signature(unit_data.get("portrait_texture")))
+	parts.append(_get_resource_path_signature(unit_data.get("icon_texture")))
+	parts.append(str(unit_data.get("art_scale")))
+	parts.append(str(unit_data.get("art_offset")))
+	return "|".join(parts)
+
+
+func _get_resource_path_signature(value: Variant) -> String:
+	if value is Resource:
+		return str((value as Resource).resource_path)
+
+	return str(value)
+
+
+func _get_relic_signature_for_team(team_id: int) -> String:
+	var target_relic_manager: RelicManager = enemy_relic_manager if team_id == 2 else relic_manager
+	if target_relic_manager == null:
+		return ""
+	if not target_relic_manager.has_method("get_player_relics"):
+		return ""
+
+	var relic_ids: PackedStringArray = PackedStringArray()
+	var relics: Array[Resource] = target_relic_manager.get_player_relics()
+	for relic_data: Resource in relics:
+		if relic_data == null:
+			continue
+
+		if target_relic_manager.has_method("get_relic_id"):
+			relic_ids.append(str(target_relic_manager.get_relic_id(relic_data)))
+		else:
+			relic_ids.append(str(relic_data.resource_path))
+
+	relic_ids.sort()
+	return ",".join(relic_ids)
 
 
 func _clear_left_units() -> void:
@@ -575,6 +881,27 @@ func _assign_enemy_lists() -> void:
 		unit.set_ally_units(right_units)
 
 
+func _request_assign_enemy_lists() -> void:
+	if enemy_list_refresh_batch_depth > 0:
+		enemy_list_refresh_pending = true
+		return
+
+	enemy_list_refresh_pending = false
+	_assign_enemy_lists()
+
+
+func _begin_enemy_list_refresh_batch() -> void:
+	enemy_list_refresh_batch_depth += 1
+
+
+func _end_enemy_list_refresh_batch() -> void:
+	enemy_list_refresh_batch_depth = maxi(0, enemy_list_refresh_batch_depth - 1)
+	if enemy_list_refresh_batch_depth > 0 or not enemy_list_refresh_pending:
+		return
+
+	_request_assign_enemy_lists()
+
+
 func _reset_prepare_stats_registration() -> void:
 	if is_battle_active or stats_manager == null:
 		return
@@ -586,6 +913,8 @@ func _reset_prepare_stats_registration() -> void:
 
 
 func _on_unit_died(unit: Unit) -> void:
+	_begin_enemy_list_refresh_batch()
+
 	if stats_manager != null:
 		stats_manager.capture_unit_snapshot(unit)
 
@@ -608,7 +937,10 @@ func _on_unit_died(unit: Unit) -> void:
 	left_units.erase(unit)
 	right_units.erase(unit)
 	all_units.erase(unit)
-	_assign_enemy_lists()
+	_request_assign_enemy_lists()
+	_end_enemy_list_refresh_batch()
+	if unit.team_id == 2:
+		enemy_unit_died.emit(unit)
 	_check_battle_result()
 
 
@@ -694,7 +1026,7 @@ func _enter_overtime() -> void:
 	overtime_elapsed_time = 0.0
 	overtime_damage_timer = 0.0
 	overtime_damage_second = 0
-	print("Overtime started.")
+	DEBUG_LOG_SCRIPT.info("Overtime started.")
 
 	for unit in all_units:
 		if not is_instance_valid(unit) or not unit.is_alive:

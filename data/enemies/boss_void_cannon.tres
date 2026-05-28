@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_boss_void_cannon")
+enemy_tier = "BOSS"
 unit_name = "Boss: Void Cannon"
 unit_name_cn = "Boss：虚空炮台"
 description_cn = "远程爆发 Boss，依靠高技能伤害撕开阵线。"

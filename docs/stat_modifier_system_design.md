@@ -1,6 +1,6 @@
 # 属性修饰器系统设计
 
-更新时间：2026-05-25
+更新时间：2026-05-28
 
 本文档记录当前运行时属性加成的长期维护方案。该系统用于承接常驻光环、动态金币光环、Buff/Debuff 属性修改、羁绊属性、英雄/被动战斗加成和加时赛加成，避免不同系统直接改写同一个 `Unit` 字段后互相覆盖。
 
@@ -91,7 +91,21 @@ base
 | `gold_percent_capped` | 每 1 金币获得百分比，带上限；用于黄金护符 |
 | `gold_percent_step` | 每 N 金币获得百分比，无上限；用于贪婪王冠 |
 
-金币变化后，`EconomyManager.gold_changed` 会触发 `main.gd` 刷新 `BattleManager.refresh_dynamic_relic_auras()`，从而对当前玩家单位、备战单位和镜像敌方单位重新计算动态 modifier。准备阶段拖动站位或购买动态光环遗物后，也会主动刷新。
+金币变化后，`EconomyManager.gold_changed` 不再无条件重算全队。当前流程为：
+
+1. `main.gd` 先通过 `RelicManager.has_dynamic_gold_relics()` 判断是否拥有 `golden_armor_contract`、`golden_charm` 或 `crown_of_greed`。
+2. 如果没有动态金币光环遗物，本次金币变化不触发单位属性刷新。
+3. 如果存在动态金币光环，`main.gd` 使用 deferred 刷新合并同一帧内多次金币变化，再调用 `BattleManager.refresh_dynamic_relic_auras()`。
+4. `RelicEffectResolver.refresh_dynamic_gold_relics_to_unit()` 会先筛选当前实际拥有的动态金币遗物，批量移除/添加同来源 modifier，最后只执行一次 `recalculate_stats()`。
+
+批量刷新时使用的 modifier 上下文：
+
+| 上下文键 | 用途 |
+| --- | --- |
+| `skip_recalculate` | 添加或移除 modifier 时跳过中间重算，等待批量操作结束后显式重算一次 |
+| `preserve_base_stats` | 保留已捕获的基础属性，避免把旧动态加成当成新的基础属性 |
+
+准备阶段拖动站位、购买动态光环遗物或生成新单位后，仍会主动刷新对应单位的动态光环。金甲契约依赖前排判定，因此站位变化会重新计算该遗物。
 
 ## 来源与移除
 

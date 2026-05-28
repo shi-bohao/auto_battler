@@ -2,6 +2,7 @@ class_name PassiveResolver
 extends RefCounted
 
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const StatusEffectFactory: Script = preload("res://scripts/combat/status_effect_factory.gd")
 const AoeResolver: Script = preload("res://scripts/combat/aoe_resolver.gd")
 
@@ -38,6 +39,8 @@ const PASSIVE_ENEMY_DARK_BLESSING: String = "enemy_dark_blessing"
 const PASSIVE_ENEMY_WAR_RHYTHM: String = "enemy_war_rhythm"
 const PASSIVE_ENEMY_BLOOD_RITUAL: String = "enemy_blood_ritual"
 const PASSIVE_ENEMY_ABYSS_CHANT: String = "enemy_abyss_chant"
+const PASSIVE_MAGGOT_DEATH_BURST: String = "maggot_death_burst"
+const PASSIVE_AMALGAM_SPLIT_BIRTH: String = "amalgam_split_birth"
 const PASSIVE_SUMMONED_BONE_EDGE: String = "summoned_bone_edge"
 const PASSIVE_SUMMONED_PUPPET_BODY: String = "summoned_puppet_body"
 const PASSIVE_SOUL_THREAD: String = "soul_thread"
@@ -109,6 +112,14 @@ const EFFECT_POISON_BLADE: String = "poison_blade_dot"
 const EFFECT_DEFENSIVE_COMMAND: String = "defensive_command_defense"
 const EFFECT_WIND_RHYTHM: String = "wind_rhythm_mana_regen"
 const EFFECT_CORROSIVE_FLASK: String = "corrosive_flask_dot"
+const EFFECT_PUTRID_MARK: String = "putrid_mark"
+const PUTRID_MARK_DURATION: float = 5.0
+const PUTRID_MARK_VALUE: float = 1.25
+const MAGGOT_DEATH_BURST_RADIUS: float = 90.0
+const MAGGOT_DEATH_BURST_BASE_DAMAGE: float = 35.0
+const MAGGOT_DEATH_BURST_HP_RATIO: float = 0.08
+const MAGGOT_DEATH_BURST_VENOM_DURATION: float = 3.0
+const MAGGOT_DEATH_BURST_VENOM_STACKS: int = 1
 const META_HEALING_AURA_TIMER: String = "healing_aura_timer"
 const ENEMY_STONE_SKIN_DEFENSE_BONUS: int = 10
 const ENEMY_STONE_SKIN_LOW_HP_RATIO: float = 0.50
@@ -249,7 +260,7 @@ func apply_battle_start_passives(unit: Variant) -> void:
 			var attack_bonus: float = BATTLE_SONG_ATTACK_BONUS_STAR_3 if _is_star_3(unit) else BATTLE_SONG_ATTACK_BONUS
 			var mana_regen_bonus: float = BATTLE_SONG_MANA_REGEN_BONUS_STAR_3 if _is_star_3(unit) else 0.0
 			_apply_ally_attack_and_mana_regen_bonus(unit, attack_bonus, mana_regen_bonus)
-			print(unit.display_name + " battle song applied.")
+			DEBUG_LOG_SCRIPT.combat(unit.display_name + " battle song applied.")
 		PASSIVE_DEFENSIVE_COMMAND:
 			var defense_bonus: float = DEFENSIVE_COMMAND_DEFENSE_STAR_3 if _is_star_3(unit) else DEFENSIVE_COMMAND_DEFENSE
 			for ally_value: Variant in unit.ally_units:
@@ -260,7 +271,7 @@ func apply_battle_start_passives(unit: Variant) -> void:
 						"polarity": StatusEffectFactory.POLARITY_POSITIVE,
 						"category": StatusEffectFactory.CATEGORY_AURA,
 					})
-			print(unit.display_name + " defensive command applied.")
+			DEBUG_LOG_SCRIPT.combat(unit.display_name + " defensive command applied.")
 		PASSIVE_WIND_RHYTHM:
 			var mana_multiplier: float = WIND_RHYTHM_MANA_REGEN_MULTIPLIER_STAR_3 if _is_star_3(unit) else WIND_RHYTHM_MANA_REGEN_MULTIPLIER
 			for ally_value: Variant in unit.ally_units:
@@ -271,7 +282,7 @@ func apply_battle_start_passives(unit: Variant) -> void:
 						"polarity": StatusEffectFactory.POLARITY_POSITIVE,
 						"category": StatusEffectFactory.CATEGORY_AURA,
 					})
-			print(unit.display_name + " wind rhythm applied.")
+			DEBUG_LOG_SCRIPT.combat(unit.display_name + " wind rhythm applied.")
 		PASSIVE_HEALING_AURA:
 			unit.set_meta(META_HEALING_AURA_TIMER, _get_healing_aura_interval(unit))
 		PASSIVE_HERO_IRON_OATH_COMMANDER:
@@ -288,14 +299,14 @@ func apply_battle_start_passives(unit: Variant) -> void:
 			_apply_nightblade_order(unit)
 		PASSIVE_ENEMY_WAR_RHYTHM:
 			_apply_ally_attack_and_mana_regen_bonus(unit, ENEMY_WAR_RHYTHM_ATTACK_BONUS, 0.0)
-			print(unit.display_name + " war rhythm applied.")
+			DEBUG_LOG_SCRIPT.combat(unit.display_name + " war rhythm applied.")
 		PASSIVE_ENEMY_ABYSS_CHANT:
 			for ally_value: Variant in unit.ally_units:
 				var ally: Variant = ally_value
 				if _is_valid_unit(ally) and ally.is_alive:
 					ally.add_shield(ENEMY_ABYSS_CHANT_SHIELD, unit)
 			_apply_ally_attack_and_mana_regen_bonus(unit, 0.0, ENEMY_ABYSS_CHANT_MANA_REGEN_BONUS)
-			print(unit.display_name + " abyss chant applied.")
+			DEBUG_LOG_SCRIPT.combat(unit.display_name + " abyss chant applied.")
 
 
 func update_periodic_passives(unit: Variant, delta: float) -> void:
@@ -1193,7 +1204,7 @@ func _apply_cleaving_edge(unit: Variant, target: Variant) -> void:
 		return
 
 	var hit_count: int = aoe_resolver.deal_aoe_damage(unit, targets, cleave_damage, true)
-	print(unit.display_name + " cleaving edge: " + str(hit_count) + " targets hit for " + str(cleave_damage) + " damage each")
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " cleaving edge: " + str(hit_count) + " targets hit for " + str(cleave_damage) + " damage each")
 	if hit_count > 0 and unit.unit_feedback != null:
 		unit.unit_feedback.play_skill_feedback(unit, "Cleaving Edge")
 
@@ -1674,3 +1685,46 @@ func _apply_dragon_breath_splash(unit: Variant, target: Variant) -> void:
 		var enemy: Variant = enemy_value
 		if _is_valid_unit(enemy) and enemy.is_alive:
 			enemy.take_damage(splash_damage, unit)
+
+
+func apply_maggot_death_burst(unit: Variant) -> void:
+	if not _is_valid_unit(unit):
+		return
+
+	var death_position: Vector2 = unit.global_position
+	var burst_damage: int = maxi(1, int(round(MAGGOT_DEATH_BURST_BASE_DAMAGE + float(unit.max_hp) * MAGGOT_DEATH_BURST_HP_RATIO)))
+	var targets: Array = aoe_resolver.get_enemy_units_in_radius(unit, death_position, MAGGOT_DEATH_BURST_RADIUS)
+	var hit_count: int = aoe_resolver.deal_aoe_damage(unit, targets, burst_damage, false)
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " death burst: " + str(hit_count) + " targets hit for " + str(burst_damage))
+
+	for target_value: Variant in targets:
+		var target: Variant = target_value
+		if not _is_valid_unit(target) or not target.is_alive:
+			continue
+		_apply_putrid_mark(unit, target, PUTRID_MARK_DURATION)
+		_apply_maggot_venom_stacks(unit, target, MAGGOT_DEATH_BURST_VENOM_STACKS, MAGGOT_DEATH_BURST_VENOM_DURATION)
+
+
+func _apply_maggot_venom_stacks(source: Variant, target: Variant, count: int, duration: float) -> void:
+	for _index: int in range(count):
+		_apply_status_effect(target, VENOM_STACK_EFFECT, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, source, duration, STATUS_EFFECT_TICK_INTERVAL, VENOM_STACK_DAMAGE, "", {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_STACK_INDEPENDENT_DURATION,
+			"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+			"category": StatusEffectFactory.CATEGORY_DOT,
+		})
+
+
+func _apply_putrid_mark(source: Variant, target: Variant, duration: float) -> void:
+	_apply_status_effect(target, EFFECT_PUTRID_MARK, StatusEffectFactory.EFFECT_TYPE_STAT_MULTIPLY, source, duration, 0.0, PUTRID_MARK_VALUE, "damage_taken_multiplier", {
+		"stack_policy": StatusEffectFactory.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH,
+		"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+		"category": StatusEffectFactory.CATEGORY_MARK,
+	})
+
+
+func has_putrid_mark(target: Variant) -> bool:
+	if not _is_valid_unit(target) or not target.is_alive:
+		return false
+	if target.has_method("get_status_effect_count"):
+		return int(target.get_status_effect_count(EFFECT_PUTRID_MARK)) > 0
+	return false

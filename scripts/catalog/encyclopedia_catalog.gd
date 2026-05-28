@@ -8,6 +8,13 @@ const CATEGORY_SUMMONS: String = "summons"
 const CATEGORY_RELICS: String = "relics"
 const CATEGORY_HEROES: String = "heroes"
 
+const FILTER_ALL: String = "全部"
+const ENEMY_TYPE_NORMAL: String = "普通敌人"
+const ENEMY_TYPE_ELITE: String = "精英"
+const ENEMY_TYPE_BOSS: String = "BOSS"
+
+const RARITY_ORDER: Array[String] = ["COMMON", "FINE", "RARE", "EPIC", "LEGENDARY", "MYTHIC"]
+
 const HERO_MANAGER_SCRIPT: Script = preload("res://scripts/hero_manager.gd")
 
 const UNIT_DATA_DIR: String = "res://data/units"
@@ -80,6 +87,79 @@ func get_entry_count(category: String) -> int:
 		return (entries as Array).size()
 
 	return 0
+
+
+func get_filter_options(category: String) -> Array[Dictionary]:
+	if entries_by_category.is_empty():
+		refresh()
+
+	var options: Array[Dictionary] = []
+	options.append({"key": FILTER_ALL, "label": FILTER_ALL})
+
+	match category:
+		CATEGORY_PLAYER_UNITS, CATEGORY_RELICS:
+			var seen_rarities: Dictionary = {}
+			for entry: Dictionary in get_entries(category):
+				var resource: Resource = entry.get("resource", null) as Resource
+				if resource == null:
+					continue
+				var rarity: String = _get_string(resource, "rarity")
+				if rarity == "" or seen_rarities.has(rarity):
+					continue
+				seen_rarities[rarity] = true
+			for rarity: String in RARITY_ORDER:
+				if seen_rarities.has(rarity):
+					options.append({"key": rarity, "label": _get_rarity_display_name(rarity)})
+
+		CATEGORY_ENEMY_UNITS:
+			var has_normal: bool = false
+			var has_elite: bool = false
+			var has_boss: bool = false
+			for entry: Dictionary in get_entries(category):
+				var resource: Resource = entry.get("resource", null) as Resource
+				if resource == null:
+					continue
+				match _get_enemy_type_key(resource):
+					ENEMY_TYPE_BOSS:
+						has_boss = true
+					ENEMY_TYPE_ELITE:
+						has_elite = true
+					_:
+						has_normal = true
+			if has_normal:
+				options.append({"key": ENEMY_TYPE_NORMAL, "label": ENEMY_TYPE_NORMAL})
+			if has_elite:
+				options.append({"key": ENEMY_TYPE_ELITE, "label": ENEMY_TYPE_ELITE})
+			if has_boss:
+				options.append({"key": ENEMY_TYPE_BOSS, "label": ENEMY_TYPE_BOSS})
+
+	return options
+
+
+func get_entries_filtered(category: String, filter_key: String) -> Array[Dictionary]:
+	if filter_key == FILTER_ALL or filter_key == "":
+		return get_entries(category)
+
+	var all_entries: Array[Dictionary] = get_entries(category)
+	var filtered: Array[Dictionary] = []
+
+	match category:
+		CATEGORY_PLAYER_UNITS, CATEGORY_RELICS:
+			for entry: Dictionary in all_entries:
+				var resource: Resource = entry.get("resource", null) as Resource
+				if resource != null and _get_string(resource, "rarity") == filter_key:
+					filtered.append(entry)
+
+		CATEGORY_ENEMY_UNITS:
+			for entry: Dictionary in all_entries:
+				var resource: Resource = entry.get("resource", null) as Resource
+				if resource != null and _get_enemy_type_key(resource) == filter_key:
+					filtered.append(entry)
+
+		_:
+			filtered = all_entries.duplicate()
+
+	return filtered
 
 
 func _collect_relic_dir(dir_path: String) -> void:
@@ -240,6 +320,41 @@ func _get_hero_display_name(hero_data: Resource) -> String:
 		return name
 
 	return _get_string(hero_data, "hero_id")
+
+
+func _get_enemy_type_key(unit_data: Resource) -> String:
+	var tier: String = _get_string(unit_data, "enemy_tier")
+	if tier == "BOSS":
+		return ENEMY_TYPE_BOSS
+	if tier == "ELITE":
+		return ENEMY_TYPE_ELITE
+	if tier == "NORMAL":
+		return ENEMY_TYPE_NORMAL
+
+	var unit_type: String = _get_string(unit_data, "unit_type")
+	if unit_type.begins_with("enemy_boss_"):
+		return ENEMY_TYPE_BOSS
+	if unit_type.begins_with("enemy_elite_"):
+		return ENEMY_TYPE_ELITE
+	return ENEMY_TYPE_NORMAL
+
+
+func _get_rarity_display_name(rarity: String) -> String:
+	match rarity:
+		"COMMON":
+			return "普通"
+		"FINE":
+			return "精良"
+		"RARE":
+			return "稀有"
+		"EPIC":
+			return "史诗"
+		"LEGENDARY":
+			return "传说"
+		"MYTHIC":
+			return "神话"
+		_:
+			return rarity
 
 
 func _get_string(resource: Resource, property_name: String) -> String:

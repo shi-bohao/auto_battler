@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_dark_acolyte")
+enemy_tier = "NORMAL"
 unit_name = "Dark Acolyte"
 unit_name_cn = "黑暗侍僧"
 description_cn = "普通治疗辅助敌人，为受伤敌人恢复生命。"

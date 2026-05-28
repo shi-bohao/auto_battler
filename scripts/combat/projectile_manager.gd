@@ -7,6 +7,7 @@ const PROJECTILE_SCENE: PackedScene = preload("res://scenes/combat/projectile.ts
 
 var battle_root: Node = null
 var active_projectiles: Array = []
+var battle_time_scale: float = 1.0
 
 
 func setup(configured_battle_root: Node) -> void:
@@ -19,9 +20,16 @@ func spawn_basic_attack_projectile(attacker: Variant, target: Variant, payload: 
 
 	var projectile: Variant = PROJECTILE_SCENE.instantiate()
 	projectile.global_position = attacker.global_position
-	projectile.setup(payload, target, projectile_speed, self)
+	projectile.setup(payload, target, projectile_speed, self, battle_time_scale)
 	battle_root.add_child(projectile)
 	active_projectiles.append(projectile)
+
+
+func set_battle_time_scale(value: float) -> void:
+	battle_time_scale = maxf(value, 0.01)
+	for projectile: Variant in active_projectiles:
+		if is_instance_valid(projectile) and projectile.has_method("set_time_scale"):
+			projectile.set_time_scale(battle_time_scale)
 
 
 func clear_all() -> void:

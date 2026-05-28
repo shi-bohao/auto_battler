@@ -2,6 +2,8 @@ class_name RelicInventory
 extends RefCounted
 
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
+
 var _relics: Array[Resource] = []
 
 
@@ -14,11 +16,11 @@ func add_relic(relic_data: Resource, get_unique_key_func: Callable, get_debug_na
 		return false
 
 	if has_relic(relic_data, get_unique_key_func):
-		print("Relic already owned: " + _call_string(get_debug_name_func, relic_data))
+		DEBUG_LOG_SCRIPT.info("Relic already owned: " + _call_string(get_debug_name_func, relic_data))
 		return false
 
 	_relics.append(relic_data)
-	print("Added relic: " + _call_string(get_debug_name_func, relic_data))
+	DEBUG_LOG_SCRIPT.info("Added relic: " + _call_string(get_debug_name_func, relic_data))
 	return true
 
 
@@ -64,7 +66,7 @@ func is_empty() -> bool:
 
 func print_relics(get_debug_name_func: Callable) -> void:
 	if _relics.is_empty():
-		print("Player relics: none")
+		DEBUG_LOG_SCRIPT.info("Player relics: none")
 		return
 
 	var relic_texts: Array[String] = []
@@ -78,7 +80,7 @@ func print_relics(get_debug_name_func: Callable) -> void:
 			relic_list_text += ", "
 		relic_list_text += relic_texts[index]
 
-	print("Player relics: " + relic_list_text)
+	DEBUG_LOG_SCRIPT.info("Player relics: " + relic_list_text)
 
 
 func _call_string(function: Callable, value: Resource) -> String:

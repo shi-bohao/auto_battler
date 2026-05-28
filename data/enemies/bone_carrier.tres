@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_bone")
+enemy_tier = "NORMAL"
 unit_name = "Bone Carrier"
 unit_name_cn = "运骨者"
 description_cn = "死亡触发型敌方前排，死亡时召唤骷髅继续拖延战线。"

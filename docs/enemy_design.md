@@ -1,6 +1,6 @@
 # Enemy Design Document
 
-> 维护提示：本文档前半部分保留敌人设计原案与数值设定；第 9 节记录 2026-05-04 的实际接入状态。后续又加入召唤敌人、镜像挑战和高稀有度内容，因此当前敌人资源与技能数值请优先查看 `docs/content_reference.md`，本文档更多作为敌人设计草案和历史脉络。
+> 维护提示：本文档前半部分保留敌人设计原案与数值设定；第 9 节记录 2026-05-04 的实际接入状态。后续又加入召唤敌人、镜像挑战、高稀有度内容和蛆虫族敌人，因此当前敌人资源与技能数值请优先查看 `docs/content_reference.md` 和 `docs/maggot_enemy_design.md`。本文档更多作为敌人设计草案和历史脉络。
 
 本文档用于记录当前自动战斗项目中的敌方怪物设计。敌人按照定位分为三类：
 
@@ -8,7 +8,7 @@
 - 输出类：负责制造伤害压力，威胁玩家前排或后排。
 - 辅助类：负责治疗、护盾、团队增幅或续航。
 
-当前设计目标：
+当前敌人体系已经扩展到 17 个敌人资源，包括普通敌人、精英敌人、Boss、召唤相关敌人和蛆虫族敌人。早期设计目标如下，后续新增敌人可继续沿用这些原则：
 
 1. 每一类敌人暂时设计 2 种普通怪、1 种精英怪、1 种 Boss 怪。
 2. 敌人不进入玩家商店和玩家奖励池，只由 EncounterManager / 敌方遭遇系统生成。
@@ -66,6 +66,8 @@ Boss 怪：
 ```text
 enemy_boss_<monster_name>
 ```
+
+当前实现使用 `enemy_tier` 字段（NORMAL / ELITE / BOSS）作为敌人阶等主判定依据。`EnemyCatalog.is_elite_enemy_id()` 优先读取 `enemy_tier`，仅在该字段为空时回退到 `unit_type` 前缀匹配。新增敌人时建议同时配置 `enemy_tier` 并继续遵循 `unit_type` 前缀命名，方便人工阅读和兼容旧逻辑。
 
 ---
 
@@ -990,6 +992,12 @@ res://data/enemies/
 - `res://scripts/battle_board.gd`
 - `res://scripts/encounter_manager.gd`
 
+敌人注册、池配置与遭遇生成位于：
+
+- `res://scripts/catalog/enemy_catalog.gd` — 敌人 ID 常量、数据预加载、按角色/类型分池、`enemy_tier` 判定
+- `res://scripts/encounter/encounter_generator.gd` — 随机遭遇模板、单位权重、Boss/精英阵容构建
+- `res://scripts/encounter/default_encounter_builder.gd` — 前 10 波手写遭遇
+
 当前实现：
 
 - 7x15 棋盘中，敌方有效区域为 `col = 8..14`。
@@ -1002,12 +1010,14 @@ res://data/enemies/
 
 敌人技能逻辑位于：
 
-- `res://scripts/unit_skill.gd`
+- `res://scripts/unit_skill.gd`（委托至 `scripts/combat/passive_resolver.gd`）
+- `res://scripts/combat/active_skill_caster.gd` — 敌人主动技能调度与实现
+- `res://scripts/combat/passive_resolver.gd` — 敌人被动效果（减伤、击杀触发、死亡触发等）
 
 已接入内容：
 
-- 12 个敌人被动 ID。
-- 12 个敌人主动技能 ID。
+- 17 个敌人被动 ID（包含新增的 `maggot_death_burst`、`amalgam_split_birth`）。
+- 17 个敌人主动技能 ID（包含新增的 `septic_spit`、`putrid_tide`）。
 - 敌人战斗开始被动。
 - 敌人受伤减伤或阈值触发。
 - 敌人攻击命中被动。

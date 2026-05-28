@@ -4,6 +4,7 @@
 
 [resource]
 script = ExtResource("1_crossbow_raider")
+enemy_tier = "NORMAL"
 unit_name = "Crossbow Raider"
 unit_name_cn = "弩手掠袭者"
 description_cn = "普通远程输出敌人，持续压低前排血量。"

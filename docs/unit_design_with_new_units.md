@@ -1,4 +1,4 @@
-> 历史草案：本文档记录一批新增单位与被动能力的设计过程。相关单位已经实现并进入当前资源池，最新数值、技能和羁绊请查看 `docs/content_reference.md` 与 `docs/bond_system.md`。
+> 历史草案：本文档记录 Tank、Mage、Priest、Bard 等早期新增单位与被动能力的设计过程。相关单位已经实现并进入当前资源池；后续高稀有度单位、运行时属性修饰器和当前数值不再维护在本文档中，最新内容请查看 `docs/content_reference.md`、`docs/unit_design.md` 与 `docs/bond_system.md`。
 
 ## Additional Passive Abilities
 

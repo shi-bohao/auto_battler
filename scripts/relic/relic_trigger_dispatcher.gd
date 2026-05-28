@@ -2,6 +2,7 @@ class_name RelicTriggerDispatcher
 extends RefCounted
 
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const RELIC_TRIGGER_BATTLE_START: String = "BATTLE_START"
 const RELIC_TRIGGER_ROUND_REWARD: String = "ON_ROUND_REWARD"
 const RELIC_ID_BLOOD_PENDANT: String = "blood_pendant"
@@ -39,7 +40,7 @@ func trigger_battle_start_relics(player_units: Array[Unit]) -> void:
 	if player_relics.is_empty():
 		return
 
-	print("Triggering battle start relics")
+	DEBUG_LOG_SCRIPT.combat("Triggering battle start relics")
 	for relic_data in player_relics:
 		if relic_data == null:
 			continue

@@ -68,12 +68,17 @@ func has_modifiers() -> bool:
 	return not modifiers_by_id.is_empty()
 
 
+func clear_runtime_state() -> void:
+	base_stats.clear()
+	modifiers_by_id.clear()
+
+
 func add_modifier(unit: Variant, modifier_data: Variant, context: Dictionary = {}) -> void:
 	if not _is_valid_unit(unit):
 		return
 
 	_sync_base_from_current_if_empty(unit)
-	if modifiers_by_id.is_empty():
+	if modifiers_by_id.is_empty() and not bool(context.get("preserve_base_stats", false)):
 		capture_base_stats(unit)
 
 	var modifier: StatModifier = null
@@ -90,6 +95,8 @@ func add_modifier(unit: Variant, modifier_data: Variant, context: Dictionary = {
 		return
 
 	modifiers_by_id[key] = modifier
+	if bool(context.get("skip_recalculate", false)):
+		return
 	recalculate(unit, context)
 
 
@@ -98,6 +105,8 @@ func remove_modifier(unit: Variant, modifier_id: String, context: Dictionary = {
 		return
 
 	if modifiers_by_id.erase(modifier_id):
+		if bool(context.get("skip_recalculate", false)):
+			return
 		recalculate(unit, context)
 
 
@@ -113,6 +122,8 @@ func remove_modifiers_by_source(unit: Variant, source_key: String, context: Dict
 			removed_any = true
 
 	if removed_any:
+		if bool(context.get("skip_recalculate", false)):
+			return
 		recalculate(unit, context)
 
 

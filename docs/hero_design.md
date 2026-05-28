@@ -1,6 +1,6 @@
 # 英雄系统设计文档
 
-> 维护提示：本文档仍是英雄系统的设计入口。当前英雄的实际 UnitData 资源位于 `data/heroes/iron_oath_commander_unit.tres`、`data/heroes/arcane_mentor_unit.tres`、`data/heroes/bloodshadow_hunter_unit.tres`、`data/heroes/boneweaver_unit.tres`；当前数值以 `docs/content_reference.md` 的英雄章节为准。
+> 维护提示：本文档仍是英雄系统的设计入口。当前已实现英雄为铁誓统帅、奥术导师、血影猎主和织骨者；实际 UnitData 资源位于 `data/heroes/iron_oath_commander_unit.tres`、`data/heroes/arcane_mentor_unit.tres`、`data/heroes/bloodshadow_hunter_unit.tres`、`data/heroes/boneweaver_unit.tres`。当前数值以 `docs/content_reference.md` 的英雄章节为准，织骨者的完整技能与强化以 `HeroManager` 和内容参考文档为准。
 
 ## 1. 文档目标
 
@@ -713,14 +713,12 @@ target_mode = LOWEST_HP
 
 ## 8. 英雄升级节点设计
 
-第一版推荐英雄等级最高为 4。
+当前实现使用经验值制。英雄每获得 50 经验提升 1 级；普通关胜利获得 10 经验，精英关胜利获得 20 经验，Boss 关胜利获得 30 经验。升级时从当前可用的专属强化池中随机抽取 3 个选项；如果未获得强化不足 3 个，则使用基础属性强化补足。
 
 | 英雄等级 | 达成条件 | 解锁内容 |
 |---|---|---|
 | 1 | 开局选择英雄 | 基础被动和主动技能 |
-| 2 | 第 3 波胜利后 | 选择 1 个英雄专属强化 |
-| 3 | 第 6 波胜利后 | 选择 1 个英雄专属强化 |
-| 4 | 第 9 波胜利后 | 选择 1 个终极强化或主动技能强化 |
+| 2+ | 经验条累计满 50 经验 | 选择 1 个英雄专属强化或属性强化 |
 
 可选方案：
 
@@ -805,7 +803,7 @@ target_mode = LOWEST_HP
 2. 英雄加入战场。
 3. 英雄不占普通单位上场数量。
 4. 英雄有固定被动和主动技能。
-5. 英雄按波次升级。
+5. 英雄通过经验值升级（50 经验/级，普通关 +10、精英关 +20、Boss 关 +30），经验足够时弹出强化选择面板。
 6. 英雄升级时弹出专属强化三选一。
 7. 英雄强化只影响本局。
 8. Restart 后重新选择英雄。
@@ -837,6 +835,7 @@ scripts/hero_upgrade_data.gd
 data/heroes/iron_oath_commander_unit.tres
 data/heroes/arcane_mentor_unit.tres
 data/heroes/bloodshadow_hunter_unit.tres
+data/heroes/boneweaver_unit.tres
 ```
 
 英雄定义本体由 `HeroManager` 加载和维护，英雄上场用的运行时单位数据使用 `data/heroes/*_unit.tres`。

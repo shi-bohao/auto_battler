@@ -1,6 +1,7 @@
 class_name RewardManager
 extends RefCounted
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const REWARD_TYPE_STAT: String = "STAT"
 const REWARD_TYPE_UNIT: String = "UNIT"
 const REWARD_TYPE_RELIC: String = "RELIC"
@@ -122,7 +123,7 @@ func _apply_unit_reward(reward: Dictionary) -> void:
 			push_warning("Unknown unit reward id: " + reward_id)
 
 	if not added_unit:
-		print("Unit reward was not added. Roster may be full.")
+		DEBUG_LOG_SCRIPT.info("Unit reward was not added. Roster may be full.")
 
 
 func _apply_relic_reward(reward: Dictionary) -> void:

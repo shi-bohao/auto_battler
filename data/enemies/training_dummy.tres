@@ -1,0 +1,29 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_training_dummy"]
+
+[resource]
+script = ExtResource("1_training_dummy")
+enemy_tier = "NORMAL"
+unit_name = "Training Dummy"
+unit_name_cn = "训练木桩"
+description_cn = "不会攻击的木桩，击杀后掉落随机奖励。"
+unit_type = "training_dummy"
+role = "tank"
+price = 0
+max_hp = 120
+attack_damage = 0
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 999.0
+attack_range = 50.0
+search_range = 999.0
+move_speed = 0.0
+passive_id = ""
+active_skill_id = ""
+max_mana = 9999
+mana_regen_per_second = 0.0
+target_mode = "NEAREST"
+retarget_interval = 99.0
+lowest_hp_switch_threshold = 0.1

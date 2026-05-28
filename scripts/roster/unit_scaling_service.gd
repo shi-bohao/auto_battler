@@ -4,7 +4,7 @@ extends RefCounted
 const MAX_STAR: int = 3
 
 
-func create_scaled_unit_data(roster_item: Dictionary, hp_multiplier: float, attack_multiplier: float) -> Resource:
+func create_scaled_unit_data(roster_item: Dictionary, hp_multiplier: float, attack_multiplier: float, global_bonuses: Dictionary = {}) -> Resource:
 	var base_data: Resource = roster_item["unit_data"] as Resource
 	var configured_data: Resource = base_data.duplicate(true) as Resource
 	var star: int = int(roster_item.get("star", 1))
@@ -37,6 +37,7 @@ func create_scaled_unit_data(roster_item: Dictionary, hp_multiplier: float, atta
 	configured_data.set("unit_name", display_name)
 	configured_data.set("unit_name_cn", display_name)
 	_apply_permanent_stat_bonuses(configured_data, roster_item)
+	_apply_global_stat_bonuses(configured_data, global_bonuses)
 	return configured_data
 
 
@@ -441,6 +442,27 @@ func _apply_permanent_stat_bonuses(configured_data: Resource, roster_item: Dicti
 			continue
 
 		_apply_permanent_stat_bonus(configured_data, stat_name, float(bonuses.get(stat_name_value, 0.0)))
+
+
+func _apply_global_stat_bonuses(configured_data: Resource, global_bonuses: Dictionary) -> void:
+	if configured_data == null or global_bonuses.is_empty():
+		return
+
+	for key: Variant in global_bonuses.keys():
+		var key_str: String = str(key)
+		var value: float = float(global_bonuses[key])
+		if is_zero_approx(value):
+			continue
+		if key_str.ends_with("_percent"):
+			var stat_name: String = key_str.substr(0, key_str.length() - 8)
+			var current: Variant = configured_data.get(stat_name)
+			if current == null:
+				continue
+			var adjusted: float = float(current) * (1.0 + value)
+			_apply_permanent_stat_bonus(configured_data, stat_name, adjusted - float(current))
+		elif key_str.ends_with("_flat"):
+			var stat_name: String = key_str.substr(0, key_str.length() - 5)
+			_apply_permanent_stat_bonus(configured_data, stat_name, value)
 
 
 func _apply_permanent_stat_bonus(configured_data: Resource, stat_name: String, amount: float) -> void:

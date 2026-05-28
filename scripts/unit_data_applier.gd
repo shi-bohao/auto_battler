@@ -9,6 +9,15 @@ func apply_unit_data(unit: Variant, unit_data: Resource) -> void:
 	if unit_data == null:
 		return
 
+	unit.board_sprite = null
+	unit.portrait_texture = null
+	unit.icon_texture = null
+	unit.art_scale = 1.0
+	unit.art_offset = Vector2.ZERO
+	unit.basic_attack_type = "melee"
+	unit.projectile_speed = 500.0
+	unit.projectile_visual_type = "arrow"
+
 	unit.max_hp = int(unit_data.get("max_hp"))
 	unit.attack_damage = int(unit_data.get("attack_damage"))
 

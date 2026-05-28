@@ -188,13 +188,13 @@ func update(delta: float) -> void:
 		expire()
 
 
-func expire() -> void:
+func expire(should_update_display: bool = true, stat_context: Dictionary = {}) -> void:
 	if is_expired:
 		return
 
-	_remove_stat_modifier()
+	_remove_stat_modifier(should_update_display, stat_context)
 	is_expired = true
-	if _is_valid_unit(target_unit):
+	if should_update_display and _is_valid_unit(target_unit):
 		target_unit.update_info_display()
 
 
@@ -316,7 +316,7 @@ func _apply_stat_modifier() -> void:
 	target_unit.update_info_display()
 
 
-func _remove_stat_modifier() -> void:
+func _remove_stat_modifier(should_update_display: bool = true, stat_context: Dictionary = {}) -> void:
 	if not _is_stat_applied:
 		return
 
@@ -325,9 +325,13 @@ func _remove_stat_modifier() -> void:
 		return
 
 	if _applied_modifier_id.strip_edges() != "" and target_unit.has_method("remove_stat_modifier"):
-		target_unit.remove_stat_modifier(_applied_modifier_id)
+		target_unit.remove_stat_modifier(_applied_modifier_id, stat_context)
 		_is_stat_applied = false
 		_applied_modifier_id = ""
+		return
+
+	if bool(stat_context.get("skip_stat_restore", false)):
+		_is_stat_applied = false
 		return
 
 	var current_value: float = _get_stat_value(target_unit, _applied_stat_name)
@@ -341,7 +345,8 @@ func _remove_stat_modifier() -> void:
 
 	_set_stat_value(target_unit, _applied_stat_name, restored_value)
 	_is_stat_applied = false
-	target_unit.update_info_display()
+	if should_update_display:
+		target_unit.update_info_display()
 
 
 func _get_stat_value(unit: Variant, configured_stat_name: String) -> float:

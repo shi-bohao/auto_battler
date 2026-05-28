@@ -1,18 +1,124 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-25（含属性修饰器系统、动态金币光环、金币经济遗物、永久成长遗物、英雄美术资源和 UI 分层系统）
+更新时间：2026-05-28（含路径选择系统、蛆虫族敌人、属性修饰器动态光环性能优化、死亡链路优化、商店单位购买预览复用）
 
-> 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成或待规划的功能设计与实现入口见 `docs/future_features.md`。
+> 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成或待规划的功能设计与实现入口见 `docs/future_features.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
 ## 项目概览
 
 本项目是一个 Godot 4 + GDScript 制作的 2D 肉鸽自走棋 Demo。
 
-当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、运行时属性修饰器、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄美术资源、中文文本、战斗统计和结束回主菜单流程的可玩原型。
+当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、运行时属性修饰器、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄美术资源、中文文本、战斗统计、路径选择系统（6 种节点类型）和结束回主菜单流程的可玩原型。
 
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
 截至 2026-05-06，`docs/refactor_plan_2026-05-06.md` 中的 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。本文档仍保留早期说明口径，但以下目录和职责已同步到当前结构。
+
+## 2026-05-28 性能与稳定性修复
+
+近期完成并通过 headless 检查的内容：
+
+- **战斗死亡链路优化**：死亡时状态效果改为静默批量清理，避免每层 Buff/Debuff 过期都刷新单位详情或触发中间属性重算；死亡、召唤和敌我列表更新改为批量请求，在批次末尾统一刷新。
+- **动态金币光环刷新优化**：`EconomyManager.gold_changed` 现在先检查是否拥有动态金币光环遗物；没有 `golden_armor_contract`、`golden_charm` 或 `crown_of_greed` 时不触发全队属性刷新。存在动态金币光环时，`main.gd` 使用 deferred 刷新合并同一帧内多次金币变化。
+- **动态 modifier 批量重算**：`RelicEffectResolver.refresh_dynamic_gold_relics_to_unit()` 会先筛选实际拥有的动态金币遗物，再批量移除/添加同来源 modifier，最后只执行一次 `recalculate_stats()`，并通过 `preserve_base_stats` 避免把旧动态加成写成新的基础属性。
+- **日志开关**：新增 `scripts/debug_log.gd`，通过 `ProjectSettings` 中的 `auto_battler/debug/combat_log_enabled` 和 `auto_battler/debug/info_log_enabled` 控制战斗日志与普通信息日志，默认关闭，避免后期大量输出造成卡顿。
+- **商店单位购买卡顿修复**：购买单位后刷新备战预览时，不再销毁并重建所有上场、英雄和备战单位节点。`BattleManager.refresh_player_and_bench_units()` 现在按 `roster_id` 复用预览单位，并通过 `prepare_unit_signature` 跳过未变化单位的完整重配置。
+- **复用节点安全重置**：`Unit.reset_prepare_preview()` 清理运行时战斗状态、目标、状态效果和常驻遗物 meta；`UnitStatController.clear_runtime_state()` 为复用预览节点提供统一状态清理；`UnitDataApplier` 在应用资源前重置可选美术和弹道字段，避免复用节点残留旧图标或旧 projectile 配置。
+- **性能排查结论**：战斗后期卡顿主要来自死亡链路的状态清理、召唤刷新和单位列表重建；商店购买单位卡顿主要来自购买后整队预览节点销毁重建。当前分别改为静默清理、批量刷新和节点复用。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/battle_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/unit.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/unit_data_applier.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/combat/unit_stat_controller.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_stat_modifier_system.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_summon_system.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_hero_battle_spawn.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tests/test_hero_position_reservation.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
+```
+
+## 2026-05-27 路径选择系统
+
+近期完成并通过 headless 检查的内容：
+
+- 战斗胜利后新增路径选择面板：从 3 个候选节点中选择下一回合内容，替代线性推进。
+- **6 种节点类型全部实现**：
+  - **普通战斗（NORMAL）**：与原有遭遇生成一致，权重 5。
+  - **精英战斗（ELITE）**：通过 `forced_encounter_type` 机制强制生成精英遭遇，不再依赖回合 % 5 判定；权重 2，round >= 5 出现。
+  - **商人（MERCHANT）**：两栏 4+4 货架。上栏遗物（RARE+ 池，可指数增长刷新），下栏奇货货架（高费单位/全局强化/人口提升）。人口始终出现在 slot 1，可重复购买，价格 3→6→12→24→48...，上限 20。8 个全局强化通过 `global_stat_bonuses` → `unit_scaling_service` 应用到所有战斗单位。权重 2，冷却 2 回合。
+  - **训练场（TRAINING）**：注入训练遭遇到 encounter_manager → 正常准备阶段（可购物）→ 手动开始战斗 → 限时击杀木桩 → 木桩死亡掉落金币/遗物/升星券/永久属性 → 训练结束展示奖励总结。权重 1，冷却 2 回合。
+  - **随机事件（EVENT）**：6 个硬编码事件（迷途旅人/神秘祭坛/流浪商人/诅咒箱/受伤的战士/奥术异象），含效果解析器（金币增减/遗物获取/三选一/随机单位/永久属性/随机结果）。流浪商人的遗物三选一通过 `reward_panel_controller.show_custom_options()` 复用奖励面板。权重 2，冷却 1 回合。
+  - **宝箱（TREASURE）**：展示遗物名称/稀有度/描述，确认后领取。权重 RARE 50%/EPIC 35%/LEGENDARY 15%。权重 1，冷却 2 回合。
+- **Boss 锁定**：round 10/20/30 不出现选择面板，直接进入 Boss 准备。
+- **保护期**：round 1-2 固定 3 个 NORMAL。
+- **非战斗节点 UI 清理**：进入路径选择/商人/事件/宝箱时隐藏战斗棋盘、清除战场单位、清空统计文本、隐藏无关面板。进入准备时恢复显示。
+- **新增文件**：
+  - `scripts/path_selection_manager.gd` — 候选生成、冷却、权重、约束
+  - `scripts/merchant_manager.gd` — 货架生成、刷洗、购买、人口提升、全局强化
+  - `scripts/training_manager.gd` — 木桩遭遇生成、计时、掉落池、升星券
+  - `scripts/event_manager.gd` — 事件加载、抽取、效果解析（6 个事件硬编码）
+  - `scripts/ui/path_selection_panel_controller.gd` + `scenes/ui/path_selection_panel.tscn`
+  - `scripts/ui/merchant_panel_controller.gd` + `scenes/ui/merchant_panel.tscn`
+  - `scripts/ui/event_panel_controller.gd` + `scenes/ui/event_panel.tscn`
+  - `data/enemies/training_dummy.tres` — 木桩单位数据
+- **修改文件**：
+  - `scripts/game/game_state.gd` — 新增 5 个状态常量
+  - `scripts/game/run_controller.gd` — 新增 enter_* 方法、path_history、is_next_round_boss()
+  - `scripts/encounter/encounter_generator.gd` — `create_random_encounter()` 新增 `forced_type` 参数
+  - `scripts/encounter_manager.gd` — 新增 `forced_encounter_type`、`set_override_encounter()`
+  - `scripts/roster_manager.gd` — `max_active_units` 改为实例变量；新增 `apply_permanent_percent_bonus()`/`apply_permanent_flat_bonus()`、`global_stat_bonuses`、`set_unit_star_by_roster_id()`、`has_death_prevention`
+  - `scripts/roster/unit_scaling_service.gd` — 新增 `_apply_global_stat_bonuses()`
+  - `scripts/battle_manager.gd` — 新增 `enemy_unit_died` 信号、`force_end_battle()`
+  - `scripts/lineup_snapshot_manager.gd` — 快照持久化全局 buff 和 death_prevention
+  - `scripts/ui/reward_panel_controller.gd` — 新增 `show_custom_options()`
+  - `scripts/main.gd` — 接入全部 6 种节点流程、UI 切换、全局强化和高费单位添加；弹窗系统（`_show_popup` 复用事件面板居中展示）
+- **后续 bug 修复与迭代**：
+  - 人口提升改为可重复购买，每次价格翻倍（3→6→12→24→48），上限 20 封顶，显示实时人口数。
+  - 商人遗物货架新增去重逻辑，稀有度从遗物资源读取，剩余不足 4 个自然缩减不补重复。
+  - 高稀有度单位池改为稀有度筛选（rarity ≥ RARE），涵盖 14 个高稀有度单位含未解锁，选中后自动解锁。事件「受伤的战士」同步更新。
+  - 弹窗系统复用事件面板（居中面板 + 结果文本 + 继续按钮），训练场/商人/事件/宝箱统一使用。
+  - 事件面板按钮添加 PixelUI 样式，遗物选择时隐藏下层事件面板避免重叠。
+  - 训练场掉落记录改为具体内容（遗物名、升星单位名）。
+  - **弹道修复**：`spawn_basic_attack_projectile` 路由到 `battle_manager.projectile_manager`，补齐缺失的 `projectile_speed` 参数。
+  - **AoE 技能修复**：`unit_skill.update()` 中技能未命中时仍消耗魔力，防止每帧重复释放。
+  - `scenes/main.tscn` — 新增 3 个面板实例
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+```
+
+## 2026-05-25 难度曲线、敌方阶等与蛆虫族敌人
+
+近期完成并通过 headless 检查的内容：
+
+- 为 `UnitData` 新增 `enemy_tier` 字段（NORMAL / ELITE / BOSS），替代仅靠 `unit_type` 前缀判定敌方单位阶等的旧方式。
+- 17 个敌方 `.tres` 文件已配置 `enemy_tier`；`EnemyCatalog.is_elite_enemy_id()` 和 `EncyclopediaCatalog._get_enemy_type_key()` 优先读取该字段，旧前缀逻辑保留为兜底。
+- 图鉴新增稀有度/类型筛选功能：友方单位与遗物按 COMMON/FINE/RARE/EPIC/LEGENDARY/MYTHIC 过滤，敌方单位按普通敌人/精英/BOSS 过滤，默认显示"全部"。
+- 新增两个敌方单位：
+  - **巨型蛆虫 / Giant Maggot**（NORMAL, damage）：近战，死亡自爆 AoE + 施加剧毒与腐痕，主动技能喷吐毒液。
+  - **蛆虫聚合体 / Maggot Amalgam**（ELITE, tank）：近战，死亡分裂召唤 4 只巨型蛆虫，主动技能扇形腐潮（若目标有腐痕则增伤）。
+- 新增 Debuff **putrid_mark（腐痕）**：`STAT_MULTIPLY` 类型，`damage_taken_multiplier = 1.25`（承伤 +25%），由蛆虫族所有技能施加，腐潮检测后 ×1.25 增伤并刷新。
+- 蛆虫族所有持续伤害统一使用已有 `venom_stack`（剧毒），通过层数区分强度：死亡自爆 1 层、喷吐 2 层、腐潮 2 层。
+- 蛆虫族接入 `EnemyCatalog` 池（NORMAL_DAMAGE + ELITE_TANK），并在遭遇生成器模板权重中配置出现频率。
+- **难度曲线全面调整**：
+  - 普通 HP 每波 ×0.04 → ×0.06，数量上限 6 → 12。
+  - 精英 HP 基础 1.25 → 1.40，每波 +0.05 → +0.08，数量上限 5 → 9。攻击乘数不变。
+  - Boss HP 分段成长大幅提高：T0 ×1.30 / T1 ×2.65 / T2 ×4.00，护卫数按 Tier 递增（4/5/6）。攻击仅微调，防御从 +12→+15、+24→+30。
+  - 精英遭遇拆分精英/普通单位：精英数量 = floor(波次/5)，其余为普通单位，各自使用对应星级概率表。
+  - Boss 遭遇新增精英单位：数量 = floor(波次/5)，使用精英池和精英星级概率。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --script res://scripts/tools/generate_content_reference.gd
+```
 
 ## 2026-05-25 属性修饰器与动态金币光环
 
@@ -22,8 +128,8 @@
 - 属性修饰器按 `BASE_OVERRIDE → PERMANENT_FLAT → PERMANENT_PERCENT → RUNTIME_FLAT → RUNTIME_PERCENT → FINAL_FLAT → FINAL_PERCENT → FINAL_MULTIPLY` 顺序结算，避免遗物、羁绊、Buff/Debuff、英雄被动和加时赛直接改写同一字段后互相覆盖。
 - `Unit` 新增 `add_stat_modifier()`、`remove_stat_modifier()`、`remove_stat_modifiers_by_source()`、`recalculate_stats()`，作为其他系统接入属性加成的统一入口。
 - 静态 `AURA` 遗物、金币动态光环、Buff/Debuff 属性效果、羁绊战斗开始属性、部分英雄/单位战斗开始被动和加时赛加成已接入 modifier 系统。
-- 金币转化属性遗物（金甲契约、黄金护符、贪婪王冠）不再只按开战金币固定结算，而是通过动态 modifier 读取实时金币；金币变化、购买遗物、调整站位和单位生成都会刷新当前加成。
-- `EconomyManager` 新增 `gold_changed` 信号，`main.gd` 监听后调用 `BattleManager.refresh_dynamic_relic_auras()` 刷新当前玩家单位、备战单位和镜像敌方单位。
+- 金币转化属性遗物（金甲契约、黄金护符、贪婪王冠）不再只按开战金币固定结算，而是通过动态 modifier 读取实时金币；拥有动态金币光环时，金币变化、购买遗物、调整站位和单位生成都会刷新当前加成。
+- `EconomyManager` 新增 `gold_changed` 信号；`main.gd` 监听后会先通过 `RelicManager.has_dynamic_gold_relics()` 判断是否需要刷新，存在动态金币光环时再 deferred 合并调用 `BattleManager.refresh_dynamic_relic_auras()`，刷新当前玩家单位、备战单位和镜像敌方单位。
 - 召唤物生成时会先标记 `is_summon` 再应用遗物光环，避免开战型旧光环误套到召唤物；动态金币光环仍可按当前规则刷新。
 - 新增 `scripts/tests/test_stat_modifier_system.gd`，覆盖属性层级结算和金币动态光环在金币/站位变化后的重算。
 - 详细设计见 `docs/stat_modifier_system_design.md`。
@@ -67,7 +173,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --scrip
 - 新增触发类型 `ON_ROUND_REWARD`：在战斗胜利金币结算阶段触发，参考 `pre_reward_gold` 计算额外金币，第 30 波最终 Boss 跳过。
 - `RelicManager` 新增 `set_battle_gold_context()`、`trigger_round_reward_relics()`、`reset_battle_relic_state()`、`_add_battle_gold()` 和 `gold_add_callback` 回调机制。
 - 击杀金币遗物（赏金匕首、猎金契约）通过现有 `ON_KILL` 入口触发，通过 `RelicEffectResolver` 累积金币，回调 `main.gd` 即时写入 `EconomyManager`。
-- 金币转化属性遗物（金甲契约、黄金护符、贪婪王冠）已改为 `AURA` 光环类型，并接入动态属性修饰器，通过 `RelicManager.get_live_gold()` → `EconomyManager.get_gold()` 读取实时金币，金币变化后会刷新属性加成。
+- 金币转化属性遗物（金甲契约、黄金护符、贪婪王冠）已改为 `AURA` 光环类型，并接入动态属性修饰器，通过 `RelicManager.get_live_gold()` → `EconomyManager.get_gold()` 读取实时金币；拥有动态金币光环时，金币变化会触发合并后的属性刷新。
 - `BattleManager.start_battle()` 调用 `relic_manager.reset_battle_relic_state()` 清零每场战斗的击杀计数和金币累积。
 - `main.gd` 的 `_on_battle_ended()` 已接入 `trigger_round_reward_relics()`，在基础胜利金币计算完成后合并额外金币并输出日志。
 - 遗物奖励池扩展至 43 件。

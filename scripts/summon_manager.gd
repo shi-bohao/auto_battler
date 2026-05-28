@@ -26,6 +26,10 @@ const SOUL_BINDING_EXPIRES_AT_META: String = "soul_binding_expires_at"
 const SKELETON_SUMMON_DATA: Resource = preload("res://data/summons/skeleton.tres")
 const PUPPET_SUMMON_DATA: Resource = preload("res://data/summons/puppet.tres")
 const SOUL_PUPPET_SUMMON_DATA: Resource = preload("res://data/summons/soul_puppet.tres")
+const GIANT_MAGGOT_UNIT_DATA: Resource = preload("res://data/enemies/giant_maggot.tres")
+
+const PASSIVE_MAGGOT_DEATH_BURST: String = "maggot_death_burst"
+const PASSIVE_AMALGAM_SPLIT_BIRTH: String = "amalgam_split_birth"
 
 var battle_manager_ref: WeakRef = null
 var active_unit_summons_by_source: Dictionary = {}
@@ -112,6 +116,17 @@ func handle_unit_death(unit: Unit) -> void:
 		return
 
 	match str(unit.passive_id):
+		PASSIVE_MAGGOT_DEATH_BURST:
+			if unit.unit_skill != null and unit.unit_skill.has_method("apply_maggot_death_burst"):
+				unit.unit_skill.apply_maggot_death_burst(unit)
+		PASSIVE_AMALGAM_SPLIT_BIRTH:
+			var maggot_context: Dictionary = {
+				"source_type": SOURCE_TYPE_UNIT,
+				"position": unit.position,
+				"ignore_source_alive": true,
+				"summon_cap": 4,
+			}
+			summon_units(unit, GIANT_MAGGOT_UNIT_DATA, 4, maggot_context)
 		PASSIVE_ENEMY_DEATH_SUMMONS_SKELETONS:
 			var context: Dictionary = {
 				"source_type": SOURCE_TYPE_UNIT,
@@ -119,7 +134,6 @@ func handle_unit_death(unit: Unit) -> void:
 				"ignore_source_alive": true,
 			}
 			summon_units(unit, SKELETON_SUMMON_DATA, 2, context)
-
 
 func handle_unit_killed_target(attacker: Unit, target: Unit) -> void:
 	if attacker != null and is_instance_valid(attacker) and str(attacker.passive_id) == PASSIVE_ENEMY_KILL_SUMMONS_SKELETONS:

@@ -9,6 +9,7 @@ const COMBAT_RESOLVER_SCRIPT: Script = preload("res://scripts/combat/combat_reso
 var payload: Variant = null
 var target: Variant = null
 var speed: float = 500.0
+var time_scale: float = 1.0
 var lifetime: float = 0.0
 var max_lifetime: float = 2.0
 var is_destroyed: bool = false
@@ -20,12 +21,13 @@ var enhanced_color: Color = Color.WHITE
 @onready var body: ColorRect = $"Body" as ColorRect
 
 
-func setup(configured_payload: Variant, configured_target: Variant, configured_speed: float, configured_manager: Variant) -> void:
+func setup(configured_payload: Variant, configured_target: Variant, configured_speed: float, configured_manager: Variant, configured_time_scale: float = 1.0) -> void:
 	payload = configured_payload
 	target = configured_target
 	speed = maxf(1.0, configured_speed)
 	max_lifetime = maxf(0.5, float(configured_payload.max_lifetime))
 	projectile_manager = configured_manager
+	set_time_scale(configured_time_scale)
 
 	if configured_payload.is_enhanced:
 		is_enhanced = true
@@ -47,7 +49,8 @@ func _process(delta: float) -> void:
 	if is_destroyed:
 		return
 
-	lifetime += delta
+	var battle_delta: float = maxf(delta, 0.0) * time_scale
+	lifetime += battle_delta
 	if lifetime > max_lifetime:
 		_destroy()
 		return
@@ -65,7 +68,11 @@ func _process(delta: float) -> void:
 		return
 
 	direction = direction.normalized()
-	position += direction * speed * delta
+	position += direction * speed * battle_delta
+
+
+func set_time_scale(value: float) -> void:
+	time_scale = maxf(value, 0.01)
 
 
 func _on_hit() -> void:

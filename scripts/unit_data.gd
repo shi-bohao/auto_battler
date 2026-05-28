@@ -9,6 +9,8 @@ extends Resource
 @export var bond_tags: Array[String] = []
 @export var star: int = 1
 @export_enum("COMMON", "FINE", "RARE", "EPIC", "LEGENDARY", "MYTHIC") var rarity: String = "COMMON"
+## 敌方单位等阶：空字符串表示非敌方，敌方设为 NORMAL / ELITE / BOSS
+@export var enemy_tier: String = ""
 @export var price: int = 2
 @export var max_hp: int = 100
 @export var attack_damage: int = 10

@@ -34,7 +34,7 @@
 | 猎手 | `hunter` | `archer`、`assassin`、`greatsword_knight`、`bomb_thrower`、`nightblade_captain`、`bloodbound_berserker`、`bloodshadow_hunter` |
 | 奥术 | `arcane` | `mage`、`alchemist`、`bomb_thrower`、`arcane_artillerist`、`prism_weaver`、`wind_chanter`、`arcane_mentor` |
 | 圣疗 | `divine` | `priest`、`cleric`、`forest_druid`、`bard`、`dawnbell_saint` |
-| 召唤 | `summon` | `necromancer`、`puppet_warlock`、`soul_binder` |
+| 召唤 | `summon` | `necromancer`、`puppet_warlock`、`soul_binder`、`hero_boneweaver`（织骨者英雄） |
 | 剧毒 | `venom` | `plague_caster`、`alchemist`、`venom_matriarch` |
 
 召唤物如 `summoned_skeleton`、`summoned_puppet` 不配置召唤羁绊计数标签。

@@ -1,6 +1,7 @@
 class_name UnitCombat
 extends RefCounted
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const UNIT_STATE_DEAD: int = 3
 const HERO_BLOOD_MARK_META: String = "hero_hunt_marked"
 const HERO_BLOOD_MARK_TEAM_META: String = "hero_hunt_mark_team_id"
@@ -101,7 +102,7 @@ func add_battle_attack_bonus_percent(unit: Variant, percent: float) -> void:
 		})
 	else:
 		unit.attack_damage = maxi(1, int(round(float(unit.attack_damage) * (1.0 + percent))))
-	print(unit.display_name + " attack damage: " + str(old_attack_damage) + " -> " + str(unit.attack_damage))
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " attack damage: " + str(old_attack_damage) + " -> " + str(unit.attack_damage))
 
 
 func add_shield(unit: Variant, amount: int, source: Variant = null) -> void:
@@ -118,7 +119,7 @@ func add_shield(unit: Variant, amount: int, source: Variant = null) -> void:
 		stat_source.stats_manager.record_shield_given(stat_source, final_amount)
 	unit.update_info_display()
 	_try_apply_iron_line_echo(unit, stat_source)
-	print(unit.display_name + " shield: " + str(unit.shield))
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " shield: " + str(unit.shield))
 
 
 func heal(unit: Variant, amount: int, source: Variant = null) -> void:
@@ -145,7 +146,7 @@ func heal(unit: Variant, amount: int, source: Variant = null) -> void:
 	unit._update_hp_bar()
 	unit.update_info_display()
 	unit.unit_feedback.play_heal_feedback(unit, healed_amount)
-	print(unit.display_name + " healed: " + str(old_hp) + " -> " + str(unit.hp))
+	DEBUG_LOG_SCRIPT.combat(unit.display_name + " healed: " + str(old_hp) + " -> " + str(unit.hp))
 
 
 func _calculate_incoming_damage(unit: Variant, amount: int, attacker: Variant, can_crit: bool) -> Dictionary:
@@ -158,7 +159,7 @@ func _calculate_incoming_damage(unit: Variant, amount: int, attacker: Variant, c
 			var critical_multiplier: float = maxf(1.0, float(attacker.crit_damage_multiplier))
 			damage_after_crit *= critical_multiplier
 			is_critical = true
-			print(attacker.display_name + " critical hit: " + str(amount) + " x" + str(critical_multiplier))
+			DEBUG_LOG_SCRIPT.combat(attacker.display_name + " critical hit: " + str(amount) + " x" + str(critical_multiplier))
 
 	damage_after_crit *= _get_hero_damage_multiplier(unit, attacker)
 	var defense_bonus: int = unit.unit_skill.get_effective_defense_bonus(unit)
@@ -296,7 +297,7 @@ func _handle_death(unit: Variant, attacker: Variant) -> void:
 	unit.unit_state = UNIT_STATE_DEAD
 	unit.current_target = null
 	if unit.has_method("clear_status_effects"):
-		unit.clear_status_effects()
+		unit.clear_status_effects(false, false)
 
 	if unit.stats_manager != null:
 		unit.stats_manager.record_death(unit)

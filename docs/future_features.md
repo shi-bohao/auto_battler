@@ -20,9 +20,11 @@
 > - `scripts/relic/relic_effect_resolver.gd` — 金币遗物数值计算与效果应用
 > - `scripts/relic/relic_trigger_dispatcher.gd` — `ON_ROUND_REWARD` 分发与击杀金币接入
 > - `scripts/relic_manager.gd` — `set_battle_gold_context()` / `trigger_round_reward_relics()` / `reset_battle_relic_state()`
-> - `scripts/main.gd` — 胜利结算接入 `ON_ROUND_REWARD`，金币回调与上下文传递
-> - `scripts/battle_manager.gd` — 战斗开始时调用 `reset_battle_relic_state()`
+> - `scripts/main.gd` — 胜利结算接入 `ON_ROUND_REWARD`，金币回调、上下文传递，以及动态金币光环的 deferred 合并刷新
+> - `scripts/battle_manager.gd` — 战斗开始时调用 `reset_battle_relic_state()`，并提供动态光环刷新入口
 > - `data/relics/` — 9 件新遗物资源文件
+>
+> 2026-05-28 实现补充：动态金币光环已加入性能保护。没有动态金币光环遗物时，金币变化不会触发全队重算；存在动态金币光环时，同一帧内多次金币变化会合并刷新；单个单位刷新时批量移除/添加 modifier，最后只重算一次属性。
 
 ### 原始设计（已按此实现）
 
@@ -135,8 +137,8 @@ value = 1.0
 | `scripts/relic/relic_trigger_dispatcher.gd` | 新增 `RELIC_TRIGGER_ROUND_REWARD = "ON_ROUND_REWARD"`，新增 `trigger_round_reward_relics(...)`，并在击杀入口接入 `bounty_dagger`、`goldhunter_contract`。 |
 | `scripts/relic/relic_effect_resolver.gd` | 实现金币奖励计算、击杀金币、根据金币转换战斗属性。 |
 | `scripts/relic_manager.gd` | 对外新增 `trigger_round_reward_relics(...)`，返回金币增量与日志明细。 |
-| `scripts/game/economy_manager.gd` | 新增 `gold_changed` 信号，金币变化后通知动态属性光环刷新。 |
-| `scripts/main.gd` | 在胜利结算处接入 `ON_ROUND_REWARD`，把额外金币并入最终发放并刷新 UI；监听金币变化并刷新动态光环。 |
+| `scripts/game/economy_manager.gd` | 新增 `gold_changed` 信号，金币变化后通知上层判断是否需要动态属性光环刷新。 |
+| `scripts/main.gd` | 在胜利结算处接入 `ON_ROUND_REWARD`，把额外金币并入最终发放并刷新 UI；监听金币变化，先检查动态金币光环是否存在，再 deferred 合并刷新动态光环。 |
 | `scripts/battle_manager.gd` | 战斗开始时重置每场金币遗物状态，并提供 `refresh_dynamic_relic_auras()` 刷新当前运行时单位。 |
 
 推荐不要让 `RelicEffectResolver` 直接持有 `EconomyManager` 强引用。金币变动可以由触发函数返回给 `main.gd` 统一调用 `economy_manager.add_gold()`，这样 UI 刷新、日志和流程控制仍集中在经济入口。
@@ -336,7 +338,7 @@ scripts/tests/test_gold_relics.gd
 4. 在 `RelicManager` 中暴露 `trigger_round_reward_relics()` 与 `reset_battle_relic_state()`。
 5. 在 `RelicEffectResolver` 中实现每件遗物的数值计算和战斗属性应用。
 6. 在 `main.gd` 胜利金币结算处接入 `ON_ROUND_REWARD`。
-7. 接入 `EconomyManager.gold_changed` 与 `BattleManager.refresh_dynamic_relic_auras()`，供金币转属性遗物动态刷新。
+7. 接入 `EconomyManager.gold_changed` 与 `BattleManager.refresh_dynamic_relic_auras()`；实际实现已增加 `has_dynamic_gold_relics()` 过滤和 deferred 合并刷新，供金币转属性遗物动态刷新。
 8. 为 `Bounty Dagger` 和 `Goldhunter Contract` 接入击杀入口，并处理每场战斗临时状态。
 9. 更新 `docs/relic_design.md` 和 `docs/content_reference.md`。
 10. 新增并运行 `scripts/tests/test_stat_modifier_system.gd`，再跑 `main.gd --check-only` 与项目启动退出检查。

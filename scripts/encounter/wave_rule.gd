@@ -18,12 +18,12 @@ func get_encounter_type_for_round(current_round: int) -> String:
 
 func get_normal_enemy_count(current_round: int) -> int:
 	var round_steps: int = floori(float(maxi(current_round - 1, 0)) / 2.0)
-	return clampi(2 + round_steps, 2, 6)
+	return clampi(2 + round_steps, 2, 12)
 
 
 func get_normal_multipliers(current_round: int) -> Dictionary:
 	return create_multipliers(
-		1.0 + float(current_round) * 0.04,
+		1.0 + float(current_round) * 0.06,
 		1.0 + float(current_round) * 0.03,
 		floori(float(current_round) / 3.0) * 3,
 		1.0
@@ -32,7 +32,7 @@ func get_normal_multipliers(current_round: int) -> Dictionary:
 
 func get_elite_multipliers(current_round: int) -> Dictionary:
 	return create_multipliers(
-		1.25 + float(current_round) * 0.05,
+		1.40 + float(current_round) * 0.08,
 		1.15 + float(current_round) * 0.04,
 		10 + floori(float(current_round) / 2.0) * 3,
 		1.10
@@ -42,10 +42,10 @@ func get_elite_multipliers(current_round: int) -> Dictionary:
 func get_boss_multipliers(current_round: int) -> Dictionary:
 	var boss_tier: int = clampi(floori(float(maxi(current_round - 10, 0)) / 10.0), 0, 2)
 	return create_multipliers(
-		1.0 + float(boss_tier) * 0.55,
-		1.0 + float(boss_tier) * 0.45,
-		boss_tier * 12,
-		1.0 + float(boss_tier) * 0.08
+		1.30 + float(boss_tier) * 1.35,
+		1.05 + float(boss_tier) * 0.525,
+		boss_tier * 15,
+		1.0 + float(boss_tier) * 0.10
 	)
 
 

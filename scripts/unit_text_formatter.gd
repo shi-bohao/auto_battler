@@ -122,7 +122,11 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 		"enemy_war_rhythm":
 			return "战鼓节奏：战斗开始时敌方全队攻击提高 6%。"
 		"enemy_blood_ritual":
-			return "血祭：敌方单位死亡时，存活友军恢复 25 生命。"
+			return "血祭：精英血谕者存活时，敌方单位击杀玩家单位会使击杀者恢复 25 生命。"
+		"maggot_death_burst":
+			return "腐爆：死亡时以自身位置为中心造成范围伤害，并对命中目标施加 1 层剧毒和腐痕。"
+		"amalgam_split_birth":
+			return "分裂繁殖：死亡时在附近召唤 4 只巨型蛆虫，召唤物参与胜负判定。"
 		"enemy_abyss_chant":
 			return "深渊吟诵：战斗开始时敌方全队获得 30 护盾，并提高 10% 魔力回复。"
 		"hero_iron_oath_commander":
@@ -202,6 +206,10 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 			return "唤骨术：在自身身边召唤 2 个骷髅。"
 		"enemy_puppet_mark":
 			return "傀儡咒印：优先标记未被标记的敌人，标记目标死亡时召唤 1 个傀儡，并使其受到伤害提高 " + ("25%，持续 10 秒。" if safe_star >= 3 else "15%，持续 8 秒。")
+		"septic_spit":
+			return "腐蚀喷吐：对当前目标造成 120% 攻击力的技能伤害，并施加 2 层剧毒和腐痕。"
+		"putrid_tide":
+			return "腐潮：向当前目标方向释放扇形腐潮，对命中目标造成 140% 攻击力的技能伤害；若目标已有腐痕，本次伤害提高 25%，随后施加 2 层剧毒并刷新腐痕。"
 		"enemy_guard_stance":
 			return "防守姿态：自身获得 25 + 15% 最大生命护盾。"
 		"enemy_harden":

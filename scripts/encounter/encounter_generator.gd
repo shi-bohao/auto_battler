@@ -32,8 +32,8 @@ var wave_rule: Variant = WAVE_RULE_SCRIPT.new()
 var enemy_position_service: Variant = ENEMY_POSITION_SERVICE_SCRIPT.new()
 
 
-func create_random_encounter(current_round: int) -> Dictionary:
-	var encounter_type: String = wave_rule.get_encounter_type_for_round(current_round)
+func create_random_encounter(current_round: int, forced_type: String = "") -> Dictionary:
+	var encounter_type: String = forced_type if forced_type != "" else wave_rule.get_encounter_type_for_round(current_round)
 	match encounter_type:
 		ENCOUNTER_TYPE_BOSS:
 			return _create_random_boss_encounter(current_round)
@@ -54,12 +54,25 @@ func _create_random_normal_encounter(current_round: int) -> Dictionary:
 
 
 func _create_random_elite_encounter(current_round: int) -> Dictionary:
-	var enemy_count: int = clampi(wave_rule.get_normal_enemy_count(current_round) - 1, 4, 5)
-	var template_id: String = _pick_string(["elite_assassin", "elite_mage", "elite_iron_wall", "elite_summoner"])
-	var units: Array[Dictionary] = _build_units_from_template(current_round, ENCOUNTER_TYPE_ELITE, enemy_count, template_id)
-	_ensure_elite_has_elite_unit(units, template_id)
-	_ensure_elite_has_high_star(units)
+	var total_count: int = clampi(wave_rule.get_normal_enemy_count(current_round) - 1, 4, 9)
+	var elite_count: int = floori(float(current_round) / 5.0)
+	var normal_count: int = maxi(0, total_count - elite_count)
+
+	var elite_template_id: String = _pick_string(["elite_assassin", "elite_mage", "elite_iron_wall", "elite_summoner"])
+	var elite_units: Array[Dictionary] = _build_units_from_template(current_round, ENCOUNTER_TYPE_ELITE, elite_count, elite_template_id)
+	_ensure_elite_has_elite_unit(elite_units, elite_template_id)
+	_ensure_elite_has_high_star(elite_units)
+
+	var normal_units: Array[Dictionary] = []
+	if normal_count > 0:
+		var normal_template_id: String = _pick_string(["balanced", "frontline", "backline", "assassin", "arcane", "summoner"])
+		normal_units = _build_units_from_template(current_round, ENCOUNTER_TYPE_NORMAL, normal_count, normal_template_id)
+
+	var units: Array[Dictionary] = []
+	units.append_array(elite_units)
+	units.append_array(normal_units)
 	_assign_enemy_positions(units)
+
 	var multipliers: Dictionary = wave_rule.get_elite_multipliers(current_round)
 	var name_map: Dictionary = {
 		"elite_assassin": "精英突击队",
@@ -67,7 +80,7 @@ func _create_random_elite_encounter(current_round: int) -> Dictionary:
 		"elite_iron_wall": "铁壁精英",
 		"elite_summoner": "召唤精英",
 	}
-	return _create_random_encounter_data(current_round, str(name_map.get(template_id, "精英突击队")), ENCOUNTER_TYPE_ELITE, units, multipliers)
+	return _create_random_encounter_data(current_round, str(name_map.get(elite_template_id, "精英突击队")), ENCOUNTER_TYPE_ELITE, units, multipliers)
 
 
 func _create_random_boss_encounter(current_round: int) -> Dictionary:
@@ -84,17 +97,10 @@ func _create_random_boss_encounter(current_round: int) -> Dictionary:
 		0,
 		1.0
 	))
+	var boss_tier: int = clampi(floori(float(maxi(current_round - 10, 0)) / 10.0), 0, 2)
+	var guard_count: int = 3 + boss_tier
 	units.append(_create_random_enemy_entry(
 		_select_unit_id(ROLE_TANK, {"enemy_shield_guard": 2.0, "enemy_stoneback_beast": 2.0, "enemy_elite_iron_warden": 1.0}, ENCOUNTER_TYPE_ELITE),
-		guard_star,
-		false,
-		1.0,
-		1.0,
-		0,
-		1.0
-	))
-	units.append(_create_random_enemy_entry(
-		_select_unit_id(ROLE_DAMAGE, {}, ENCOUNTER_TYPE_NORMAL),
 		guard_star,
 		false,
 		1.0,
@@ -111,12 +117,33 @@ func _create_random_boss_encounter(current_round: int) -> Dictionary:
 		0,
 		1.0
 	))
+	for _idx: int in range(guard_count - 2):
+		units.append(_create_random_enemy_entry(
+			_select_unit_id(ROLE_DAMAGE, {}, ENCOUNTER_TYPE_NORMAL),
+			guard_star,
+			false,
+			1.0,
+			1.0,
+			0,
+			1.0
+		))
+	var elite_count: int = floori(float(current_round) / 5.0)
+	if elite_count > 0:
+		var elite_star: int = wave_rule.roll_star(current_round, ENCOUNTER_TYPE_ELITE)
+		for _idx: int in range(elite_count):
+			units.append(_create_random_enemy_entry(
+				_select_unit_id(ROLE_DAMAGE, {}, ENCOUNTER_TYPE_ELITE),
+				elite_star,
+				false,
+				1.0,
+				1.0,
+				0,
+				1.0
+			))
 	_assign_enemy_positions(units)
 	var multipliers: Dictionary = wave_rule.get_boss_multipliers(current_round)
 	var name: String = enemy_catalog.get_unit_type_display_name(boss_unit_id)
 	return _create_random_encounter_data(current_round, name, ENCOUNTER_TYPE_BOSS, units, multipliers)
-
-
 func _build_units_from_template(current_round: int, encounter_type: String, enemy_count: int, template_id: String) -> Array[Dictionary]:
 	var role_counts: Dictionary = _get_template_role_counts(template_id, enemy_count)
 	var unit_weights: Dictionary = _get_template_unit_weights(template_id)
@@ -177,19 +204,19 @@ func _get_template_role_counts(template_id: String, enemy_count: int) -> Diction
 func _get_template_unit_weights(template_id: String) -> Dictionary:
 	match template_id:
 		"assassin", "elite_assassin":
-			return {"enemy_elite_shadow_reaper": 5.0, "enemy_crossbow_raider": 1.0, "enemy_flame_imp": 1.0}
+			return {"enemy_elite_shadow_reaper": 5.0, "enemy_crossbow_raider": 1.0, "enemy_flame_imp": 1.0, "enemy_giant_maggot": 2.0}
 		"arcane":
 			return {"enemy_flame_imp": 5.0, "enemy_war_drummer": 3.0, "enemy_crossbow_raider": 1.0}
 		"elite_mage":
-			return {"enemy_flame_imp": 5.0, "enemy_elite_blood_oracle": 3.0, "enemy_war_drummer": 2.0}
+			return {"enemy_flame_imp": 5.0, "enemy_elite_blood_oracle": 3.0, "enemy_war_drummer": 2.0, "enemy_elite_maggot_amalgam": 2.0}
 		"elite_iron_wall":
-			return {"enemy_elite_iron_warden": 5.0, "enemy_stoneback_beast": 3.0, "enemy_elite_blood_oracle": 4.0}
+			return {"enemy_elite_iron_warden": 5.0, "enemy_stoneback_beast": 3.0, "enemy_elite_blood_oracle": 4.0, "enemy_elite_maggot_amalgam": 4.0}
 		"summoner":
 			return {"enemy_grave_caller": 5.0, "enemy_bone_carrier": 3.0, "enemy_flame_imp": 1.0}
 		"elite_summoner":
-			return {"enemy_puppet_binder": 5.0, "enemy_grave_caller": 4.0, "enemy_bone_carrier": 3.0}
+			return {"enemy_puppet_binder": 5.0, "enemy_grave_caller": 4.0, "enemy_bone_carrier": 3.0, "enemy_giant_maggot": 2.0}
 		"frontline":
-			return {"enemy_shield_guard": 2.0, "enemy_stoneback_beast": 2.0}
+			return {"enemy_shield_guard": 2.0, "enemy_stoneback_beast": 2.0, "enemy_giant_maggot": 2.0}
 		_:
 			return {}
 

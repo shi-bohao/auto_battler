@@ -2,6 +2,8 @@ class_name RewardPanelController
 extends RefCounted
 
 
+const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
+
 signal reward_applied(reward: Dictionary)
 signal hero_upgrade_selected(upgrade: Dictionary)
 
@@ -75,6 +77,17 @@ func show_hero_upgrade_panel(upgrade_options: Array[Dictionary]) -> void:
 	refresh_reward_buttons()
 
 
+func show_custom_options(options: Array[Dictionary]) -> void:
+	reward_options = options.duplicate(true)
+	selection_mode = "reward"
+	is_selection_enabled = true
+	if reward_panel != null:
+		reward_panel.visible = true
+		reward_panel.z_index = 50
+		_set_title_text("选择奖励")
+	refresh_reward_buttons()
+
+
 func hide_reward_panel() -> void:
 	is_selection_enabled = false
 	if reward_panel != null:
@@ -105,7 +118,7 @@ func _on_reward_button_pressed(reward_index: int) -> void:
 
 	var reward: Dictionary = reward_options[reward_index]
 	_hide_hover_detail()
-	print("Selected reward: " + str(reward["name"]))
+	DEBUG_LOG_SCRIPT.info("Selected reward: " + str(reward["name"]))
 	if selection_mode == "hero_upgrade":
 		hero_upgrade_selected.emit(reward)
 		return
