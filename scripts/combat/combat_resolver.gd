@@ -99,6 +99,14 @@ func resolve_basic_attack_hit(attacker: Variant, target: Variant, payload: Varia
 	return actual_damage
 
 
+func resolve_skill_damage(caster: Variant, target: Variant, amount: int, _context: Dictionary = {}) -> int:
+	if not _is_valid_unit(target) or not target.is_alive:
+		return 0
+	if target.control_state != null and not is_equal_approx(target.control_state.skill_damage_taken_multiplier, 1.0):
+		amount = maxi(1, int(round(float(amount) * target.control_state.skill_damage_taken_multiplier)))
+	return target.take_damage(amount, caster)
+
+
 func _is_valid_unit(unit: Variant) -> bool:
 	return unit != null and is_instance_valid(unit)
 

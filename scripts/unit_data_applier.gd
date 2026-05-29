@@ -77,6 +77,19 @@ func apply_unit_data(unit: Variant, unit_data: Resource) -> void:
 	if configured_status_resistance != null:
 		unit.status_resistance = clampf(float(configured_status_resistance), 0.0, 0.95)
 
+	var configured_ctrl_dur: Variant = unit_data.get("control_duration_multiplier")
+	if configured_ctrl_dur != null:
+		unit.control_duration_multiplier = maxf(0.0, float(configured_ctrl_dur))
+	var configured_hard_ctrl_dur: Variant = unit_data.get("hard_control_duration_multiplier")
+	if configured_hard_ctrl_dur != null:
+		unit.hard_control_duration_multiplier = maxf(0.0, float(configured_hard_ctrl_dur))
+	var configured_ctrl_immunity: Variant = unit_data.get("control_immunity_tags")
+	if configured_ctrl_immunity is Array:
+		unit.control_immunity_tags.clear()
+		for tag: String in configured_ctrl_immunity:
+			if str(tag).strip_edges() != "":
+				unit.control_immunity_tags.append(str(tag).strip_edges())
+
 	var configured_dodge_chance: Variant = unit_data.get("dodge_chance")
 	if configured_dodge_chance != null:
 		unit.dodge_chance = clampf(float(configured_dodge_chance), 0.0, 0.95)

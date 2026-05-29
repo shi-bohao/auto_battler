@@ -85,6 +85,27 @@ func play_skill_feedback(unit: Node2D, skill_name: String) -> void:
 	label_tween.tween_callback(Callable(skill_label, "queue_free"))
 
 
+func play_control_feedback(unit: Node2D, control_name: String, color: Color) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+
+	var control_label: Label = Label.new()
+	control_label.text = control_name
+	control_label.position = Vector2(-16.0, -72.0)
+	control_label.modulate = color
+	control_label.add_theme_font_size_override("font_size", 14)
+	control_label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	control_label.add_theme_constant_override("outline_size", 3)
+	unit.add_child(control_label)
+
+	var label_tween: Tween = unit.create_tween()
+	label_tween.set_parallel(true)
+	label_tween.tween_property(control_label, "position", control_label.position + Vector2(0.0, -18.0), _get_scaled_duration(unit, 0.35))
+	label_tween.tween_property(control_label, "modulate:a", 0.0, _get_scaled_duration(unit, 0.35))
+	label_tween.set_parallel(false)
+	label_tween.tween_callback(Callable(control_label, "queue_free"))
+
+
 func _show_damage_number(unit: Node2D, amount: int, is_critical: bool) -> void:
 	var damage_label: Label = Label.new()
 	if is_critical:

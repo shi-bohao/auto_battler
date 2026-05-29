@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-28（含文档整理、路径选择系统、波次过渡动画、羁绊UI全面优化、战斗统计弹窗、商人悬浮提示、开场秘典修正）
+更新时间：2026-05-29（含控制效果系统、5 个控制测试单位、路径选择系统、波次过渡动画、羁绊UI全面优化、战斗统计弹窗、开场秘典修正）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成大型功能的设计与实现入口见 `docs/feature_design_log.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
@@ -13,6 +13,26 @@
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
 截至当前版本，早期 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。过期阶段总结和重构计划已从当前文档集中移除，目录和职责以本文档下方说明为准。
+
+## 2026-05-29 控制效果系统
+
+近期完成并通过 headless 检查的内容：
+
+- **控制效果系统**：新增减速/禁锢/眩晕/冻结/嘲讽五类控制，通过 `StatusEffectFactory.apply_control_effect()` 统一施加，`UnitControlState` 从所有 CONTROL 类型效果聚合最终行动能力。
+- **StatusEffect 扩展**：新增 `EFFECT_CONTROL`、`CATEGORY_CONTROL`、11 个控制字段、两个新叠层策略（`REFRESH_LONGER_DURATION` / `REPLACE_BY_LAST`）。
+- **UnitControlState**（`scripts/combat/unit_control_state.gd`）：布尔聚合 `can_move/attack/cast/retarget`，速度取最慢、冻结技能易伤取最大、嘲讽强制目标。
+- **UnitData / Unit 扩展**：新增 `control_duration_multiplier`、`hard_control_duration_multiplier`、`control_immunity_tags`；`UnitDataApplier` 同步。
+- **工厂入口**：`StatusEffectFactory.apply_control_effect(target, type, source, duration, options)`，根据控制类型自动填充默认字段。
+- **行动系统接入**：`UnitTargeting`（强制目标/禁止重选/卡住检测/移动速度倍率）、`Unit._attack_current_target`（禁止普攻）、`UnitSkill.update`（禁止施法且不满魔不清空）、`ActiveSkillCaster._get_offensive_skill_target()`（技能目标优先嘲讽来源）、`CombatResolver.resolve_skill_damage()`（冻结技能易伤）。
+- **UI**：`UnitControlState.get_ui_tags()` 返回当前控制标签，`Unit.update_info_display()` 追加 `[STUN] [SLOW]` 等显示。
+- **5 个控制测试单位**：
+  - 霜箭哨手（FINE, 猎手/奥术）— 普攻减速 + 主动强减速 AoE
+  - 藤缚卫士（RARE, 圣疗/召唤）— 主动禁锢 + 被动护盾
+  - 震锤先锋（RARE, 铁壁）— 主动眩晕 + 减伤被动
+  - 冰棱术士（EPIC, 奥术）— 主动冻结 AoE + 冻结增伤被动
+  - 挑衅旗手（RARE, 铁壁/圣疗）— 主动范围嘲讽 + 护盾 + 反伤回魔被动
+- **新增文件**：`scripts/combat/unit_control_state.gd`、5 个 `.tres` 单位数据、`docs/control_effect_system_design.md`、`docs/control_test_units_design.md`
+- **修改文件**：`status_effect.gd`、`unit_data.gd`、`unit.gd`、`unit_data_applier.gd`、`unit_effect_controller.gd`、`status_effect_factory.gd`、`unit_targeting.gd`、`unit_skill.gd`、`active_skill_caster.gd`、`combat_resolver.gd`、`passive_resolver.gd`、`unit_text_formatter.gd`、`unit_scaling_service.gd`
 
 ## 2026-05-28 文档整理
 
@@ -1021,6 +1041,7 @@ MIRROR_CHALLENGE
 4. 每次新增遗物效果时优先放入 `scripts/relic/relic_effect_resolver.gd`，触发条件放入 `scripts/relic/relic_trigger_dispatcher.gd`。
 5. 每次新增 UI 面板时优先新增 `scenes/ui/*.tscn` 和 `scripts/ui/*_controller.gd`。
 6. 远程普攻真实弹道和非圆形瞬时 AoE 已完成并保留在 `docs/feature_design_log.md` 作为实现参考；后续扩展抛物线弹道、持续非圆形区域或新 shape 时，继续沿用 CombatResolver、ProjectileManager、AoeResolver.get_units_in_shape() 和 AoEShapeVisual 的现有边界。
+7. 控制效果系统已完成设计文档 `docs/control_effect_system_design.md`；实现时应复用现有 StatusEffect 生命周期，并通过 UnitControlState 向移动、普攻、施法、索敌和伤害结算提供统一控制状态。用于实战验证的 5 个测试单位设计见 `docs/control_test_units_design.md`。
 
 ### 中期可考虑
 

@@ -17,9 +17,11 @@ const UNIT_COMBAT_SCRIPT: Script = preload("res://scripts/unit_combat.gd")
 const UNIT_TARGETING_SCRIPT: Script = preload("res://scripts/unit_targeting.gd")
 const UNIT_SKILL_SCRIPT: Script = preload("res://scripts/unit_skill.gd")
 const UNIT_EFFECT_CONTROLLER_SCRIPT: Script = preload("res://scripts/unit_effect_controller.gd")
+const UNIT_CONTROL_STATE_SCRIPT: Script = preload("res://scripts/combat/unit_control_state.gd")
 const COMBAT_RESOLVER_SCRIPT: Script = preload("res://scripts/combat/combat_resolver.gd")
 const ATTACK_PAYLOAD_SCRIPT: Script = preload("res://scripts/combat/attack_payload.gd")
 const UNIT_STAT_CONTROLLER_SCRIPT: Script = preload("res://scripts/combat/unit_stat_controller.gd")
+const CONTROL_STATUS_VIEW_SCRIPT: Script = preload("res://scripts/ui/control_status_view.gd")
 
 @export var team_id: int = 0
 @export var max_hp: int = 100
@@ -38,6 +40,9 @@ const UNIT_STAT_CONTROLLER_SCRIPT: Script = preload("res://scripts/combat/unit_s
 @export var mana_on_attack: float = 0.0
 @export var mana_on_hit_taken: float = 0.0
 @export var status_resistance: float = 0.0
+@export var control_duration_multiplier: float = 1.0
+@export var hard_control_duration_multiplier: float = 1.0
+@export var control_immunity_tags: Array[String] = []
 @export var dodge_chance: float = 0.0
 @export var attack_range: float = 80.0
 @export var search_range: float = 999.0
@@ -102,8 +107,10 @@ var unit_combat: Variant = UNIT_COMBAT_SCRIPT.new()
 var unit_targeting: Variant = UNIT_TARGETING_SCRIPT.new()
 var unit_skill: Variant = UNIT_SKILL_SCRIPT.new()
 var effect_controller: Variant = UNIT_EFFECT_CONTROLLER_SCRIPT.new()
+var control_state: Variant = UNIT_CONTROL_STATE_SCRIPT.new()
 var combat_resolver: Variant = COMBAT_RESOLVER_SCRIPT.new()
 var stat_controller: Variant = UNIT_STAT_CONTROLLER_SCRIPT.new()
+var control_status_view: Variant = CONTROL_STATUS_VIEW_SCRIPT.new()
 var visual_base_position: Vector2 = Vector2(20.0, 20.0)
 var visual_motion_time: float = 0.0
 
@@ -113,6 +120,7 @@ var visual_motion_time: float = 0.0
 @onready var board_sprite_node: Sprite2D = $"VisualRoot/AnimationRoot/BoardSprite"
 @onready var hp_bar: ProgressBar = $"HPBar ProgressBar"
 @onready var mana_bar: ProgressBar = $"ManaBar ProgressBar"
+@onready var control_status_row: HBoxContainer = $"ControlStatusRow"
 @onready var info_label: Label = $"InfoLabel Label"
 
 
@@ -135,9 +143,12 @@ func _ready() -> void:
 	stuck_check_timer = 0.5
 	last_ai_position = global_position
 	last_attack_count = attack_count
+	if control_status_view != null:
+		control_status_view.setup(control_status_row)
 	_update_hp_bar()
 	_update_mana_bar()
 	update_info_display()
+	_refresh_control_status_display()
 	unit_skill.reset_mana(self)
 	refresh_unit_art()
 
@@ -178,6 +189,7 @@ func reset_prepare_preview(configured_unit_data: Resource, configured_display_na
 	_update_hp_bar()
 	_update_mana_bar()
 	update_info_display()
+	_refresh_control_status_display()
 	unit_skill.reset_mana(self)
 
 
@@ -205,7 +217,8 @@ func _process(delta: float) -> void:
 	if not is_alive:
 		return
 
-	attack_cooldown = maxf(attack_cooldown - battle_delta, 0.0)
+	var attack_cooldown_rate: float = control_state.attack_cooldown_rate_multiplier if control_state != null else 1.0
+	attack_cooldown = maxf(attack_cooldown - battle_delta * attack_cooldown_rate, 0.0)
 	_update_targeting(battle_delta)
 	unit_skill.update(self, battle_delta)
 
@@ -452,8 +465,11 @@ func clear_status_effects(should_update_display: bool = true, should_recalculate
 		return
 
 	effect_controller.clear_effects(self, should_update_display, should_recalculate_stats)
+	if control_state != null:
+		control_state.reset()
 	if should_update_display:
 		update_info_display()
+		_refresh_control_status_display()
 
 
 func remove_status_effect(effect_id: String) -> int:
@@ -535,6 +551,8 @@ func _is_target_in_range(target: Variant) -> bool:
 
 
 func _attack_current_target() -> void:
+	if control_state != null and not control_state.can_attack:
+		return
 	if attack_cooldown > 0.0:
 		return
 
@@ -679,11 +697,47 @@ func _update_mana_bar() -> void:
 	mana_bar.visible = max_mana > 0
 
 
+func rebuild_control_state() -> void:
+	if control_state == null:
+		return
+	var changed: bool = control_state.rebuild(self, effect_controller.effects)
+	if changed:
+		update_info_display()
+	_refresh_control_status_display()
+
+
+func notify_control_effect_applied(effect: StatusEffect, is_new_control_type: bool) -> void:
+	if effect == null:
+		return
+
+	_refresh_control_status_display()
+	var control_type: String = effect.control_type
+	if control_status_view != null and control_status_view.has_method("pulse"):
+		control_status_view.pulse(control_type)
+
+	if is_new_control_type and unit_feedback != null and unit_feedback.has_method("play_control_feedback"):
+		var feedback_name: String = effect.control_ui_name
+		for tag: Dictionary in control_state.get_ui_tags():
+			if str(tag.get("type", "")) == control_type:
+				feedback_name = str(tag.get("name", feedback_name))
+				break
+		unit_feedback.play_control_feedback(self, feedback_name, effect.control_ui_color)
+
+
+func _refresh_control_status_display() -> void:
+	if control_status_view == null or control_state == null:
+		return
+	if not control_status_view.has_method("refresh"):
+		return
+	control_status_view.refresh(control_state.get_ui_tags())
+
+
 func update_info_display() -> void:
 	if info_label == null:
 		return
 
-	info_label.text = _get_compact_display_name()
+	var text: String = _get_compact_display_name()
+	info_label.text = text
 
 
 func _handle_detail_input(event: InputEvent) -> bool:

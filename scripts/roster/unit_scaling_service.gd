@@ -95,6 +95,16 @@ func get_star_growth(unit_type: String, star: int) -> Dictionary:
 			return _get_bloodbound_berserker_star_growth(safe_star)
 		"prism_weaver":
 			return _get_prism_weaver_star_growth(safe_star)
+		"frost_sentry":
+			return _get_frost_sentry_star_growth(safe_star)
+		"vine_binder":
+			return _get_vine_binder_star_growth(safe_star)
+		"thundermaul_vanguard":
+			return _get_thundermaul_vanguard_star_growth(safe_star)
+		"frost_prism_mage":
+			return _get_frost_prism_mage_star_growth(safe_star)
+		"taunt_banneret":
+			return _get_taunt_banneret_star_growth(safe_star)
 		"summoned_skeleton":
 			return _get_summoned_skeleton_star_growth(safe_star)
 		"summoned_puppet":
@@ -381,6 +391,56 @@ func _get_summoned_soul_puppet_star_growth(star: int) -> Dictionary:
 			return _create_star_growth(1.55, 1.35, 12, 0.95, 1.05, 0.0, 0.0)
 		3:
 			return _create_star_growth(2.15, 1.75, 30, 0.9, 1.10, 0.05, 0.15)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_frost_sentry_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.20, 1.55, 0, 0.90, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.45, 2.20, 0, 0.85, 1.0, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_vine_binder_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.30, 1.25, 5, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.75, 1.55, 15, 0.90, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_thundermaul_vanguard_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.65, 1.15, 35, 1.0, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.50, 1.35, 80, 1.0, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_frost_prism_mage_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.22, 1.55, 0, 0.95, 1.0, 0.05, 0.0)
+		3:
+			return _create_star_growth(1.55, 2.20, 0, 0.90, 1.0, 0.12, 0.30)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_taunt_banneret_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.65, 1.18, 35, 1.0, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.50, 1.40, 80, 1.0, 1.0, 0.0, 0.0)
 		_:
 			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
 

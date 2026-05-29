@@ -35,9 +35,12 @@ func update(unit: Variant, delta: float) -> void:
 		return
 
 	if unit.current_mana < float(unit.max_mana):
-		unit.restore_mana(unit.mana_regen_per_second * delta, unit)
+		var mana_regen_multiplier: float = unit.control_state.mana_regen_multiplier if unit.control_state != null else 1.0
+		unit.restore_mana(unit.mana_regen_per_second * delta * mana_regen_multiplier, unit)
 
 	if unit.current_mana >= float(unit.max_mana):
+		if unit.control_state != null and not unit.control_state.can_cast:
+			return
 		var cast_success: bool = try_cast_active_skill(unit)
 		if cast_success:
 			var post_skill_mana_restore: float = _consume_post_skill_mana_restore(unit)

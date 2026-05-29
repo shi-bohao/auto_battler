@@ -5,11 +5,7 @@ const EFFECT_HEAL_OVER_TIME: String = "HEAL_OVER_TIME"
 const EFFECT_DAMAGE_OVER_TIME: String = "DAMAGE_OVER_TIME"
 const EFFECT_STAT_ADD: String = "STAT_ADD"
 const EFFECT_STAT_MULTIPLY: String = "STAT_MULTIPLY"
-
-const POLARITY_AUTO: String = "AUTO"
-const POLARITY_POSITIVE: String = "POSITIVE"
-const POLARITY_NEGATIVE: String = "NEGATIVE"
-const POLARITY_NEUTRAL: String = "NEUTRAL"
+const EFFECT_CONTROL: String = "CONTROL"
 
 const CATEGORY_NONE: String = "NONE"
 const CATEGORY_DOT: String = "DOT"
@@ -17,6 +13,21 @@ const CATEGORY_HOT: String = "HOT"
 const CATEGORY_STAT: String = "STAT"
 const CATEGORY_MARK: String = "MARK"
 const CATEGORY_AURA: String = "AURA"
+const CATEGORY_CONTROL: String = "CONTROL"
+
+const CONTROL_SLOW: String = "SLOW"
+const CONTROL_ROOT: String = "ROOT"
+const CONTROL_STUN: String = "STUN"
+const CONTROL_FREEZE: String = "FREEZE"
+const CONTROL_TAUNT: String = "TAUNT"
+
+const STACK_POLICY_REFRESH_LONGER_DURATION: String = "REFRESH_LONGER_DURATION"
+const STACK_POLICY_REPLACE_BY_LAST: String = "REPLACE_BY_LAST"
+
+const POLARITY_AUTO: String = "AUTO"
+const POLARITY_POSITIVE: String = "POSITIVE"
+const POLARITY_NEGATIVE: String = "NEGATIVE"
+const POLARITY_NEUTRAL: String = "NEUTRAL"
 
 const DURATION_MODE_TIMED: String = "TIMED"
 const DURATION_MODE_NONE: String = "NONE"
@@ -55,6 +66,20 @@ var is_expired: bool = false
 var tick_values: Array[int] = []
 var next_tick_index: int = 0
 
+# Control fields
+var control_type: String = ""
+var move_speed_multiplier: float = 1.0
+var disable_movement: bool = false
+var disable_attack: bool = false
+var disable_cast: bool = false
+var disable_retarget: bool = false
+var forced_target: Variant = null
+var forced_target_unit_id: int = -1
+var skill_damage_taken_multiplier: float = 1.0
+var control_priority: int = 0
+var control_ui_name: String = ""
+var control_ui_color: Color = Color.WHITE
+
 var _is_stat_applied: bool = false
 var _applied_value: float = 0.0
 var _applied_stat_name: String = ""
@@ -78,6 +103,7 @@ func setup(effect_data: Dictionary) -> void:
 	tick_timer = 0.0
 	value = float(effect_data.get("value", 0.0))
 	stat_name = str(effect_data.get("stat_name", ""))
+	_read_control_fields(effect_data)
 	duration = _get_adjusted_duration(maxf(0.0, float(effect_data.get("duration", 0.0))))
 	remaining_time = duration
 	tick_values = _get_tick_values(effect_data)
@@ -114,6 +140,7 @@ func refresh(effect_data: Dictionary) -> void:
 	duration_mode = _resolve_duration_mode(effect_data, duration_mode)
 	value = float(effect_data.get("value", value))
 	stat_name = str(effect_data.get("stat_name", stat_name))
+	_read_control_fields(effect_data)
 	duration = _get_adjusted_duration(maxf(0.0, float(effect_data.get("duration", duration))))
 	remaining_time = duration
 	tick_interval = maxf(0.0, float(effect_data.get("tick_interval", tick_interval)))
@@ -205,6 +232,9 @@ func get_debug_text() -> String:
 	var value_text: String = str(value)
 	if not tick_values.is_empty():
 		value_text = _format_tick_values()
+	if effect_type == EFFECT_CONTROL:
+		var control_name: String = control_ui_name if control_ui_name.strip_edges() != "" else control_type
+		return effect_id + " " + control_name + " (" + remaining_text + "s)"
 	if stat_name.strip_edges() == "":
 		return effect_id + " " + effect_type + " " + value_text + " (" + remaining_text + "s)"
 
@@ -458,7 +488,14 @@ func _get_adjusted_duration(raw_duration: float) -> float:
 		return raw_duration
 
 	var resistance: float = clampf(float(target_unit.status_resistance), 0.0, 0.95)
-	return raw_duration * (1.0 - resistance)
+	var adjusted_duration: float = raw_duration * (1.0 - resistance)
+	if effect_type == EFFECT_CONTROL:
+		var control_multiplier: float = maxf(0.0, float(target_unit.get("control_duration_multiplier")))
+		adjusted_duration *= control_multiplier
+		if _is_hard_control_type(control_type):
+			var hard_multiplier: float = maxf(0.0, float(target_unit.get("hard_control_duration_multiplier")))
+			adjusted_duration *= hard_multiplier
+	return adjusted_duration
 
 
 func _is_negative_effect() -> bool:
@@ -538,6 +575,31 @@ func _resolve_duration_mode(effect_data: Dictionary, fallback_mode: String) -> S
 
 func _uses_timed_duration() -> bool:
 	return duration_mode == DURATION_MODE_TIMED
+
+
+func _read_control_fields(effect_data: Dictionary) -> void:
+	if effect_type != EFFECT_CONTROL:
+		return
+	control_type = str(effect_data.get("control_type", ""))
+	move_speed_multiplier = clampf(float(effect_data.get("move_speed_multiplier", 1.0)), 0.01, 1.0)
+	disable_movement = bool(effect_data.get("disable_movement", false))
+	disable_attack = bool(effect_data.get("disable_attack", false))
+	disable_cast = bool(effect_data.get("disable_cast", false))
+	disable_retarget = bool(effect_data.get("disable_retarget", false))
+	forced_target = effect_data.get("forced_target", null)
+	forced_target_unit_id = int(effect_data.get("forced_target_unit_id", -1))
+	skill_damage_taken_multiplier = maxf(1.0, float(effect_data.get("skill_damage_taken_multiplier", 1.0)))
+	control_priority = int(effect_data.get("control_priority", 0))
+	control_ui_name = str(effect_data.get("control_ui_name", ""))
+	var color_val: Variant = effect_data.get("control_ui_color", Color.WHITE)
+	if color_val is Color:
+		control_ui_color = color_val as Color
+
+
+func _is_hard_control_type(configured_control_type: String) -> bool:
+	return configured_control_type == CONTROL_ROOT \
+		or configured_control_type == CONTROL_STUN \
+		or configured_control_type == CONTROL_FREEZE
 
 
 func _infer_category() -> String:

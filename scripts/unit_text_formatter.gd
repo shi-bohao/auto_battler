@@ -137,6 +137,16 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 			return "猎杀标记：战斗开始时标记 1 个敌方后排单位，玩家单位攻击标记目标时伤害提高 15%。\n血影收割：玩家单位击杀敌人时，击杀者恢复 20 生命和 15 魔力；刺客或弓手击杀后额外获得 +10% 暴击率，持续 5 秒。"
 		"hero_boneweaver":
 			return "骨潮：战斗开始时，所有玩家召唤单位获得 15% 攻击力和 15% 最大生命加成；场上每有 1 个玩家召唤单位，召唤单位伤害提高 5%，最多 25%。\n不灭仆从：玩家召唤单位首次受到致命伤害时保留 1 点生命并获得 2 秒无敌，每单位每场战斗限 1 次。"
+		"frost_arrow":
+			return "霜箭：普攻命中使目标迟缓，行动速率降至 " + ("65%，持续 3 秒。" if safe_star >= 3 else "70%，持续 2 秒" + ("；2 星 65%。" if safe_star >= 2 else "。"))
+		"tangled_growth":
+			return "缠生：主动技能禁锢敌人时，为最低生命友军添加 " + ("24 + 70% 攻击力护盾；若目标生命低于 40% 额外治疗 20。" if safe_star >= 3 else "18 + 60% 攻击力护盾" + ("；2 星提升到 24 + 70% 攻击力。" if safe_star >= 2 else "。"))
+		"concussive_armor":
+			return "震荡护甲：受到护盾后生命伤害降低 " + ("15%；对眩晕目标普攻伤害提高 20%。" if safe_star >= 3 else "10%；对眩晕目标普攻伤害提高 20%。")
+		"shatter_focus":
+			return "碎冰聚焦：对被冻结目标造成主动技能伤害提高 20%。" + (" 3 星若击杀被冻结目标，恢复 30 魔力。" if safe_star >= 3 else "")
+		"banner_guard":
+			return "护旗姿态：被至少 1 个敌人嘲讽锁定时获得 12% 伤害减免；每 1 个被自身嘲讽的敌人额外 +4 护盾强度，最多 4 个。" + (" 3 星被嘲讽敌人攻击自身时恢复 3 魔力。" if safe_star >= 3 else "")
 		_ :
 			return _format_unknown_skill(passive_id)
 
@@ -242,6 +252,16 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 			return "血影突袭：满魔自动释放。攻击生命比例最低的敌人，造成 260% 攻击力的技能伤害；若目标低于 50% 生命，伤害提高 30%；若击杀目标，英雄恢复 50 魔力。英雄 Lv.4 起，基础伤害提升至 320% 攻击力。"
 		"hero_bone_golem":
 			return "骨巨人召唤：满魔自动释放。在最近敌人附近召唤一个骨巨人（近战肉盾），攻击 18+80%英雄攻击，生命 200+150%英雄攻击，防御 20，持续 15 秒。英雄 Lv.4 起额外召唤一只骨龙（远程范围输出），攻击 30+150%英雄攻击，生命 100+80%英雄攻击，攻击可造成溅射伤害。"
+		"pinning_frost":
+			return "钉霜箭：对当前目标造成 160% 攻击力的技能伤害，并使目标迟缓，行动速率降至 45%，持续 3 秒。" + (" 3 星额外对目标周围 80 内敌人施加 2 秒 70% 迟缓。" if safe_star >= 3 else "")
+		"vine_snare":
+			return "藤蔓禁锢：对当前目标造成 120% 攻击力的技能伤害，并禁锢 " + ("3 秒。" if safe_star >= 2 else "2.5 秒。") + (" 3 星额外禁锢目标周围 70 内最近敌人 1.5 秒。" if safe_star >= 3 else "")
+		"hammer_stun":
+			return "震锤重击：对当前目标造成 150% 攻击力的技能伤害，并眩晕 " + ("1.5 秒。" if safe_star >= 2 else "1.25 秒。") + (" 3 星额外对目标周围 60 内最近敌人造成 80% 攻击力伤害并眩晕 0.75 秒。" if safe_star >= 3 else "")
+		"frost_prison":
+			return "冰棱囚牢：以当前目标为中心，对 " + ("110" if safe_star >= 3 else "90") + " 内最多 " + ("4" if safe_star >= 3 else "3") + " 个敌人造成 170% 攻击力的技能伤害；主目标冻结 " + ("1.8 秒。" if safe_star >= 2 else "1.5 秒。") + " 周围目标冻结 0.8 秒。"
+		"challenge_banner":
+			return "挑战旗帜：嘲讽自身周围 120 内最多 " + ("3" if safe_star >= 2 else "2") + " 个敌人，持续 " + ("3.5 秒。" if safe_star >= 3 else "3 秒。") + " 自身获得 40 + 15% 最大生命护盾。" + (" 3 星额外获得 20 防御，持续 3.5 秒。" if safe_star >= 3 else "")
 		_:
 			return _format_unknown_skill(active_skill_id)
 

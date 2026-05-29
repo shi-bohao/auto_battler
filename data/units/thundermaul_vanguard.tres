@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_thundermaul_vanguard"]
+
+[resource]
+script = ExtResource("1_thundermaul_vanguard")
+unit_name = "Thundermaul Vanguard"
+unit_name_cn = "震锤先锋"
+description_cn = "前排硬控坦克，能用重锤打断敌人的行动。"
+unit_type = "thundermaul_vanguard"
+role = "tank"
+bond_tags = Array[String](["iron_wall"])
+rarity = "RARE"
+price = 6
+max_hp = 260
+attack_damage = 15
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 24
+attack_interval = 1.25
+attack_range = 55.0
+search_range = 999.0
+move_speed = 65.0
+passive_id = "concussive_armor"
+active_skill_id = "hammer_stun"
+max_mana = 100
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

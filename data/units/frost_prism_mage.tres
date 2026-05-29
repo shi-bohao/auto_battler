@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_frost_prism_mage"]
+
+[resource]
+script = ExtResource("1_frost_prism_mage")
+unit_name = "Frost Prism Mage"
+unit_name_cn = "冰棱术士"
+description_cn = "法术控制单位，能冻结敌人并放大后续技能伤害。"
+unit_type = "frost_prism_mage"
+role = "damage"
+bond_tags = Array[String](["arcane"])
+rarity = "EPIC"
+price = 8
+max_hp = 95
+attack_damage = 28
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.45
+attack_range = 145.0
+search_range = 999.0
+move_speed = 80.0
+passive_id = "shatter_focus"
+active_skill_id = "frost_prison"
+max_mana = 110
+mana_regen_per_second = 12.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 460.0
+projectile_visual_type = "magic"

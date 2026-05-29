@@ -72,6 +72,12 @@ const TOXIC_CLOUD_DAMAGE_BASE: float = 15.0
 const TOXIC_CLOUD_ATTACK_RATIO: float = 0.45
 const TOXIC_CLOUD_DAMAGE_BASE_STAR_3: float = 24.0
 const TOXIC_CLOUD_ATTACK_RATIO_STAR_3: float = 0.6
+const SKILL_PINNING_FROST: String = "pinning_frost"
+const SKILL_VINE_SNARE: String = "vine_snare"
+const SKILL_HAMMER_STUN: String = "hammer_stun"
+const SKILL_FROST_PRISON: String = "frost_prison"
+const SKILL_CHALLENGE_BANNER: String = "challenge_banner"
+
 const IRON_ORDER_DURATION: float = 5.0
 const IRON_ORDER_DURATION_STAR_3: float = 6.0
 const IRON_ORDER_DEFENSE: float = 30.0
@@ -210,6 +216,55 @@ const HERO_BLOODSHADOW_DAMAGE_MULTIPLIER: float = 2.6
 const HERO_BLOODSHADOW_DAMAGE_MULTIPLIER_LV4: float = 3.2
 const HERO_BLOODSHADOW_LOW_HP_RATIO: float = 0.50
 const HERO_BLOODSHADOW_LOW_HP_MULTIPLIER: float = 1.30
+const PINNING_FROST_DAMAGE_MULTIPLIER: float = 1.60
+const PINNING_FROST_SLOW_DURATION: float = 3.0
+const PINNING_FROST_SLOW_SPEED: float = 0.45
+const PINNING_FROST_PASSIVE_DURATION: float = 2.0
+const PINNING_FROST_PASSIVE_SPEED: float = 0.70
+const PINNING_FROST_PASSIVE_SPEED_2STAR: float = 0.65
+const PINNING_FROST_PASSIVE_DURATION_3STAR: float = 3.0
+const PINNING_FROST_AOE_RADIUS: float = 80.0
+const PINNING_FROST_AOE_DURATION: float = 2.0
+const VINE_SNARE_DAMAGE_MULTIPLIER: float = 1.20
+const VINE_SNARE_ROOT_DURATION: float = 2.5
+const VINE_SNARE_ROOT_DURATION_2STAR: float = 3.0
+const VINE_SNARE_AOE_RADIUS: float = 70.0
+const VINE_SNARE_AOE_DURATION: float = 1.5
+const TANGLED_GROWTH_SHIELD_BASE: int = 18
+const TANGLED_GROWTH_SHIELD_ATK_RATIO: float = 0.60
+const TANGLED_GROWTH_SHIELD_BASE_2STAR: int = 24
+const TANGLED_GROWTH_SHIELD_ATK_RATIO_2STAR: float = 0.70
+const TANGLED_GROWTH_LOW_HP_HEAL: int = 20
+const HAMMER_STUN_DAMAGE_MULTIPLIER: float = 1.50
+const HAMMER_STUN_DURATION: float = 1.25
+const HAMMER_STUN_DURATION_2STAR: float = 1.50
+const HAMMER_STUN_AOE_RADIUS: float = 60.0
+const HAMMER_STUN_AOE_DAMAGE_MULTIPLIER: float = 0.80
+const HAMMER_STUN_AOE_DURATION: float = 0.75
+const CONCUSSIVE_ARMOR_DAMAGE_REDUCTION: float = 0.10
+const CONCUSSIVE_ARMOR_DAMAGE_REDUCTION_3STAR: float = 0.15
+const CONCUSSIVE_ARMOR_STUNNED_DAMAGE_BONUS: float = 0.20
+const FROST_PRISON_DAMAGE_MULTIPLIER: float = 1.70
+const FROST_PRISON_RADIUS: float = 90.0
+const FROST_PRISON_MAX_TARGETS: int = 3
+const FROST_PRISON_FREEZE_DURATION: float = 1.5
+const FROST_PRISON_FREEZE_DURATION_2STAR: float = 1.8
+const FROST_PRISON_AOE_FREEZE_DURATION: float = 0.8
+const FROST_PRISON_RADIUS_3STAR: float = 110.0
+const FROST_PRISON_MAX_TARGETS_3STAR: int = 4
+const SHATTER_FOCUS_FROZEN_DAMAGE: float = 0.20
+const SHATTER_FOCUS_KILL_MANA: float = 30.0
+const CHALLENGE_BANNER_RADIUS: float = 120.0
+const CHALLENGE_BANNER_MAX_TARGETS: int = 2
+const CHALLENGE_BANNER_MAX_TARGETS_2STAR: int = 3
+const CHALLENGE_BANNER_DURATION: float = 3.0
+const CHALLENGE_BANNER_DURATION_3STAR: float = 3.5
+const CHALLENGE_BANNER_SHIELD_BASE: float = 40.0
+const CHALLENGE_BANNER_SHIELD_HP_RATIO: float = 0.15
+const CHALLENGE_BANNER_DEFENSE_BONUS_3STAR: int = 20
+const BANNER_GUARD_TAUNT_DAMAGE_REDUCTION: float = 0.12
+const BANNER_GUARD_SHIELD_POWER_PER_ENEMY: float = 4.0
+const BANNER_GUARD_MANA_ON_HIT_3STAR: float = 3.0
 const HERO_BLOODSHADOW_KILL_MANA: float = 50.0
 const HERO_BONE_GOLEM_HP_SCALING: float = 1.5
 const HERO_BONE_GOLEM_ATK_SCALING: float = 0.8
@@ -284,9 +339,12 @@ const FOCUS_BEAM_MANA_STAR_3: float = 25.0
 const ARCANE_BARRAGE_VISUAL_COLOR: Color = Color(0.48, 0.52, 1.0, 0.24)
 const FEAST_OF_VENOM_VISUAL_COLOR: Color = Color(0.35, 0.95, 0.32, 0.22)
 
+const CombatResolver: Script = preload("res://scripts/combat/combat_resolver.gd")
+
 var status_effect_factory: Variant = StatusEffectFactory.new()
 var passive_resolver: Variant = PassiveResolver.new()
 var aoe_resolver: Variant = AoeResolver.new()
+var combat_resolver: Variant = CombatResolver.new()
 
 
 func setup(passive_resolver_value: Variant) -> void:
@@ -397,6 +455,16 @@ func try_cast_active_skill(unit: Variant) -> bool:
 			return _cast_septic_spit(unit)
 		SKILL_PUTRID_TIDE:
 			return _cast_putrid_tide(unit)
+		SKILL_PINNING_FROST:
+			return _cast_pinning_frost(unit)
+		SKILL_VINE_SNARE:
+			return _cast_vine_snare(unit)
+		SKILL_HAMMER_STUN:
+			return _cast_hammer_stun(unit)
+		SKILL_FROST_PRISON:
+			return _cast_frost_prison(unit)
+		SKILL_CHALLENGE_BANNER:
+			return _cast_challenge_banner(unit)
 		_:
 			return false
 
@@ -1439,6 +1507,22 @@ func _apply_status_effect_with_tick_values(
 	)
 
 
+func _get_offensive_skill_target(unit: Variant, fallback_mode: String = "current_or_nearest") -> Variant:
+	if unit.control_state != null:
+		var forced: Variant = unit.control_state.get_valid_forced_target(unit)
+		if forced != null:
+			return forced
+	match fallback_mode:
+		"nearest":
+			return _find_nearest_enemy(unit)
+		"lowest_hp":
+			return _find_lowest_hp_ratio_enemy(unit)
+		_:
+			if _is_valid_unit(unit.current_target) and unit.current_target.team_id != unit.team_id:
+				return unit.current_target
+			return _find_nearest_enemy(unit)
+
+
 func _find_lowest_hp_ratio_ally(unit: Variant) -> Variant:
 	var lowest_ally: Variant = null
 	var lowest_hp_ratio: float = 0.0
@@ -1913,6 +1997,145 @@ func _is_valid_unit(unit: Variant) -> bool:
 
 func _is_star_3(unit: Variant) -> bool:
 	return _is_valid_unit(unit) and int(unit.star) == 3
+
+
+func _cast_pinning_frost(unit: Variant) -> bool:
+	var target: Variant = unit.current_target
+	if not unit._is_valid_target(target):
+		return false
+	var dmg_mult: float = PINNING_FROST_DAMAGE_MULTIPLIER * _get_active_skill_damage_multiplier(unit)
+	var skill_damage: int = maxi(1, int(round(float(unit.attack_damage) * dmg_mult)))
+	combat_resolver.resolve_skill_damage(unit, target, skill_damage)
+	var duration: float = PINNING_FROST_SLOW_DURATION
+	status_effect_factory.apply_control_effect(target, "SLOW", unit, duration, {
+		"effect_id": "pinning_frost_slow", "move_speed_multiplier": PINNING_FROST_SLOW_SPEED,
+		"stack_group_key": "slow", "source_key": "pinning_frost",
+	})
+	if _is_star_3(unit):
+		var aoe_units: Array = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, PINNING_FROST_AOE_RADIUS)
+		for enemy: Variant in aoe_units:
+			if enemy != target:
+				status_effect_factory.apply_control_effect(enemy, "SLOW", unit, PINNING_FROST_AOE_DURATION, {
+					"effect_id": "frost_arrow_slow", "move_speed_multiplier": PINNING_FROST_PASSIVE_SPEED,
+					"stack_group_key": "slow", "source_key": "pinning_frost_aoe",
+				})
+	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Pinning Frost", unit))
+	return true
+
+
+func _cast_vine_snare(unit: Variant) -> bool:
+	var target: Variant = unit.current_target
+	if not unit._is_valid_target(target):
+		return false
+	var dmg_mult: float = VINE_SNARE_DAMAGE_MULTIPLIER * _get_active_skill_damage_multiplier(unit)
+	var skill_damage: int = maxi(1, int(round(float(unit.attack_damage) * dmg_mult)))
+	combat_resolver.resolve_skill_damage(unit, target, skill_damage)
+	var root_dur: float = VINE_SNARE_ROOT_DURATION_2STAR if int(unit.star) >= 2 else VINE_SNARE_ROOT_DURATION
+	status_effect_factory.apply_control_effect(target, "ROOT", unit, root_dur, {
+		"effect_id": "vine_snare_root", "stack_group_key": "root", "source_key": "vine_snare",
+	})
+	if _is_star_3(unit):
+		var aoe_units: Array = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, VINE_SNARE_AOE_RADIUS)
+		var secondary_count: int = 0
+		for enemy: Variant in aoe_units:
+			if enemy != target and secondary_count < 1:
+				status_effect_factory.apply_control_effect(enemy, "ROOT", unit, VINE_SNARE_AOE_DURATION, {
+					"effect_id": "vine_snare_root_secondary", "stack_group_key": "root", "source_key": "vine_snare_aoe",
+				})
+				secondary_count += 1
+	_apply_tangled_growth(unit)
+	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Vine Snare", unit))
+	return true
+
+
+func _apply_tangled_growth(unit: Variant) -> void:
+	if unit.passive_id != "tangled_growth":
+		return
+	var lowest_ally: Variant = _find_lowest_hp_ratio_ally(unit)
+	if lowest_ally == null:
+		return
+	var base_shield: int = TANGLED_GROWTH_SHIELD_BASE_2STAR if int(unit.star) >= 2 else TANGLED_GROWTH_SHIELD_BASE
+	var atk_ratio: float = TANGLED_GROWTH_SHIELD_ATK_RATIO_2STAR if int(unit.star) >= 2 else TANGLED_GROWTH_SHIELD_ATK_RATIO
+	var shield_amount: int = maxi(1, int(round(float(base_shield) + float(unit.attack_damage) * atk_ratio)))
+	lowest_ally.add_shield(shield_amount, unit)
+	if _is_star_3(unit):
+		var hp_ratio: float = float(lowest_ally.hp) / float(maxi(1, lowest_ally.max_hp))
+		if hp_ratio < 0.40:
+			lowest_ally.heal(TANGLED_GROWTH_LOW_HP_HEAL, unit)
+
+
+func _cast_hammer_stun(unit: Variant) -> bool:
+	var target: Variant = unit.current_target
+	if not unit._is_valid_target(target):
+		return false
+	var dmg_mult: float = HAMMER_STUN_DAMAGE_MULTIPLIER * _get_active_skill_damage_multiplier(unit)
+	var skill_damage: int = maxi(1, int(round(float(unit.attack_damage) * dmg_mult)))
+	combat_resolver.resolve_skill_damage(unit, target, skill_damage)
+	var stun_dur: float = HAMMER_STUN_DURATION_2STAR if int(unit.star) >= 2 else HAMMER_STUN_DURATION
+	status_effect_factory.apply_control_effect(target, "STUN", unit, stun_dur, {
+		"effect_id": "hammer_stun", "stack_group_key": "stun", "source_key": "hammer_stun",
+	})
+	if _is_star_3(unit):
+		var aoe_units: Array = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, HAMMER_STUN_AOE_RADIUS)
+		var secondary_count: int = 0
+		for enemy: Variant in aoe_units:
+			if enemy != target and secondary_count < 1:
+				var aoe_damage: int = maxi(1, int(round(float(unit.attack_damage) * HAMMER_STUN_AOE_DAMAGE_MULTIPLIER * _get_active_skill_damage_multiplier(unit))))
+				combat_resolver.resolve_skill_damage(unit, enemy, aoe_damage)
+				status_effect_factory.apply_control_effect(enemy, "STUN", unit, HAMMER_STUN_AOE_DURATION, {
+					"effect_id": "hammer_stun_secondary", "stack_group_key": "stun", "source_key": "hammer_stun_aoe",
+				})
+				secondary_count += 1
+	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Hammer Stun", unit))
+	return true
+
+
+func _cast_frost_prison(unit: Variant) -> bool:
+	var target: Variant = unit.current_target
+	if not unit._is_valid_target(target):
+		return false
+	var dmg_mult: float = FROST_PRISON_DAMAGE_MULTIPLIER * _get_active_skill_damage_multiplier(unit)
+	var skill_damage: int = maxi(1, int(round(float(unit.attack_damage) * dmg_mult)))
+	var radius: float = FROST_PRISON_RADIUS_3STAR if _is_star_3(unit) else FROST_PRISON_RADIUS
+	var max_targets: int = FROST_PRISON_MAX_TARGETS_3STAR if _is_star_3(unit) else FROST_PRISON_MAX_TARGETS
+	var aoe_units: Array = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, radius)
+	var freezer_dur: float = FROST_PRISON_FREEZE_DURATION_2STAR if int(unit.star) >= 2 else FROST_PRISON_FREEZE_DURATION
+	var hit_count: int = 0
+	for enemy: Variant in aoe_units:
+		if hit_count >= max_targets:
+			break
+		combat_resolver.resolve_skill_damage(unit, enemy, skill_damage)
+		if enemy == target:
+			status_effect_factory.apply_control_effect(enemy, "FREEZE", unit, freezer_dur, {
+				"effect_id": "frost_prison_freeze", "stack_group_key": "freeze", "source_key": "frost_prison",
+			})
+		else:
+			status_effect_factory.apply_control_effect(enemy, "FREEZE", unit, FROST_PRISON_AOE_FREEZE_DURATION, {
+				"effect_id": "frost_prison_freeze_secondary", "stack_group_key": "freeze", "source_key": "frost_prison_aoe",
+			})
+		hit_count += 1
+	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Frost Prison", unit))
+	return true
+
+
+func _cast_challenge_banner(unit: Variant) -> bool:
+	var aoe_units: Array = aoe_resolver.get_enemy_units_in_radius(unit, unit.global_position, CHALLENGE_BANNER_RADIUS)
+	var max_targets: int = CHALLENGE_BANNER_MAX_TARGETS_2STAR if int(unit.star) >= 2 else CHALLENGE_BANNER_MAX_TARGETS
+	var dur: float = CHALLENGE_BANNER_DURATION_3STAR if _is_star_3(unit) else CHALLENGE_BANNER_DURATION
+	var taunted_count: int = 0
+	for enemy: Variant in aoe_units:
+		if taunted_count >= max_targets:
+			break
+		status_effect_factory.apply_control_effect(enemy, "TAUNT", unit, dur, {
+			"effect_id": "challenge_banner_taunt", "stack_group_key": "taunt", "source_key": "challenge_banner",
+		})
+		taunted_count += 1
+	var shield_amount: int = maxi(1, int(round(CHALLENGE_BANNER_SHIELD_BASE + float(unit.max_hp) * CHALLENGE_BANNER_SHIELD_HP_RATIO)))
+	unit.add_shield(_scale_active_skill_shield(unit, shield_amount), unit)
+	if _is_star_3(unit):
+		unit.set_meta("challenge_banner_defense_timer", CHALLENGE_BANNER_DURATION_3STAR)
+	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Challenge Banner", unit))
+	return true
 
 
 func _get_skill_feedback_name(skill_name: String, unit: Variant) -> String:

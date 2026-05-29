@@ -153,3 +153,112 @@ func _apply_bond_modifiers(effect_data: Dictionary) -> Dictionary:
 		return effect_data
 
 	return battle_root.modify_status_effect_data_for_bonds(effect_data)
+
+
+func apply_control_effect(
+	target: Variant,
+	control_type: String,
+	source: Variant,
+	duration: float,
+	options: Dictionary = {}
+) -> Variant:
+	if not _is_valid_alive_target(target):
+		return null
+
+	if not target.has_method("apply_status_effect"):
+		return null
+
+	if _is_control_immune(target, control_type):
+		return null
+
+	var source_key: String = str(options.get("source_key", _build_source_key(source)))
+	var effect_data: Dictionary = {
+		"effect_type": "CONTROL",
+		"category": "CONTROL",
+		"control_type": control_type,
+		"source_unit": source,
+		"target_unit": target,
+		"duration": maxf(0.0, duration),
+		"polarity": "NEGATIVE",
+		"stack_policy": StatusEffect.STACK_POLICY_REFRESH_LONGER_DURATION,
+		"effect_id": str(options.get("effect_id", control_type.to_lower() + "_control")),
+		"source_key": source_key,
+		"stack_group_key": str(options.get("stack_group_key", control_type.to_lower())),
+	}
+
+	match control_type:
+		"SLOW":
+			effect_data["move_speed_multiplier"] = float(options.get("move_speed_multiplier", 0.5))
+			effect_data["control_ui_name"] = "SLOW"
+			effect_data["control_ui_color"] = Color(0.4, 0.6, 1.0)
+		"ROOT":
+			effect_data["disable_movement"] = true
+			effect_data["control_priority"] = 1
+			effect_data["control_ui_name"] = "ROOT"
+			effect_data["control_ui_color"] = Color(0.3, 0.9, 0.3)
+		"STUN":
+			effect_data["disable_movement"] = true
+			effect_data["disable_attack"] = true
+			effect_data["disable_cast"] = true
+			effect_data["control_priority"] = 2
+			effect_data["control_ui_name"] = "STUN"
+			effect_data["control_ui_color"] = Color(1.0, 0.9, 0.2)
+		"FREEZE":
+			effect_data["disable_movement"] = true
+			effect_data["disable_attack"] = true
+			effect_data["disable_cast"] = true
+			effect_data["control_priority"] = 3
+			effect_data["control_ui_name"] = "FREEZE"
+			effect_data["control_ui_color"] = Color(0.5, 0.8, 1.0)
+			effect_data["skill_damage_taken_multiplier"] = float(options.get("skill_damage_taken_multiplier", 1.1))
+		"TAUNT":
+			effect_data["disable_retarget"] = true
+			effect_data["forced_target"] = source
+			effect_data["forced_target_unit_id"] = _get_unit_id(source)
+			effect_data["control_priority"] = 1
+			effect_data["control_ui_name"] = "TAUNT"
+			effect_data["control_ui_color"] = Color(1.0, 0.3, 0.3)
+			effect_data["stack_policy"] = StatusEffect.STACK_POLICY_REPLACE_BY_LAST
+
+	for key: Variant in options.keys():
+		if not effect_data.has(key):
+			effect_data[key] = options[key]
+
+	var adjusted: Dictionary = _apply_bond_modifiers(effect_data)
+	return target.apply_status_effect(adjusted)
+
+
+func _build_source_key(source: Variant) -> String:
+	if source != null and is_instance_valid(source):
+		var unit_type_value: Variant = source.get("unit_type")
+		if unit_type_value != null and str(unit_type_value).strip_edges() != "":
+			return str(unit_type_value)
+		var unit_id_value: Variant = source.get("unit_id")
+		if unit_id_value != null:
+			return "unit:" + str(int(unit_id_value))
+	return "none"
+
+
+func _get_unit_id(unit: Variant) -> int:
+	if unit != null and is_instance_valid(unit):
+		var value: Variant = unit.get("unit_id")
+		if value != null:
+			return int(value)
+	return -1
+
+
+func _is_control_immune(target: Variant, control_type: String) -> bool:
+	if target == null or not is_instance_valid(target):
+		return true
+
+	var tags_value: Variant = target.get("control_immunity_tags")
+	if not (tags_value is Array):
+		return false
+
+	var normalized_type: String = control_type.strip_edges().to_upper()
+	for tag_value: Variant in tags_value:
+		var tag: String = str(tag_value).strip_edges().to_upper()
+		if tag == "ALL" or tag == "CONTROL" or tag == normalized_type:
+			return true
+
+	return false

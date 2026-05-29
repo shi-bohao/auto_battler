@@ -51,6 +51,11 @@ const PASSIVE_DAWNBELL_ECHO: String = "dawnbell_echo"
 const PASSIVE_NIGHTBLADE_ORDER: String = "nightblade_order"
 const PASSIVE_BLOODBOUND_RAGE: String = "bloodbound_rage"
 const PASSIVE_PRISM_REFRACTION: String = "prism_refraction"
+const PASSIVE_FROST_ARROW: String = "frost_arrow"
+const PASSIVE_TANGLED_GROWTH: String = "tangled_growth"
+const PASSIVE_CONCUSSIVE_ARMOR: String = "concussive_armor"
+const PASSIVE_SHATTER_FOCUS: String = "shatter_focus"
+const PASSIVE_BANNER_GUARD: String = "banner_guard"
 
 const ARMOR_DAMAGE_MULTIPLIER: float = 0.85
 const ARMOR_DAMAGE_MULTIPLIER_STAR_3: float = 0.75
@@ -102,6 +107,10 @@ const HEALING_AURA_ATTACK_RATIO: float = 0.30
 const HEALING_AURA_BASE_HEAL_STAR_3: float = 12.0
 const HEALING_AURA_ATTACK_RATIO_STAR_3: float = 0.40
 const CORROSIVE_FLASK_DURATION: float = 3.0
+const FROST_ARROW_DURATION: float = 2.0
+const FROST_ARROW_SPEED: float = 0.70
+const FROST_ARROW_SPEED_2STAR: float = 0.65
+const FROST_ARROW_DURATION_3STAR: float = 3.0
 const CORROSIVE_FLASK_DURATION_STAR_3: float = 4.0
 const CORROSIVE_FLASK_DAMAGE: float = 4.0
 const CORROSIVE_FLASK_DAMAGE_STAR_3: float = 7.0
@@ -468,6 +477,9 @@ func apply_attack_landed_passives(unit: Variant, target: Variant) -> void:
 					"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
 					"category": StatusEffectFactory.CATEGORY_DOT,
 				})
+		PASSIVE_FROST_ARROW:
+			if _is_valid_unit(target) and target.is_alive:
+				_apply_frost_arrow(unit, target)
 		PASSIVE_ENEMY_VOID_CHARGE:
 			unit.restore_mana(ENEMY_VOID_CHARGE_MANA, unit)
 
@@ -1728,3 +1740,12 @@ func has_putrid_mark(target: Variant) -> bool:
 	if target.has_method("get_status_effect_count"):
 		return int(target.get_status_effect_count(EFFECT_PUTRID_MARK)) > 0
 	return false
+
+
+func _apply_frost_arrow(unit: Variant, target: Variant) -> void:
+	var dur: float = FROST_ARROW_DURATION_3STAR if _is_star_3(unit) else FROST_ARROW_DURATION
+	var speed_mult: float = FROST_ARROW_SPEED_2STAR if int(unit.star) >= 2 else FROST_ARROW_SPEED
+	status_effect_factory.apply_control_effect(target, "SLOW", unit, dur, {
+		"effect_id": "frost_arrow_slow", "move_speed_multiplier": speed_mult,
+		"stack_group_key": "slow", "source_key": "frost_arrow_passive",
+	})

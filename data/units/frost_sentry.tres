@@ -1,0 +1,33 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_frost_sentry"]
+
+[resource]
+script = ExtResource("1_frost_sentry")
+unit_name = "Frost Sentry"
+unit_name_cn = "霜箭哨手"
+description_cn = "后排软控射手，普攻和主动技能都能降低敌人移动速度。"
+unit_type = "frost_sentry"
+role = "damage"
+bond_tags = Array[String](["hunter", "arcane"])
+rarity = "FINE"
+price = 4
+max_hp = 95
+attack_damage = 18
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 0
+attack_interval = 1.20
+attack_range = 150.0
+search_range = 999.0
+move_speed = 95.0
+passive_id = "frost_arrow"
+active_skill_id = "pinning_frost"
+max_mana = 80
+mana_regen_per_second = 12.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 580.0
+projectile_visual_type = "arrow"

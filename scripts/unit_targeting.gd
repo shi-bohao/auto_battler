@@ -10,6 +10,14 @@ func update_targeting(unit: Variant, delta: float) -> void:
 	if not _is_valid_unit(unit):
 		return
 
+	var forced_target: Variant = _get_forced_target(unit)
+	if forced_target != null:
+		if unit.current_target != forced_target:
+			unit.current_target = forced_target
+			unit.target_search_timer = unit.target_search_interval
+			unit.retarget_timer = unit.retarget_interval
+		return
+
 	if not is_valid_target(unit, unit.current_target):
 		unit.current_target = null
 		unit.target_search_timer = 0.0
@@ -38,6 +46,13 @@ func check_targeting_stuck(unit: Variant, delta: float) -> void:
 		unit.stuck_check_timer = 0.5
 		return
 
+	if unit.control_state != null and unit.control_state.is_taunted:
+		if unit.control_state.get_valid_forced_target(unit) != null:
+			unit.last_ai_position = unit.global_position
+			unit.last_attack_count = unit.attack_count
+			unit.stuck_check_timer = 0.5
+			return
+
 	unit.stuck_check_timer = maxf(unit.stuck_check_timer - delta, 0.0)
 	if unit.stuck_check_timer > 0.0:
 		return
@@ -54,6 +69,9 @@ func check_targeting_stuck(unit: Variant, delta: float) -> void:
 
 
 func find_target(unit: Variant) -> Variant:
+	var forced: Variant = _get_forced_target(unit)
+	if forced != null:
+		return forced
 	var candidates: Array = get_valid_targets(unit)
 	if candidates.is_empty():
 		return null
@@ -116,6 +134,9 @@ func find_lowest_hp_target(unit: Variant, candidates: Array) -> Variant:
 
 func try_retarget_lowest_hp(unit: Variant) -> void:
 	if not _is_valid_unit(unit):
+		return
+
+	if unit.control_state != null and not unit.control_state.can_retarget:
 		return
 
 	if not is_valid_target(unit, unit.current_target):
@@ -231,16 +252,20 @@ func move_toward_current_target(unit: Variant, delta: float) -> void:
 	if not _is_valid_unit(unit):
 		return
 
+	if unit.control_state != null and not unit.control_state.can_move:
+		return
+
 	if not is_valid_target(unit, unit.current_target):
 		return
 
 	if is_current_target_in_range(unit):
 		return
 
+	var speed_multiplier: float = unit.control_state.move_speed_multiplier if unit.control_state != null else 1.0
 	var distance: float = unit.global_position.distance_to(unit.current_target.global_position)
 	var direction: Vector2 = unit.global_position.direction_to(unit.current_target.global_position)
 	var desired_distance: float = maxf(unit.attack_range - ATTACK_RANGE_TOLERANCE, 0.0)
-	var move_distance: float = minf(unit.move_speed * delta, distance - desired_distance)
+	var move_distance: float = minf(unit.move_speed * speed_multiplier * delta, distance - desired_distance)
 	unit.global_position += direction * move_distance
 
 
@@ -260,3 +285,18 @@ func is_target_in_range(unit: Variant, target: Variant) -> bool:
 
 func _is_valid_unit(unit: Variant) -> bool:
 	return unit != null and is_instance_valid(unit)
+
+
+func _get_forced_target(unit: Variant) -> Variant:
+	if not _is_valid_unit(unit) or unit.control_state == null:
+		return null
+
+	var forced: Variant = unit.control_state.get_valid_forced_target(unit)
+	if forced != null:
+		return forced
+
+	if unit.control_state.is_taunted and unit.has_method("rebuild_control_state"):
+		unit.rebuild_control_state()
+		return unit.control_state.get_valid_forced_target(unit)
+
+	return null

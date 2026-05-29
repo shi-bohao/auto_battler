@@ -29,24 +29,39 @@ func apply_effect(target_unit: Variant, effect_data: Dictionary) -> StatusEffect
 	_normalize_effect_data(effect_data)
 
 	var stack_policy: String = str(effect_data.get("stack_policy", StatusEffect.STACK_POLICY_REFRESH_ONLY))
+	var is_control_effect: bool = str(effect_data.get("effect_type", "")) == StatusEffect.EFFECT_CONTROL
+	var control_type: String = str(effect_data.get("control_type", ""))
+	var was_control_type_active: bool = _has_active_control_type(control_type) if is_control_effect else false
+	var applied_effect: StatusEffect = null
 	match stack_policy:
 		StatusEffect.STACK_POLICY_IGNORE_IF_ACTIVE:
-			return _apply_ignore_if_active(effect_data)
+			applied_effect = _apply_ignore_if_active(effect_data)
 		StatusEffect.STACK_POLICY_EXTEND_DURATION:
-			return _apply_extend_duration(effect_data)
+			applied_effect = _apply_extend_duration(effect_data)
 		StatusEffect.STACK_POLICY_STACK_REFRESH_DURATION, \
 		StatusEffect.STACK_POLICY_STACK_INDEPENDENT_DURATION, \
 		StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_REFRESH, \
 		StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_INDEPENDENT, \
 		StatusEffect.STACK_POLICY_PERMANENT_STACK:
-			return _apply_stack_effect(effect_data)
+			applied_effect = _apply_stack_effect(effect_data)
 		StatusEffect.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH, \
 		StatusEffect.STACK_POLICY_UNIQUE_PER_SOURCE_INDEPENDENT:
-			return _apply_refresh_only(effect_data)
+			applied_effect = _apply_refresh_only(effect_data)
 		StatusEffect.STACK_POLICY_STRONGEST_WINS:
-			return _apply_strongest_wins(effect_data)
+			applied_effect = _apply_strongest_wins(effect_data)
+		StatusEffect.STACK_POLICY_REFRESH_LONGER_DURATION:
+			applied_effect = _apply_refresh_longer_duration(effect_data)
+		StatusEffect.STACK_POLICY_REPLACE_BY_LAST:
+			applied_effect = _apply_replace_by_last(effect_data)
 		_:
-			return _apply_refresh_only(effect_data)
+			applied_effect = _apply_refresh_only(effect_data)
+
+	if applied_effect != null and applied_effect.effect_type == StatusEffect.EFFECT_CONTROL:
+		_notify_control_state_changed(target_unit)
+		if target_unit.has_method("notify_control_effect_applied"):
+			target_unit.notify_control_effect_applied(applied_effect, not was_control_type_active)
+
+	return applied_effect
 
 
 func update_effects(target_unit: Variant, delta: float) -> void:
@@ -63,10 +78,10 @@ func update_effects(target_unit: Variant, delta: float) -> void:
 
 		effect.update(delta)
 
-	_remove_expired_effects()
+	_remove_expired_effects(target_unit)
 
 
-func clear_effects(_target_unit: Variant, should_update_display: bool = true, should_recalculate_stats: bool = true) -> void:
+func clear_effects(target_unit: Variant, should_update_display: bool = true, should_recalculate_stats: bool = true) -> void:
 	var stat_context: Dictionary = {}
 	if not should_recalculate_stats:
 		stat_context["skip_recalculate"] = true
@@ -77,10 +92,13 @@ func clear_effects(_target_unit: Variant, should_update_display: bool = true, sh
 			effect.expire(should_update_display, stat_context)
 
 	effects.clear()
+	_notify_control_state_changed(target_unit)
 
 
 func remove_effects_by_id(effect_id: String) -> int:
 	var removed_count: int = 0
+	var had_control: bool = false
+	var target_unit: Variant = null
 	for index: int in range(effects.size() - 1, -1, -1):
 		var effect: StatusEffect = effects[index]
 		if effect == null:
@@ -90,18 +108,34 @@ func remove_effects_by_id(effect_id: String) -> int:
 		if effect.effect_id != effect_id:
 			continue
 
+		if effect.effect_type == StatusEffect.EFFECT_CONTROL:
+			had_control = true
+			target_unit = effect.target_unit
 		effect.expire()
 		effects.remove_at(index)
 		removed_count += 1
 
+	if had_control and _is_valid_unit(target_unit):
+		_notify_control_state_changed(target_unit)
+
 	return removed_count
 
 
-func _remove_expired_effects() -> void:
+func _remove_expired_effects(target_unit: Variant = null) -> void:
+	var had_control: bool = false
 	for index: int in range(effects.size() - 1, -1, -1):
 		var effect: StatusEffect = effects[index]
 		if effect == null or effect.is_expired:
+			if effect != null and effect.effect_type == StatusEffect.EFFECT_CONTROL:
+				had_control = true
 			effects.remove_at(index)
+	if had_control and _is_valid_unit(target_unit):
+		_notify_control_state_changed(target_unit)
+
+
+func _notify_control_state_changed(target_unit: Variant) -> void:
+	if _is_valid_unit(target_unit) and target_unit.has_method("rebuild_control_state"):
+		target_unit.rebuild_control_state()
 
 
 func get_debug_lines() -> Array[String]:
@@ -189,6 +223,26 @@ func _apply_strongest_wins(effect_data: Dictionary) -> StatusEffect:
 	else:
 		strongest_effect.refresh_duration(effect_data)
 	return strongest_effect
+
+
+func _apply_refresh_longer_duration(effect_data: Dictionary) -> StatusEffect:
+	var group_key: String = str(effect_data.get("stack_group_key", ""))
+	var existing_effect: StatusEffect = _find_first_effect_by_group(group_key)
+	var new_duration: float = maxf(0.0, float(effect_data.get("duration", 0.0)))
+	if existing_effect != null:
+		if new_duration > existing_effect.remaining_time:
+			existing_effect.refresh(effect_data)
+		return existing_effect
+	return _create_effect(effect_data)
+
+
+func _apply_replace_by_last(effect_data: Dictionary) -> StatusEffect:
+	var group_key: String = str(effect_data.get("stack_group_key", ""))
+	var existing_effect: StatusEffect = _find_first_effect_by_group(group_key)
+	if existing_effect != null:
+		existing_effect.expire()
+		effects.erase(existing_effect)
+	return _create_effect(effect_data)
 
 
 func _handle_stack_overflow(effect_data: Dictionary, group_effects: Array[StatusEffect]) -> StatusEffect:
@@ -282,7 +336,9 @@ func _normalize_stack_policy(configured_policy: String) -> String:
 		StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_REFRESH, \
 		StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_INDEPENDENT, \
 		StatusEffect.STACK_POLICY_PERMANENT_STACK, \
-		StatusEffect.STACK_POLICY_STRONGEST_WINS:
+		StatusEffect.STACK_POLICY_STRONGEST_WINS, \
+		StatusEffect.STACK_POLICY_REFRESH_LONGER_DURATION, \
+		StatusEffect.STACK_POLICY_REPLACE_BY_LAST:
 			return configured_policy
 		_:
 			return StatusEffect.STACK_POLICY_REFRESH_ONLY
@@ -415,6 +471,8 @@ func _infer_category(effect_data: Dictionary) -> String:
 			return StatusEffect.CATEGORY_DOT
 		StatusEffect.EFFECT_STAT_ADD, StatusEffect.EFFECT_STAT_MULTIPLY:
 			return StatusEffect.CATEGORY_STAT
+		StatusEffect.EFFECT_CONTROL:
+			return StatusEffect.CATEGORY_CONTROL
 		_:
 			return StatusEffect.CATEGORY_NONE
 
@@ -425,6 +483,8 @@ func _infer_polarity(effect_data: Dictionary) -> String:
 		StatusEffect.EFFECT_HEAL_OVER_TIME:
 			return StatusEffect.POLARITY_POSITIVE
 		StatusEffect.EFFECT_DAMAGE_OVER_TIME:
+			return StatusEffect.POLARITY_NEGATIVE
+		StatusEffect.EFFECT_CONTROL:
 			return StatusEffect.POLARITY_NEGATIVE
 		StatusEffect.EFFECT_STAT_ADD:
 			return _infer_stat_add_polarity(str(effect_data.get("stat_name", "")), float(effect_data.get("value", 0.0)))
@@ -462,3 +522,12 @@ func _infer_stat_multiply_polarity(stat_name: String, value: float) -> String:
 
 func _is_valid_unit(unit: Variant) -> bool:
 	return unit != null and is_instance_valid(unit)
+
+
+func _has_active_control_type(control_type: String) -> bool:
+	if control_type.strip_edges() == "":
+		return false
+	for effect: StatusEffect in effects:
+		if effect != null and not effect.is_expired and effect.effect_type == StatusEffect.EFFECT_CONTROL and effect.control_type == control_type:
+			return true
+	return false
