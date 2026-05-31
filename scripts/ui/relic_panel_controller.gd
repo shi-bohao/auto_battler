@@ -2,6 +2,7 @@ class_name RelicPanelController
 extends RefCounted
 
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
+const RELIC_ICON_HELPER: Script = preload("res://scripts/ui/relic_icon_helper.gd")
 
 
 const BAR_TEXT_COLOR: Color = Color(0.98, 0.78, 0.43, 1.0)
@@ -68,12 +69,8 @@ func refresh_relic_bar() -> void:
 
 	for relic_index: int in range(visible_count):
 		var relic_button: Button = Button.new()
-		relic_button.text = _get_relic_bar_name(relics[relic_index])
-		relic_button.tooltip_text = relic_manager.get_relic_name(relics[relic_index])
-		relic_button.custom_minimum_size = Vector2(112.0, 30.0)
-		relic_button.clip_text = true
-		relic_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		_apply_bar_button_style(relic_button)
+		RELIC_ICON_HELPER.configure_icon_button(relic_button, relics[relic_index], relic_manager, Vector2(64.0, 64.0))
+		_apply_bar_button_style(relic_button, relics[relic_index])
 		relic_button.pressed.connect(_on_relic_bar_item_pressed.bind(relic_index))
 		relic_bar_hbox.add_child(relic_button)
 
@@ -81,7 +78,7 @@ func refresh_relic_bar() -> void:
 		var more_button: Button = Button.new()
 		more_button.text = "+" + str(relics.size() - visible_count)
 		more_button.tooltip_text = "查看全部遗物"
-		more_button.custom_minimum_size = Vector2(64.0, 30.0)
+		more_button.custom_minimum_size = Vector2(64.0, 64.0)
 		more_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
 		_apply_bar_button_style(more_button)
 		more_button.pressed.connect(_on_more_relics_button_pressed)
@@ -176,15 +173,20 @@ func _rebuild_relic_detail_list() -> void:
 		return
 
 	for relic_index: int in range(relics.size()):
+		if relic_index % 8 == 0:
+			var row: HBoxContainer = HBoxContainer.new()
+			row.name = "RelicIconRow" + str(relic_index / 8)
+			row.add_theme_constant_override("separation", 6)
+			row.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+			relic_list_vbox.add_child(row)
+
 		var relic_button: Button = Button.new()
-		relic_button.text = relic_manager.get_relic_name(relics[relic_index])
-		relic_button.tooltip_text = relic_manager.get_relic_name(relics[relic_index])
-		relic_button.custom_minimum_size = Vector2(132.0, 30.0)
-		relic_button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		relic_button.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
-		_apply_detail_button_style(relic_button)
+		RELIC_ICON_HELPER.configure_icon_button(relic_button, relics[relic_index], relic_manager, Vector2(64.0, 64.0))
+		_apply_detail_icon_button_style(relic_button, relics[relic_index])
 		relic_button.pressed.connect(_on_relic_list_item_pressed.bind(relic_index))
-		relic_list_vbox.add_child(relic_button)
+		var current_row: HBoxContainer = relic_list_vbox.get_child(relic_list_vbox.get_child_count() - 1) as HBoxContainer
+		if current_row != null:
+			current_row.add_child(relic_button)
 
 
 func _show_relic_info(relic_index: int) -> void:
@@ -269,8 +271,9 @@ func _apply_bar_label_style(label: Label) -> void:
 	label.add_theme_font_size_override("font_size", 18)
 
 
-func _apply_bar_button_style(button: Button) -> void:
-	PIXEL_UI_THEME.apply_button_style(button, Color(0.070, 0.090, 0.125, 0.88), Color(0.70, 0.52, 0.30, 0.92), 1, 18)
+func _apply_bar_button_style(button: Button, relic_data: Resource = null) -> void:
+	var border_color: Color = _get_relic_border_color(relic_data)
+	PIXEL_UI_THEME.apply_button_style(button, Color(0.070, 0.090, 0.125, 0.88), border_color, 2, 18)
 	button.add_theme_color_override("font_color", BAR_TEXT_COLOR)
 	button.add_theme_color_override("font_hover_color", BAR_HOVER_TEXT_COLOR)
 	button.add_theme_color_override("font_pressed_color", Color(0.82, 0.92, 1.0, 1.0))
@@ -279,11 +282,30 @@ func _apply_bar_button_style(button: Button) -> void:
 	button.add_theme_font_size_override("font_size", 18)
 
 
+func _get_relic_border_color(relic_data: Resource) -> Color:
+	if relic_data != null and relic_manager != null:
+		var rarity: String = relic_manager.get_relic_rarity(relic_data)
+		if rarity_formatter != null and rarity_formatter.has_method("get_color"):
+			return rarity_formatter.get_color(rarity)
+
+	return Color(0.70, 0.52, 0.30, 0.92)
+
+
 func _apply_detail_button_style(button: Button) -> void:
 	PIXEL_UI_THEME.apply_button_style(button, Color(0.06, 0.08, 0.11, 0.88), Color(0.42, 0.34, 0.24, 0.92), 1, 16)
 	button.add_theme_color_override("font_color", Color(0.92, 0.86, 0.74, 1.0))
 	button.add_theme_color_override("font_hover_color", BAR_HOVER_TEXT_COLOR)
 	button.add_theme_color_override("font_pressed_color", Color(0.82, 0.92, 1.0, 1.0))
+
+
+func _apply_detail_icon_button_style(button: Button, relic_data: Resource) -> void:
+	var border_color: Color = _get_relic_border_color(relic_data)
+	PIXEL_UI_THEME.apply_button_style(button, Color(0.055, 0.070, 0.105, 0.94), border_color, 2, 18)
+	button.add_theme_color_override("font_color", BAR_TEXT_COLOR)
+	button.add_theme_color_override("font_hover_color", BAR_HOVER_TEXT_COLOR)
+	button.add_theme_color_override("font_pressed_color", Color(0.82, 0.92, 1.0, 1.0))
+	button.add_theme_color_override("font_outline_color", BAR_OUTLINE_COLOR)
+	button.add_theme_constant_override("outline_size", 2)
 
 
 func _create_button_style(bg_color: Color, border_color: Color, border_width: int, corner_radius: int) -> StyleBoxFlat:

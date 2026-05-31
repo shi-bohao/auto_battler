@@ -22,7 +22,7 @@ text = "遗物："
 
 [node name="RelicBarHBox HBoxContainer" type="HBoxContainer" parent="."]
 offset_left = 128.0
-offset_top = 27.0
+offset_top = 10.0
 offset_right = 696.0
-offset_bottom = 62.0
+offset_bottom = 80.0
 theme_override_constants/separation = 6

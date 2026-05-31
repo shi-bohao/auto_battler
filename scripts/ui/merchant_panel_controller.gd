@@ -1,6 +1,8 @@
 class_name MerchantPanelController
 extends RefCounted
 
+const RELIC_ICON_HELPER: Script = preload("res://scripts/ui/relic_icon_helper.gd")
+
 
 signal item_purchased(item: Dictionary)
 signal leave_requested()
@@ -73,6 +75,7 @@ func _refresh_relic_shelf() -> void:
 			var item: Dictionary = shelf[i]
 			if item.get("is_sold", false):
 				relic_buttons[i].text = "已售出"
+				relic_buttons[i].icon = null
 				relic_buttons[i].tooltip_text = ""
 				relic_buttons[i].disabled = true
 			else:
@@ -80,7 +83,11 @@ func _refresh_relic_shelf() -> void:
 				var price: int = int(item.get("price", 0))
 				var rarity: String = item.get("rarity", "RARE")
 				var desc: String = item.get("description", "")
+				var relic_data: Resource = item.get("relic_data", null) as Resource
+				var icon_texture: Texture2D = RELIC_ICON_HELPER.get_relic_icon_texture_sized(relic_data, null, Vector2i(52, 52))
 				relic_buttons[i].text = name + "\n[" + _get_rarity_cn(rarity) + "]\n" + str(price) + " 金币"
+				relic_buttons[i].icon = icon_texture
+				relic_buttons[i].expand_icon = false
 				relic_buttons[i].tooltip_text = name + "  [" + _get_rarity_cn(rarity) + "]\n" + desc
 				relic_buttons[i].disabled = false
 			relic_buttons[i].visible = true

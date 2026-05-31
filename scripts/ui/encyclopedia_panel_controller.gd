@@ -6,6 +6,7 @@ const ENCYCLOPEDIA_PANEL_SCENE: PackedScene = preload("res://scenes/ui/encyclope
 const ENCYCLOPEDIA_CATALOG_SCRIPT: Script = preload("res://scripts/catalog/encyclopedia_catalog.gd")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
 const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
+const RELIC_ICON_HELPER: Script = preload("res://scripts/ui/relic_icon_helper.gd")
 
 var panel: Panel = null
 var card_panel: Panel = null
@@ -14,7 +15,12 @@ var title_label: Label = null
 var category_hbox: HBoxContainer = null
 var filter_hbox: HBoxContainer = null
 var entry_list_vbox: VBoxContainer = null
+var detail_panel: Panel = null
+var detail_scroll: ScrollContainer = null
 var detail_text: RichTextLabel = null
+var relic_icon_panel: Panel = null
+var relic_icon_texture: TextureRect = null
+var relic_icon_fallback: Label = null
 var count_label: Label = null
 var catalog: Variant = ENCYCLOPEDIA_CATALOG_SCRIPT.new()
 var unit_text_formatter: Variant = null
@@ -78,7 +84,12 @@ func _bind_nodes() -> void:
 	category_hbox = panel.get_node_or_null("Card/CategoryHBox") as HBoxContainer
 	filter_hbox = panel.get_node_or_null("Card/FilterHBox") as HBoxContainer
 	entry_list_vbox = panel.get_node_or_null("Card/ListPanel/EntryListScroll/EntryListVBox") as VBoxContainer
+	detail_panel = panel.get_node_or_null("Card/DetailPanel") as Panel
+	detail_scroll = panel.get_node_or_null("Card/DetailPanel/DetailScroll") as ScrollContainer
 	detail_text = panel.get_node_or_null("Card/DetailPanel/DetailScroll/DetailText") as RichTextLabel
+	relic_icon_panel = panel.get_node_or_null("Card/DetailPanel/RelicIconPanel") as Panel
+	relic_icon_texture = panel.get_node_or_null("Card/DetailPanel/RelicIconPanel/RelicIconTexture") as TextureRect
+	relic_icon_fallback = panel.get_node_or_null("Card/DetailPanel/RelicIconPanel/RelicIconFallback") as Label
 	count_label = panel.get_node_or_null("Card/CountLabel") as Label
 
 
@@ -110,11 +121,21 @@ func _apply_style() -> void:
 	if list_panel != null:
 		list_panel.add_theme_stylebox_override("panel", _create_style(Color(0.06, 0.09, 0.14, 0.92), Color(0.32, 0.45, 0.62, 1.0), 6, 1))
 
-	var detail_panel: Panel = null
-	if panel != null:
-		detail_panel = panel.get_node_or_null("Card/DetailPanel") as Panel
 	if detail_panel != null:
 		detail_panel.add_theme_stylebox_override("panel", _create_style(Color(0.055, 0.075, 0.115, 0.92), Color(0.42, 0.56, 0.72, 1.0), 6, 1))
+
+	if relic_icon_panel != null:
+		relic_icon_panel.add_theme_stylebox_override("panel", _create_style(Color(0.035, 0.045, 0.070, 0.96), Color(0.78, 0.62, 0.36, 1.0), 6, 2))
+		relic_icon_panel.clip_contents = true
+
+	if relic_icon_texture != null:
+		relic_icon_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		relic_icon_texture.custom_minimum_size = Vector2(96.0, 96.0)
+
+	if relic_icon_fallback != null:
+		relic_icon_fallback.add_theme_color_override("font_color", Color(0.98, 0.82, 0.48, 1.0))
+		relic_icon_fallback.add_theme_color_override("font_outline_color", Color(0.02, 0.02, 0.03, 1.0))
+		relic_icon_fallback.add_theme_constant_override("outline_size", 3)
 
 	if detail_text != null:
 		detail_text.add_theme_font_size_override("normal_font_size", 17)
@@ -266,6 +287,7 @@ func _should_show_filter() -> bool:
 
 
 func _show_empty_detail() -> void:
+	_hide_relic_icon()
 	if detail_text != null:
 		detail_text.text = "暂无条目"
 
@@ -276,13 +298,38 @@ func _show_entry_detail(entry: Dictionary) -> void:
 
 	match str(entry.get("kind", "")):
 		"relic":
+			_show_relic_icon(entry)
 			detail_text.text = _build_relic_detail(entry)
 		"hero":
+			_hide_relic_icon()
 			detail_text.text = _build_hero_detail(entry)
 		"bond":
+			_hide_relic_icon()
 			detail_text.text = _build_bond_detail(entry)
 		_:
+			_hide_relic_icon()
 			detail_text.text = _build_unit_detail(entry)
+
+
+func _show_relic_icon(entry: Dictionary) -> void:
+	var relic_data: Resource = entry.get("resource", null) as Resource
+	if relic_icon_panel != null:
+		relic_icon_panel.visible = true
+	if detail_scroll != null:
+		detail_scroll.offset_top = 140.0
+	RELIC_ICON_HELPER.configure_icon_display(relic_icon_texture, relic_icon_fallback, relic_data, null)
+
+
+func _hide_relic_icon() -> void:
+	if relic_icon_panel != null:
+		relic_icon_panel.visible = false
+	if relic_icon_texture != null:
+		relic_icon_texture.texture = null
+		relic_icon_texture.visible = false
+	if relic_icon_fallback != null:
+		relic_icon_fallback.visible = false
+	if detail_scroll != null:
+		detail_scroll.offset_top = 14.0
 
 
 func _format_entry_button_text(entry: Dictionary) -> String:
