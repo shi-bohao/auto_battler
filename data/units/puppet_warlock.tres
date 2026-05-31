@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_warlock"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/puppet_warlock.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_warlock")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Puppet Warlock"
 unit_name_cn = "傀儡术士"
 description_cn = "标记型召唤单位，主动技能标记敌人，目标死亡后召唤傀儡。"

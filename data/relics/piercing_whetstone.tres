@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_whetstone"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/piercing_whetstone.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_whetstone")
+icon_texture = ExtResource("2_icon")
 relic_id = "piercing_whetstone"
 relic_name = "Armorbreaker Whetstone"
 relic_name_cn = "破甲砺石"

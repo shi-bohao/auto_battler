@@ -199,8 +199,12 @@ func _collect_relic_dir(dir_path: String) -> void:
 	dir.list_dir_begin()
 	var file_name: String = dir.get_next()
 	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var resource_path: String = dir_path + "/" + file_name
+		if not dir.current_is_dir():
+			var resource_file_name: String = _normalize_exported_resource_file_name(file_name, ".tres")
+			if resource_file_name == "":
+				file_name = dir.get_next()
+				continue
+			var resource_path: String = dir_path + "/" + resource_file_name
 			var resource: Resource = ResourceLoader.load(resource_path)
 			if _is_relic_data(resource):
 				_add_entry(CATEGORY_RELICS, _create_relic_entry(resource, resource_path))
@@ -217,13 +221,25 @@ func _collect_unit_dir(category: String, dir_path: String) -> void:
 	dir.list_dir_begin()
 	var file_name: String = dir.get_next()
 	while file_name != "":
-		if not dir.current_is_dir() and file_name.ends_with(".tres"):
-			var resource_path: String = dir_path + "/" + file_name
+		if not dir.current_is_dir():
+			var resource_file_name: String = _normalize_exported_resource_file_name(file_name, ".tres")
+			if resource_file_name == "":
+				file_name = dir.get_next()
+				continue
+			var resource_path: String = dir_path + "/" + resource_file_name
 			var resource: Resource = ResourceLoader.load(resource_path)
 			if _is_unit_data(resource):
 				_add_entry(category, _create_unit_entry(resource, resource_path, category))
 		file_name = dir.get_next()
 	dir.list_dir_end()
+
+
+func _normalize_exported_resource_file_name(file_name: String, extension: String) -> String:
+	if file_name.ends_with(extension):
+		return file_name
+	if file_name.ends_with(extension + ".remap"):
+		return file_name.trim_suffix(".remap")
+	return ""
 
 
 func _collect_heroes() -> void:

@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_soul_binder"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/soul_binder.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_soul_binder")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Soul Binder"
 unit_name_cn = "缚魂祭司"
 description_cn = "召唤流高稀有辅助核心，从友方死亡中获得魔力和护盾收益，并通过主动技能制造魂偶。"

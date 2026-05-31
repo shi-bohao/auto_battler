@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_golden_charm"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/golden_charm.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_golden_charm")
+icon_texture = ExtResource("2_icon")
 relic_id = "golden_charm"
 relic_name = "Golden Charm"
 relic_name_cn = "黄金护符"

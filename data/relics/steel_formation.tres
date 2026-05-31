@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_steel"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/steel_formation.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_steel")
+icon_texture = ExtResource("2_icon")
 relic_id = "steel_formation"
 relic_name = "Steel Formation"
 relic_name_cn = "钢铁阵列"

@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_plague_caster"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/plague_caster.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_plague_caster")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Plague Caster"
 unit_name_cn = "瘟疫术士"
 description_cn = "持续伤害输出，使用毒素削弱敌人。"

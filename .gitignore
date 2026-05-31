@@ -6,6 +6,10 @@
 # Local check logs
 *.log
 
+# Godot-generated import byproducts for processed asset manifests
+assets/processed/**/*.csv.import
+assets/processed/**/*.translation
+
 # Local editor/agent settings
 .claude/
 .vscode/

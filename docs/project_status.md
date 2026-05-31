@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-31（含控制效果系统、30 个玩家单位素材接入、遗物图标接入、背景图库与主菜单/战斗背景切换、渲染式棋盘网格、血条颜色区分、图鉴图片缩放修复）
+更新时间：2026-06-01（含导出资源修复、玩家单位/遗物素材改为数据资源显式引用、图鉴导出资源扫描兼容）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成大型功能的设计与实现入口见 `docs/feature_design_log.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
@@ -14,6 +14,27 @@
 
 截至当前版本，早期 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。过期阶段总结和重构计划已从当前文档集中移除，目录和职责以本文档下方说明为准。
 
+## 2026-06-01 导出资源与美术接入修复
+
+本轮重点修复导出后图鉴内容缺失、单位/遗物图标失效以及旧导出包启动闪退的问题：
+
+- **导出资源扫描兼容**：`UnitCatalog` 和 `EncyclopediaCatalog` 的目录扫描兼容 Godot 导出包中的 `.tres.remap` 文件名，导出后仍能识别玩家单位、敌方单位、召唤物、遗物和羁绊图鉴内容。
+- **玩家单位素材接入方式调整**：30 个玩家单位的 `data/units/*.tres` 已像英雄资源一样显式引用贴图，同一张处理后 PNG 同时写入 `board_sprite`、`portrait_texture`、`icon_texture`，运行时优先读取 `UnitData` 的贴图字段。
+- **遗物素材接入方式调整**：`RelicData` 新增 `icon_texture: Texture2D` 字段，43 个 `data/relics/*.tres` 已显式引用对应 `assets/processed/relics/*.png`，遗物栏、商人、图鉴和详情展示优先读取该字段。
+- **导出包图标修复**：删除 `assets/processed/.gdignore`，仅保留 `assets/processed/ui/.gdignore`，避免玩家单位和遗物处理图被排除在 Godot 导入/导出之外；`assets/processed/player_units/*.png.import` 与 `assets/processed/relics/*.png.import` 必须纳入版本库。
+- **图标加载兜底**：`UnitArtHelper` 与 `RelicIconHelper` 仍保留动态路径加载作为兜底；缺失素材时安静返回 `null`，交由 UI 显示占位，避免导出或浏览敌方单位时刷 `Image.load()` 文件错误。
+- **导出闪退定位与修复**：旧正式导出包因 `data/units/*.tres` 引用了新 PNG 但包内缺少对应导入纹理而启动失败；已重新导入资源并重新导出正式包，`auto_battler.console.exe` 运行 6 秒未退出，确认启动闪退已消除。
+- **新增/更新文件**：`scripts/relic_data.gd`、`scripts/unit_art_helper.gd`、`scripts/ui/relic_icon_helper.gd`、`scripts/catalog/unit_catalog.gd`、`scripts/catalog/encyclopedia_catalog.gd`、`data/units/*.tres`、`data/relics/*.tres`、`assets/processed/player_units/*.png.import`、`assets/processed/relics/*.png.import`。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --import
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --export-release "Windows Desktop" ..\auto_battler_output\auto_battler.exe
+..\auto_battler_output\auto_battler.console.exe --log-file ..\auto_battler_output\run_console_after_fix.log
+```
+
 ## 2026-05-31 美术资源、背景图库与棋盘显示
 
 近期完成并通过 headless 检查的内容：
@@ -23,7 +44,7 @@
 - **主菜单背景切换**：`MenuPanelController` 在主菜单右上角创建 `OptionButton`，按中文图片名选择背景；选择后会同步更新主菜单背景和战斗棋盘背景。
 - **战斗背景切换**：局内背景选择按钮改为 `OptionButton`，显示同一套中文名列表；`BattleBoard` 新增 `set_background_catalog()`、`get_background_name()`、`get_current_background_name()` 等查询入口。
 - **棋盘显示调整**：战斗场景不再依赖旧棋盘贴图；棋盘和备战席由 `BattleBoard` 直接渲染网格边框。战斗棋盘网格可通过按钮开关，备战席网格始终单独显示。棋盘和备战席整体下移 48 像素。
-- **单位美术接入**：30 个玩家单位已接入统一静态 PNG 素材，棋盘图标和单位详情/图鉴图片共用同一批素材；棋盘显示沿用英雄图标的简单缩放、受击闪烁等表现。
+- **单位美术接入**：30 个玩家单位已接入统一静态 PNG 素材，棋盘图标和单位详情/图鉴图片共用同一批素材；棋盘显示沿用英雄图标的简单缩放、受击闪烁等表现。后续已在 2026-06-01 调整为 `UnitData` 显式引用素材。
 - **图鉴图片修复**：图鉴中单位、英雄、遗物图片统一使用固定展示尺寸，避免浏览到英雄或不同分类后出现缩放状态串扰；无素材时使用占位图。
 - **遗物图标 UI**：遗物栏和展开面板改为显示 64×64 图标按钮，边框按稀有度着色；图鉴中的遗物图片缩放到展示框内。
 - **血条颜色区分**：己方单位血条为绿色，敌方单位保持红色，强化战斗中敌我识别。

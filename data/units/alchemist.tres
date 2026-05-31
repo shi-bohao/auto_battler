@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_alchemist"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/alchemist.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_alchemist")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Alchemist"
 unit_name_cn = "炼金术士"
 description_cn = "远程持续伤害单位，普攻施加腐蚀，并以酸液领域持续灼烧区域内敌人。"

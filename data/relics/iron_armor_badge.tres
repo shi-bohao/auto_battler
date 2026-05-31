@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_badge"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/iron_armor_badge.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_badge")
+icon_texture = ExtResource("2_icon")
 relic_id = "iron_armor_badge"
 relic_name = "Iron Armor Badge"
 relic_name_cn = "铁甲徽章"

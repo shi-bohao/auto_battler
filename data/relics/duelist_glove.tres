@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_duelist"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/duelist_glove.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_duelist")
+icon_texture = ExtResource("2_icon")
 relic_id = "duelist_glove"
 relic_name = "Duelist Glove"
 relic_name_cn = "决斗手套"

@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_prism_weaver"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/prism_weaver.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_prism_weaver")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Prism Weaver"
 unit_name_cn = "棱镜术师"
 description_cn = "技能流辅助单位，随机增强主动技能伤害，并短时间强化关键输出单位。"

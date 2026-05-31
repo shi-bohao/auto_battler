@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_arcane_artillerist"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/arcane_artillerist.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_arcane_artillerist")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Arcane Artillerist"
 unit_name_cn = "奥术炮师"
 description_cn = "技能爆发流高稀有输出核心，依赖魔力循环和技能强度打出范围伤害。"

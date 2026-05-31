@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_frost_sentry"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/frost_sentry.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_frost_sentry")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Frost Sentry"
 unit_name_cn = "霜箭哨手"
 description_cn = "后排软控射手，普攻和主动技能都能降低敌人移动速度。"

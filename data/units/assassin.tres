@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_assassin"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/assassin.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_assassin")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Assassin"
 unit_name_cn = "刺客"
 description_cn = "高速收割，优先猎杀低血量目标。"

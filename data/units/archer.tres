@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_archer"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/archer.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_archer")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Archer"
 unit_name_cn = "弓手"
 description_cn = "后排远程输出，安全距离下持续造成伤害。"

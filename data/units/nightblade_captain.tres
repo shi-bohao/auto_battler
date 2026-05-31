@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_nightblade_captain"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/nightblade_captain.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_nightblade_captain")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Nightblade Captain"
 unit_name_cn = "夜刃统领"
 description_cn = "暴击收割流中后期核心，强化刺客和弓手的暴击能力，并在击杀窗口中提供回蓝与暴伤。"

@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bard"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/bard.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_bard")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Bard"
 unit_name_cn = "吟游诗人"
 description_cn = "团队增幅辅助，为友军提供护盾和攻击强化。"

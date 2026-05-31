@@ -25,6 +25,10 @@ func _run_tests() -> void:
 	elif thumbnail.get_width() != 96 or thumbnail.get_height() != 96:
 		failures.append("Expected 96x96 warrior thumbnail, got " + str(thumbnail.get_width()) + "x" + str(thumbnail.get_height()) + ".")
 
+	var missing_texture: Texture2D = UNIT_ART_HELPER.get_player_unit_art_texture("enemy_boss_abyss_hierophant")
+	if missing_texture != null:
+		failures.append("Expected missing generated unit art to return null.")
+
 	var hero_portrait: Texture2D = IRON_OATH_COMMANDER_DATA.get("portrait_texture") as Texture2D
 	var hero_thumbnail: Texture2D = UNIT_ART_HELPER.get_texture_sized(hero_portrait, "test_iron_oath_portrait", Vector2i(96, 96))
 	if hero_thumbnail == null:

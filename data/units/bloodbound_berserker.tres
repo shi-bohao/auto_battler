@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bloodbound_berserker"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/bloodbound_berserker.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_bloodbound_berserker")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Bloodbound Berserker"
 unit_name_cn = "血契狂战"
 description_cn = "吸血与低血量爆发核心，生命越低输出越高。"

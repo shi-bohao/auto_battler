@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_bulwark"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/bulwark_rune.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_bulwark")
+icon_texture = ExtResource("2_icon")
 relic_id = "bulwark_rune"
 relic_name = "Bulwark Rune"
 relic_name_cn = "壁垒符文"

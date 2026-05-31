@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_fang"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/broken_fang.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_fang")
+icon_texture = ExtResource("2_icon")
 relic_id = "broken_fang"
 relic_name = "Broken Fang"
 relic_name_cn = "断牙"

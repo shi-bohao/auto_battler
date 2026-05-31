@@ -342,3 +342,31 @@ powershell -ExecutionPolicy Bypass -File tools\process_player_unit_icons_diff.ps
 - 如果网格线仍有残留，优先调整脚本中的整行 / 整列线状像素检测阈值；
 - 如果切分位置不正确，优先检查 `player_unit_grid_scan.csv` 中对应理论边界附近是否存在已标记且空白的候选行 / 列；
 - 如果单位主体仍明显偏心，检查素材是否在原始格子中被裁掉，脚本只能对切分后仍存在的主体做自动居中。
+
+## 游戏内接入与导出注意事项
+
+当前项目采用和英雄素材一致的显式资源引用方式：
+
+- 玩家单位：`data/units/*.tres` 中的 `board_sprite`、`portrait_texture`、`icon_texture` 直接引用 `assets/processed/player_units/*.png`。
+- 遗物：`RelicData` 提供 `icon_texture: Texture2D` 字段，`data/relics/*.tres` 直接引用 `assets/processed/relics/*.png`。
+- 运行时 helper 只作为兜底：`UnitArtHelper` 和 `RelicIconHelper` 优先读取数据资源中配置的贴图；动态路径加载仅用于缺字段或旧资源兼容。
+
+导出相关规则：
+
+- 不要在 `assets/processed/` 根目录放 `.gdignore`，否则玩家单位和遗物图标不会被 Godot 导入/导出。
+- 当前只保留 `assets/processed/ui/.gdignore`，用于忽略旧 UI 处理输出。
+- `assets/processed/player_units/*.png.import` 和 `assets/processed/relics/*.png.import` 必须提交到版本库。它们记录 Godot 纹理导入目标，缺失时干净环境或导出包可能无法加载对应贴图。
+- 修改或新增处理后 PNG 后，先执行一次资源导入，再导出正式包：
+
+```powershell
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\asset_import.log --import
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\export.log --export-release "Windows Desktop" ..\auto_battler_output\auto_battler.exe
+```
+
+如果导出程序启动后立即退出，优先运行 console wrapper 查看日志：
+
+```powershell
+..\auto_battler_output\auto_battler.console.exe --log-file ..\auto_battler_output\run_console.log
+```
+
+常见资源错误为 `No loader found for resource: res://assets/processed/...png`，通常表示 PNG 被 `.gdignore` 排除、`.png.import` 未提交，或导出包不是当前资源状态重新导出的版本。

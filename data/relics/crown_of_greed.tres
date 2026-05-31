@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_greed_crown"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/crown_of_greed.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_greed_crown")
+icon_texture = ExtResource("2_icon")
 relic_id = "crown_of_greed"
 relic_name = "Crown of Greed"
 relic_name_cn = "贪婪王冠"

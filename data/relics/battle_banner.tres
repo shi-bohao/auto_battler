@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_banner"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/battle_banner.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_banner")
+icon_texture = ExtResource("2_icon")
 relic_id = "battle_banner"
 relic_name = "Battle Banner"
 relic_name_cn = "战斗旌旗"

@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_venom_matriarch"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/venom_matriarch.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_venom_matriarch")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Venom Matriarch"
 unit_name_cn = "剧毒女王"
 description_cn = "剧毒叠层流核心，提高玩家单位施毒效率，并通过主动技能引爆毒层造成爆发。"

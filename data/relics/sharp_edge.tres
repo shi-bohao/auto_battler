@@ -1,9 +1,11 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/relic_data.gd" id="1_sharp"]
+[ext_resource type="Texture2D" path="res://assets/processed/relics/sharp_edge.png" id="2_icon"]
 
 [resource]
 script = ExtResource("1_sharp")
+icon_texture = ExtResource("2_icon")
 relic_id = "sharp_edge"
 relic_name = "Sharp Edge"
 relic_name_cn = "锐刃"

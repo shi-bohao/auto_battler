@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_greatsword_knight"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/greatsword_knight.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_greatsword_knight")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Greatsword Knight"
 unit_name_cn = "巨剑骑士"
 description_cn = "近战半肉范围劈砍单位，普攻和主动技能都能打击成片敌人。"

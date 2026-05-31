@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bomb_thrower"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/bomb_thrower.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_bomb_thrower")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 unit_name = "Bomb Thrower"
 unit_name_cn = "爆弹投手"
 description_cn = "远程范围输出单位，周期性爆炸普攻和爆破齐射能覆盖多个敌人。"

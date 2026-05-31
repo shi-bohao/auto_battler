@@ -16,7 +16,9 @@ static func get_relic_icon_texture(relic_data: Resource, relic_manager: Variant 
 	if _texture_cache.has(icon_path):
 		return _texture_cache[icon_path] as Texture2D
 
-	var texture: Texture2D = _load_texture(icon_path)
+	var texture: Texture2D = _get_configured_icon_texture(relic_data)
+	if texture == null:
+		texture = _load_texture(icon_path)
 	_texture_cache[icon_path] = texture
 	return texture
 
@@ -30,14 +32,16 @@ static func get_relic_icon_texture_sized(relic_data: Resource, relic_manager: Va
 	var cache_key: String = icon_path + "#" + str(size.x) + "x" + str(size.y)
 	if _texture_cache.has(cache_key):
 		return _texture_cache[cache_key] as Texture2D
-	if not FileAccess.file_exists(icon_path):
+
+	var source_texture: Texture2D = get_relic_icon_texture(relic_data, relic_manager)
+	if source_texture == null:
 		return null
 
-	var image: Image = Image.new()
-	var error: Error = image.load(icon_path)
-	if error != OK:
-		return null
-
+	var image: Image = source_texture.get_image()
+	if image == null or image.is_empty():
+		_texture_cache[cache_key] = source_texture
+		return source_texture
+	image = image.duplicate()
 	image.resize(maxi(size.x, 1), maxi(size.y, 1), Image.INTERPOLATE_NEAREST)
 	var texture: Texture2D = ImageTexture.create_from_image(image)
 	_texture_cache[cache_key] = texture
@@ -134,6 +138,10 @@ static func configure_icon_display(texture_rect: TextureRect, fallback_label: La
 
 
 static func _load_texture(icon_path: String) -> Texture2D:
+	if ResourceLoader.exists(icon_path):
+		var loaded_texture: Texture2D = ResourceLoader.load(icon_path) as Texture2D
+		if loaded_texture != null:
+			return loaded_texture
 	if not FileAccess.file_exists(icon_path):
 		return null
 
@@ -143,3 +151,14 @@ static func _load_texture(icon_path: String) -> Texture2D:
 		return null
 
 	return ImageTexture.create_from_image(image)
+
+
+static func _get_configured_icon_texture(relic_data: Resource) -> Texture2D:
+	if relic_data == null:
+		return null
+
+	var configured_icon: Variant = relic_data.get("icon_texture")
+	if configured_icon is Texture2D:
+		return configured_icon as Texture2D
+
+	return null
