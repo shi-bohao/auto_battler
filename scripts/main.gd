@@ -33,6 +33,7 @@ const EVENT_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/event_pa
 const TRANSITION_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/transition_panel_controller.gd")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
 const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
+const BACKGROUND_CATALOG: Script = preload("res://scripts/ui/background_catalog.gd")
 const INITIAL_MAX_ACTIVE_UNITS: int = 10
 const MAX_TOTAL_UNITS: int = 25
 const MAX_RELIC_BAR_ITEMS: int = 8
@@ -99,6 +100,8 @@ var mirror_info_button: Button = null
 var mirror_info_panel: Panel = null
 var mirror_info_text: RichTextLabel = null
 var battle_speed_button: Button = null
+var grid_toggle_button: Button = null
+var background_switch_button: OptionButton = null
 var bond_panel: Panel = null
 var bond_panel_label: Label = null
 var bond_buttons_vbox: VBoxContainer = null
@@ -119,6 +122,7 @@ var _pending_treasure_relic: Variant = null
 var is_popup_active: bool = false
 var _popup_callback: Callable = Callable()
 var dynamic_stat_refresh_pending: bool = false
+var selected_background_index: int = 0
 
 @onready var battle_board: Variant = $"BoardBackground Node2D"
 @onready var result_label: Label = $"UI CanvasLayer/ResultLabel Label"
@@ -259,7 +263,10 @@ func _ready() -> void:
 	_setup_menu_panel_controller()
 	_setup_encyclopedia_panel_controller()
 	_setup_hero_selection_panel_controller()
+	_setup_background_catalog()
 	_create_battle_speed_button()
+	_create_grid_toggle_button()
+	_create_background_switch_button()
 	_create_bond_panel()
 	bond_manager.setup(roster_manager.unit_catalog, hero_manager)
 	_create_mirror_info_ui()
@@ -606,6 +613,23 @@ func _setup_menu_panel_controller() -> void:
 	menu_panel_controller.game_end_confirmed.connect(_on_game_end_confirm_pressed)
 	menu_panel_controller.main_menu_requested.connect(_on_gameplay_menu_main_menu_pressed)
 	menu_panel_controller.restart_requested.connect(_on_gameplay_menu_restart_pressed)
+	if menu_panel_controller.has_signal("background_selected"):
+		menu_panel_controller.background_selected.connect(_on_main_menu_background_selected)
+
+
+func _setup_background_catalog() -> void:
+	var textures: Array[Texture2D] = BACKGROUND_CATALOG.load_background_textures()
+	var names: Array[String] = BACKGROUND_CATALOG.get_background_names()
+	if battle_board != null and is_instance_valid(battle_board):
+		if battle_board.has_method("set_background_catalog"):
+			battle_board.set_background_catalog(textures, names, selected_background_index)
+		else:
+			battle_board.background_options = textures
+			battle_board.background_names = names
+			if battle_board.has_method("set_background_index"):
+				battle_board.set_background_index(selected_background_index)
+	if menu_panel_controller.has_method("set_background_index"):
+		menu_panel_controller.set_background_index(selected_background_index)
 
 
 func _setup_encyclopedia_panel_controller() -> void:
@@ -642,6 +666,53 @@ func _create_battle_speed_button() -> void:
 	_apply_menu_button_style(battle_speed_button, Color(0.18, 0.32, 0.50, 1.0), Color(0.72, 0.86, 1.0, 1.0))
 	ui_canvas_layer.add_child(battle_speed_button)
 	_update_battle_speed_button()
+
+
+func _create_grid_toggle_button() -> void:
+	var ui_canvas_layer: CanvasLayer = $"UI CanvasLayer"
+	if ui_canvas_layer == null:
+		return
+
+	grid_toggle_button = Button.new()
+	grid_toggle_button.anchor_left = 1.0
+	grid_toggle_button.anchor_right = 1.0
+	grid_toggle_button.offset_left = -174.0
+	grid_toggle_button.offset_top = 138.0
+	grid_toggle_button.offset_right = -24.0
+	grid_toggle_button.offset_bottom = 174.0
+	grid_toggle_button.visible = false
+	grid_toggle_button.focus_mode = Control.FOCUS_NONE
+	grid_toggle_button.z_index = UI_LAYER.BATTLE_SPEED_BUTTON
+	grid_toggle_button.tooltip_text = "切换棋盘网格显示"
+	grid_toggle_button.pressed.connect(_on_grid_toggle_button_pressed)
+	grid_toggle_button.add_theme_font_size_override("font_size", 16)
+	_apply_menu_button_style(grid_toggle_button, Color(0.18, 0.34, 0.22, 1.0), Color(0.70, 0.92, 0.58, 1.0))
+	ui_canvas_layer.add_child(grid_toggle_button)
+	_update_grid_toggle_button()
+
+
+func _create_background_switch_button() -> void:
+	var ui_canvas_layer: CanvasLayer = $"UI CanvasLayer"
+	if ui_canvas_layer == null:
+		return
+
+	background_switch_button = OptionButton.new()
+	background_switch_button.anchor_left = 1.0
+	background_switch_button.anchor_right = 1.0
+	background_switch_button.offset_left = -244.0
+	background_switch_button.offset_top = 180.0
+	background_switch_button.offset_right = -24.0
+	background_switch_button.offset_bottom = 216.0
+	background_switch_button.visible = false
+	background_switch_button.focus_mode = Control.FOCUS_NONE
+	background_switch_button.z_index = UI_LAYER.BATTLE_SPEED_BUTTON
+	background_switch_button.tooltip_text = "切换对战背景"
+	background_switch_button.item_selected.connect(_on_background_option_selected)
+	background_switch_button.add_theme_font_size_override("font_size", 16)
+	_apply_menu_button_style(background_switch_button, Color(0.22, 0.18, 0.34, 1.0), Color(0.86, 0.70, 1.0, 1.0))
+	ui_canvas_layer.add_child(background_switch_button)
+	_populate_background_selector()
+	_update_background_switch_button()
 
 
 func _create_bond_panel() -> void:
@@ -827,6 +898,31 @@ func _on_battle_speed_button_pressed() -> void:
 	_update_battle_speed_button()
 
 
+func _on_grid_toggle_button_pressed() -> void:
+	if battle_board == null or not is_instance_valid(battle_board):
+		return
+	if battle_board.has_method("toggle_grid_visible"):
+		battle_board.toggle_grid_visible()
+	_update_grid_toggle_button()
+
+
+func _on_background_option_selected(index: int) -> void:
+	_select_background(index)
+
+
+func _on_main_menu_background_selected(index: int) -> void:
+	_select_background(index)
+
+
+func _select_background(index: int) -> void:
+	selected_background_index = index
+	if battle_board != null and is_instance_valid(battle_board) and battle_board.has_method("set_background_index"):
+		battle_board.set_background_index(selected_background_index)
+	if menu_panel_controller.has_method("set_background_index"):
+		menu_panel_controller.set_background_index(selected_background_index)
+	_update_background_switch_button()
+
+
 func _apply_current_battle_speed() -> void:
 	if battle_manager == null:
 		return
@@ -849,6 +945,73 @@ func _update_battle_speed_button_visibility() -> void:
 
 	battle_speed_button.visible = run_controller.state == GameState.PREPARE or run_controller.state == GameState.BATTLE or run_controller.state == GameState.TRAINING
 	battle_speed_button.disabled = false
+	_update_grid_toggle_button_visibility()
+
+
+func _update_grid_toggle_button() -> void:
+	if grid_toggle_button == null:
+		return
+
+	var is_grid_visible: bool = true
+	if battle_board != null and is_instance_valid(battle_board) and battle_board.has_method("is_grid_visible"):
+		is_grid_visible = bool(battle_board.is_grid_visible())
+	grid_toggle_button.text = "网格 " + ("开" if is_grid_visible else "关")
+	grid_toggle_button.tooltip_text = "切换棋盘网格显示：" + ("当前开启" if is_grid_visible else "当前关闭")
+
+
+func _update_grid_toggle_button_visibility() -> void:
+	if grid_toggle_button == null:
+		return
+
+	grid_toggle_button.visible = run_controller.state == GameState.PREPARE or run_controller.state == GameState.BATTLE or run_controller.state == GameState.TRAINING
+	grid_toggle_button.disabled = false
+	_update_background_switch_button_visibility()
+
+
+func _update_background_switch_button() -> void:
+	if background_switch_button == null:
+		return
+
+	var total_count: int = 1
+	var current_index: int = 0
+	var current_name: String = "背景 1"
+	if battle_board != null and is_instance_valid(battle_board):
+		if battle_board.has_method("get_background_count"):
+			total_count = int(battle_board.get_background_count())
+		if battle_board.has_method("get_current_background_index"):
+			current_index = int(battle_board.get_current_background_index())
+		if battle_board.has_method("get_current_background_name"):
+			current_name = str(battle_board.get_current_background_name())
+
+	if background_switch_button.item_count != total_count:
+		_populate_background_selector()
+	if background_switch_button.item_count > 0:
+		background_switch_button.select(clampi(current_index, 0, background_switch_button.item_count - 1))
+	background_switch_button.tooltip_text = "选择对战背景：" + current_name
+
+
+func _populate_background_selector() -> void:
+	if background_switch_button == null:
+		return
+
+	background_switch_button.clear()
+	var total_count: int = 1
+	if battle_board != null and is_instance_valid(battle_board) and battle_board.has_method("get_background_count"):
+		total_count = int(battle_board.get_background_count())
+
+	for index: int in range(total_count):
+		var item_name: String = "背景 " + str(index + 1)
+		if battle_board != null and is_instance_valid(battle_board) and battle_board.has_method("get_background_name"):
+			item_name = str(battle_board.get_background_name(index))
+		background_switch_button.add_item(item_name, index)
+
+
+func _update_background_switch_button_visibility() -> void:
+	if background_switch_button == null:
+		return
+
+	background_switch_button.visible = run_controller.state == GameState.PREPARE or run_controller.state == GameState.BATTLE or run_controller.state == GameState.TRAINING
+	background_switch_button.disabled = false
 
 
 func _create_mirror_info_ui() -> void:
@@ -2143,6 +2306,10 @@ func _set_gameplay_ui_visible(is_visible: bool) -> void:
 	if not is_visible:
 		if battle_speed_button != null:
 			battle_speed_button.visible = false
+		if grid_toggle_button != null:
+			grid_toggle_button.visible = false
+		if background_switch_button != null:
+			background_switch_button.visible = false
 		_hide_gameplay_menu()
 		_hide_shop_panel()
 		_hide_bench_panel()

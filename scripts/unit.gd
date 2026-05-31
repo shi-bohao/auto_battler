@@ -22,6 +22,8 @@ const COMBAT_RESOLVER_SCRIPT: Script = preload("res://scripts/combat/combat_reso
 const ATTACK_PAYLOAD_SCRIPT: Script = preload("res://scripts/combat/attack_payload.gd")
 const UNIT_STAT_CONTROLLER_SCRIPT: Script = preload("res://scripts/combat/unit_stat_controller.gd")
 const CONTROL_STATUS_VIEW_SCRIPT: Script = preload("res://scripts/ui/control_status_view.gd")
+const PLAYER_HP_FILL_COLOR: Color = Color(0.22, 0.82, 0.30, 1.0)
+const ENEMY_HP_FILL_COLOR: Color = Color(0.9, 0.08, 0.08, 1.0)
 
 @export var team_id: int = 0
 @export var max_hp: int = 100
@@ -146,6 +148,7 @@ func _ready() -> void:
 	if control_status_view != null:
 		control_status_view.setup(control_status_row)
 	_update_hp_bar()
+	refresh_hp_bar_team_style()
 	_update_mana_bar()
 	update_info_display()
 	_refresh_control_status_display()
@@ -187,6 +190,7 @@ func reset_prepare_preview(configured_unit_data: Resource, configured_display_na
 	if stat_controller != null:
 		stat_controller.capture_base_stats(self)
 	_update_hp_bar()
+	refresh_hp_bar_team_style()
 	_update_mana_bar()
 	update_info_display()
 	_refresh_control_status_display()
@@ -686,6 +690,19 @@ func _update_hp_bar() -> void:
 
 	hp_bar.max_value = max_hp
 	hp_bar.value = hp
+
+
+func refresh_hp_bar_team_style() -> void:
+	if hp_bar == null:
+		return
+
+	var fill_style: StyleBoxFlat = hp_bar.get_theme_stylebox("fill") as StyleBoxFlat
+	if fill_style == null:
+		return
+
+	var unique_fill_style: StyleBoxFlat = fill_style.duplicate() as StyleBoxFlat
+	unique_fill_style.bg_color = PLAYER_HP_FILL_COLOR if team_id == 1 else ENEMY_HP_FILL_COLOR
+	hp_bar.add_theme_stylebox_override("fill", unique_fill_style)
 
 
 func _update_mana_bar() -> void:

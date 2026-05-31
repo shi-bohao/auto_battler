@@ -1,6 +1,6 @@
 # 当前单位与遗物信息总览
 
-更新时间：2026-05-28
+更新时间：2026-05-31
 
 > 本文档用于快速核对当前项目已实现的单位、召唤物和遗物数值。单位属性来自 `UnitData` 资源默认值与 `.tres` 配置；技能说明来自 `UnitTextFormatter`；遗物信息来自 `RelicData`。
 
@@ -42,7 +42,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --scrip
 | 血契狂战<br>(Bloodbound Berserker) | `bloodbound_berserker` | 吸血与低血量爆发核心，生命越低输出越高。 | damage | 猎手 | 星级 1<br>稀有度 RARE<br>价格 6<br>目标 NEAREST | 生命 190<br>攻击 24<br>防御 8<br>攻速间隔 1.05s<br>范围 60<br>移速 95<br>魔力 90<br>回魔 10/s | 暴击 8%<br>暴伤 x1.60<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `bloodbound_rage`：血契狂怒：生命低于 50% 时攻击力 +20%、吸血 +10%；低于 25% 时攻击力 +35%、吸血 +20%。<br>主动 `blood_debt_slash`：血债斩：消耗自身当前生命的 10%，对当前目标造成 250% 攻击力的技能伤害，随后恢复实际伤害的 35% 生命；该技能不会使自身死亡。 |
 | 重装坦克<br>(Tank) | `tank` | 核心承伤单位，拥有高生命和防御。 | tank | 铁壁 | 星级 1<br>稀有度 COMMON<br>价格 2<br>目标 NEAREST | 生命 260<br>攻击 7<br>防御 25<br>攻速间隔 1.35s<br>范围 50<br>移速 55<br>魔力 110<br>回魔 9/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `fortress`：堡垒：受到生命伤害降低 20%；生命低于 40% 时额外防御 +20。<br>主动 `stone_guard`：石卫：自身获得 40 + 30% 最大生命 护盾。 |
 | 震锤先锋<br>(Thundermaul Vanguard) | `thundermaul_vanguard` | 前排硬控坦克，能用重锤打断敌人的行动。 | tank | 铁壁 | 星级 1<br>稀有度 RARE<br>价格 6<br>目标 NEAREST | 生命 260<br>攻击 15<br>防御 24<br>攻速间隔 1.25s<br>范围 55<br>移速 65<br>魔力 100<br>回魔 10/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `concussive_armor`：震荡护甲：受到护盾后生命伤害降低 10%；对眩晕目标普攻伤害提高 20%。<br>主动 `hammer_stun`：震锤重击：对当前目标造成 150% 攻击力的技能伤害，并眩晕 1.25 秒。 |
-| 霜箭哨手<br>(Frost Sentry) | `frost_sentry` | 后排软控射手，普攻和主动技能都能降低敌人移动速度。 | damage | 猎手<br>奥术 | 星级 1<br>稀有度 FINE<br>价格 4<br>目标 NEAREST<br>弹道 arrow 580 | 生命 95<br>攻击 18<br>防御 0<br>攻速间隔 1.20s<br>范围 150<br>移速 95<br>魔力 80<br>回魔 12/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `frost_arrow`：霜箭：普攻命中使目标减速，移速降至 70%，持续 2 秒。<br>主动 `pinning_frost`：钉霜箭：对当前目标造成 160% 攻击力的技能伤害，并使目标移速降至 45%，持续 3 秒。 |
+| 霜箭哨手<br>(Frost Sentry) | `frost_sentry` | 后排软控射手，普攻和主动技能都能降低敌人移动速度。 | damage | 猎手<br>奥术 | 星级 1<br>稀有度 FINE<br>价格 4<br>目标 NEAREST<br>弹道 arrow 580 | 生命 95<br>攻击 18<br>防御 0<br>攻速间隔 1.20s<br>范围 150<br>移速 95<br>魔力 80<br>回魔 12/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `frost_arrow`：霜箭：普攻命中使目标迟缓，行动速率降至 70%，持续 2 秒。<br>主动 `pinning_frost`：钉霜箭：对当前目标造成 160% 攻击力的技能伤害，并使目标迟缓，行动速率降至 45%，持续 3 秒。 |
 | 风语者<br>(Wind Chanter) | `wind_chanter` | 节奏辅助，提高全队攻速和魔力回复。 | support | 奥术 | 星级 1<br>稀有度 FINE<br>价格 4<br>目标 NEAREST<br>弹道 magic 450 | 生命 125<br>攻击 13<br>防御 4<br>攻速间隔 1.20s<br>范围 120<br>移速 100<br>魔力 85<br>回魔 14/s | 暴击 0%<br>暴伤 x1.50<br>技能强度 0%<br>治疗强度 0%<br>护盾强度 0%<br>防御穿透 0<br>吸血 0%<br>减伤 0%<br>伤害承受倍率 x1<br>初始魔力 0<br>普攻回魔 0<br>受击回魔 0<br>状态抗性 0%<br>闪避 0% | 被动 `wind_rhythm`：风律：战斗开始时全队魔力回复提高 12%。<br>主动 `haste_song`：急速曲：全队攻击间隔降低 16%，魔力回复提高 20%，持续 5 秒。 |
 
 ## 英雄（特殊玩家单位）
@@ -134,4 +134,3 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --scrip
 | 骸骨坠饰<br>(Gravebone Charm) | `gravebone_charm` | RARE | ON_DEATH | 3 | 友方非召唤单位死亡时，在其位置召唤 1 个骷髅；该遗物最多同时维持 3 个骷髅，召唤物死亡不会触发。 |
 | 鲜血吊坠<br>(Blood Pendant) | `blood_pendant` | RARE | ON_KILL | 35 | 玩家单位击杀敌人后，恢复 35 生命。 |
 | 黄金护符<br>(Golden Charm) | `golden_charm` | RARE | AURA | 0.01 | 光环：每拥有 1 金币，所有玩家单位攻击力提高 1%，最多 20%。 |
-

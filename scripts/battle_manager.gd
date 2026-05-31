@@ -761,6 +761,9 @@ func _apply_unit_body_style(unit: Unit, team_id: int, roster_area: String) -> vo
 	else:
 		body.color = Color(0.2, 0.55, 1.0) if team_id == 1 else Color(1.0, 0.35, 0.25)
 
+	if unit.has_method("refresh_hp_bar_team_style"):
+		unit.refresh_hp_bar_team_style()
+
 
 func _set_prepare_unit_signature(unit: Unit, unit_data: Resource, display_name: String, roster_area: String, team_id: int) -> void:
 	if unit == null or not is_instance_valid(unit):

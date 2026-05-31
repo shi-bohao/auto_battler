@@ -7,6 +7,8 @@ const ENCYCLOPEDIA_CATALOG_SCRIPT: Script = preload("res://scripts/catalog/encyc
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
 const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
 const RELIC_ICON_HELPER: Script = preload("res://scripts/ui/relic_icon_helper.gd")
+const UNIT_ART_HELPER: Script = preload("res://scripts/unit_art_helper.gd")
+const DETAIL_IMAGE_SIZE: Vector2i = Vector2i(96, 96)
 
 var panel: Panel = null
 var card_panel: Panel = null
@@ -130,7 +132,8 @@ func _apply_style() -> void:
 
 	if relic_icon_texture != null:
 		relic_icon_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		relic_icon_texture.custom_minimum_size = Vector2(96.0, 96.0)
+		relic_icon_texture.custom_minimum_size = Vector2(float(DETAIL_IMAGE_SIZE.x), float(DETAIL_IMAGE_SIZE.y))
+		relic_icon_texture.set("expand_mode", 1)
 
 	if relic_icon_fallback != null:
 		relic_icon_fallback.add_theme_color_override("font_color", Color(0.98, 0.82, 0.48, 1.0))
@@ -287,7 +290,7 @@ func _should_show_filter() -> bool:
 
 
 func _show_empty_detail() -> void:
-	_hide_relic_icon()
+	_hide_detail_image()
 	if detail_text != null:
 		detail_text.text = "暂无条目"
 
@@ -298,29 +301,50 @@ func _show_entry_detail(entry: Dictionary) -> void:
 
 	match str(entry.get("kind", "")):
 		"relic":
-			_show_relic_icon(entry)
+			_show_relic_detail_image(entry)
 			detail_text.text = _build_relic_detail(entry)
 		"hero":
-			_hide_relic_icon()
+			_show_unit_detail_image(entry)
 			detail_text.text = _build_hero_detail(entry)
 		"bond":
-			_hide_relic_icon()
+			_hide_detail_image()
 			detail_text.text = _build_bond_detail(entry)
 		_:
-			_hide_relic_icon()
+			_show_unit_detail_image(entry)
 			detail_text.text = _build_unit_detail(entry)
 
 
-func _show_relic_icon(entry: Dictionary) -> void:
+func _show_relic_detail_image(entry: Dictionary) -> void:
 	var relic_data: Resource = entry.get("resource", null) as Resource
+	_show_detail_image_panel()
+	RELIC_ICON_HELPER.configure_icon_display(relic_icon_texture, relic_icon_fallback, relic_data, null)
+
+
+func _show_unit_detail_image(entry: Dictionary) -> void:
+	var unit_data: Resource = _get_entry_unit_data(entry)
+	_show_detail_image_panel()
+	var texture: Texture2D = _get_unit_detail_texture(unit_data)
+
+	if relic_icon_texture != null:
+		relic_icon_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		relic_icon_texture.custom_minimum_size = Vector2(float(DETAIL_IMAGE_SIZE.x), float(DETAIL_IMAGE_SIZE.y))
+		relic_icon_texture.set("expand_mode", 1)
+		relic_icon_texture.texture = texture
+		relic_icon_texture.visible = texture != null
+
+	if relic_icon_fallback != null:
+		relic_icon_fallback.text = _get_entry_fallback_letter(entry, unit_data)
+		relic_icon_fallback.visible = texture == null
+
+
+func _show_detail_image_panel() -> void:
 	if relic_icon_panel != null:
 		relic_icon_panel.visible = true
 	if detail_scroll != null:
 		detail_scroll.offset_top = 140.0
-	RELIC_ICON_HELPER.configure_icon_display(relic_icon_texture, relic_icon_fallback, relic_data, null)
 
 
-func _hide_relic_icon() -> void:
+func _hide_detail_image() -> void:
 	if relic_icon_panel != null:
 		relic_icon_panel.visible = false
 	if relic_icon_texture != null:
@@ -330,6 +354,68 @@ func _hide_relic_icon() -> void:
 		relic_icon_fallback.visible = false
 	if detail_scroll != null:
 		detail_scroll.offset_top = 14.0
+
+
+func _get_entry_unit_data(entry: Dictionary) -> Resource:
+	match str(entry.get("kind", "")):
+		"hero":
+			var hero_data: Resource = entry.get("resource", null) as Resource
+			if hero_data != null:
+				return hero_data.get("hero_unit_data") as Resource
+		_:
+			return entry.get("resource", null) as Resource
+
+	return null
+
+
+func _get_unit_detail_texture(unit_data: Resource) -> Texture2D:
+	if unit_data == null:
+		return null
+
+	var configured_texture: Texture2D = _get_configured_unit_texture(unit_data)
+	if configured_texture != null:
+		return UNIT_ART_HELPER.get_texture_sized(configured_texture, _get_unit_texture_cache_key(unit_data, configured_texture), DETAIL_IMAGE_SIZE)
+
+	return UNIT_ART_HELPER.get_player_unit_art_texture_sized(unit_data, DETAIL_IMAGE_SIZE)
+
+
+func _get_configured_unit_texture(unit_data: Resource) -> Texture2D:
+	if unit_data == null:
+		return null
+
+	var portrait_texture: Variant = unit_data.get("portrait_texture")
+	if portrait_texture is Texture2D:
+		return portrait_texture as Texture2D
+
+	var icon_texture: Variant = unit_data.get("icon_texture")
+	if icon_texture is Texture2D:
+		return icon_texture as Texture2D
+
+	var board_sprite: Variant = unit_data.get("board_sprite")
+	if board_sprite is Texture2D:
+		return board_sprite as Texture2D
+
+	return null
+
+
+func _get_unit_texture_cache_key(unit_data: Resource, texture: Texture2D) -> String:
+	var unit_type: String = _get_string(unit_data, "unit_type")
+	var texture_path: String = texture.resource_path if texture != null else ""
+	return "encyclopedia_unit:" + unit_type + ":" + texture_path
+
+
+func _get_entry_fallback_letter(entry: Dictionary, unit_data: Resource) -> String:
+	var name: String = str(entry.get("name", "")).strip_edges()
+	if name == "" and unit_data != null:
+		name = _get_string(unit_data, "unit_name_cn")
+	if name == "" and unit_data != null:
+		name = _get_string(unit_data, "unit_name")
+	if name == "" and unit_data != null:
+		name = _get_string(unit_data, "unit_type")
+	if name == "":
+		return "?"
+
+	return name.substr(0, 1).to_upper()
 
 
 func _format_entry_button_text(entry: Dictionary) -> String:

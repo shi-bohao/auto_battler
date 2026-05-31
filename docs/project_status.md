@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-05-29（含控制效果系统、5 个控制测试单位、路径选择系统、波次过渡动画、羁绊UI全面优化、战斗统计弹窗、开场秘典修正）
+更新时间：2026-05-31（含控制效果系统、30 个玩家单位素材接入、遗物图标接入、背景图库与主菜单/战斗背景切换、渲染式棋盘网格、血条颜色区分、图鉴图片缩放修复）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成大型功能的设计与实现入口见 `docs/feature_design_log.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
@@ -8,11 +8,38 @@
 
 本项目是一个 Godot 4 + GDScript 制作的 2D 肉鸽自走棋 Demo。
 
-当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、运行时属性修饰器、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄美术资源、中文文本、战斗统计、路径选择系统（6 种节点类型）和结束回主菜单流程的可玩原型。
+当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、运行时属性修饰器、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄与玩家单位静态美术资源、主菜单/战斗背景图库切换、中文文本、战斗统计、路径选择系统（6 种节点类型）和结束回主菜单流程的可玩原型。
 
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
 截至当前版本，早期 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。过期阶段总结和重构计划已从当前文档集中移除，目录和职责以本文档下方说明为准。
+
+## 2026-05-31 美术资源、背景图库与棋盘显示
+
+近期完成并通过 headless 检查的内容：
+
+- **背景图库统一接入**：新增 `scripts/ui/background_catalog.gd`，集中维护当前可用背景的中文名与资源路径。主菜单和战斗棋盘共用同一份背景列表，避免两处配置不一致。
+- **当前背景列表**：共 17 张，分别为草地背景图1/2、森林背景图1/2、魔法森林背景图1/2/3、雪原背景图1/2、沙漠背景图1/2、墓园背景图1/2、火山背景图1/2、沼泽背景图1/2。资源统一放在 `assets/game/ui/backgrounds/`。
+- **主菜单背景切换**：`MenuPanelController` 在主菜单右上角创建 `OptionButton`，按中文图片名选择背景；选择后会同步更新主菜单背景和战斗棋盘背景。
+- **战斗背景切换**：局内背景选择按钮改为 `OptionButton`，显示同一套中文名列表；`BattleBoard` 新增 `set_background_catalog()`、`get_background_name()`、`get_current_background_name()` 等查询入口。
+- **棋盘显示调整**：战斗场景不再依赖旧棋盘贴图；棋盘和备战席由 `BattleBoard` 直接渲染网格边框。战斗棋盘网格可通过按钮开关，备战席网格始终单独显示。棋盘和备战席整体下移 48 像素。
+- **单位美术接入**：30 个玩家单位已接入统一静态 PNG 素材，棋盘图标和单位详情/图鉴图片共用同一批素材；棋盘显示沿用英雄图标的简单缩放、受击闪烁等表现。
+- **图鉴图片修复**：图鉴中单位、英雄、遗物图片统一使用固定展示尺寸，避免浏览到英雄或不同分类后出现缩放状态串扰；无素材时使用占位图。
+- **遗物图标 UI**：遗物栏和展开面板改为显示 64×64 图标按钮，边框按稀有度着色；图鉴中的遗物图片缩放到展示框内。
+- **血条颜色区分**：己方单位血条为绿色，敌方单位保持红色，强化战斗中敌我识别。
+- **新增/更新文件**：`scripts/ui/background_catalog.gd`、`scripts/unit_art_helper.gd`、`assets/game/ui/backgrounds/*.png`、`assets/processed/player_units/*.png`、`assets/processed/relics/*.png`。
+- **修改文件**：`scripts/main.gd`、`scripts/battle_board.gd`、`scripts/ui/menu_panel_controller.gd`、`scripts/ui/encyclopedia_panel_controller.gd`、`scripts/unit_data_applier.gd`、`scripts/unit.gd`、`scripts/battle_manager.gd`、`scenes/main.tscn`、`scenes/ui/main_menu_panel.tscn`、`scenes/ui/encyclopedia_panel.tscn`。
+
+本轮常用验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --import
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/ui/background_catalog.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/ui/menu_panel_controller.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/battle_board.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
+```
 
 ## 2026-05-29 控制效果系统
 
@@ -40,7 +67,7 @@
 
 - 新增根目录 `README.md`，用于 GitHub 首页展示当前项目状态、运行方式、检查命令和未纳入范围。
 - `docs/README.md` 重写为维护索引，明确“实际代码与资源 > `content_reference.md` > `project_status.md` > 专题文档 > 历史设计记录”的优先级。
-- `docs/content_reference.md` 已通过 `scripts/tools/generate_content_reference.gd` 重新生成，当前统计为 25 个玩家单位、4 个英雄、18 个敌方单位、5 个召唤物、43 个遗物。
+- `docs/content_reference.md` 已通过 `scripts/tools/generate_content_reference.gd` 重新生成，当前统计为 30 个玩家单位、4 个英雄、18 个敌方单位、5 个召唤物、43 个遗物。
 - `docs/future_features.md` 改名为 `docs/feature_design_log.md`，避免把已经完成的金币经济遗物、远程弹道和非圆形 AoE 继续表现为待办。
 - 移除已被覆盖的旧文档：`phase_summary_2026-05-04.md`、`refactor_plan_2026-05-06.md`、`unit_skill_design.md`、`unit_design_with_new_units.md`、`enemy_design.md`。替代入口已记录在 `docs/README.md`。
 
@@ -351,9 +378,9 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --quit
 近期完成并通过 headless 检查的内容：
 
 - 主菜单与战斗 HUD 已统一为代码生成的像素风 UI：按钮、金币框、遗物栏、遭遇信息框、出售区、阵容面板等框体与按钮均通过 `scripts/ui/pixel_ui_theme.gd` 生成样式，不再使用图片按钮资源。
-- 主菜单仍保留背景图作为场景美术；开始游戏、镜像挑战、图鉴三个入口按钮现在同组排列、尺寸一致，并使用统一像素风按钮样式。
+- 主菜单使用背景图库中的可切换背景；开始游戏、镜像挑战、图鉴三个入口按钮同组排列、尺寸一致，并使用统一像素风按钮样式。
 - 出售区恢复并固定显示 `出售` 与 `拖拽单位到这里出售`，文字使用像素风描边样式。
-- 战斗背景与 7 格棋盘仍保留为场景素材；按钮和 UI 框体的图片皮肤已移除，最终状态以代码样式为准。
+- 战斗背景使用背景图库中的可切换背景；棋盘与备战席网格改为代码渲染，按钮和 UI 框体的图片皮肤已移除，最终状态以代码样式为准。
 - 新增功能设计记录文档，整理远程普攻真实弹道和非圆形瞬时 AoE 的功能设计、实现入口、数据结构、推荐步骤和边界情况；该文档现已整理为 `docs/feature_design_log.md`。
 - 整理 `docs/README.md`，将文档分为当前维护文档、UI/流程专题、历史记录和过期草案，避免把旧设计误当成当前规格。
 
@@ -438,7 +465,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
 - 新增镜像挑战模式：主菜单提供入口；该模式会在开局锁定历史 Boss 快照，并将 Boss 波替换为玩家历史通关阵容。
 - 新增并接入击杀相关遗物；击杀触发效果已接入统一遗物触发路径。
 - 新增 AOE 单位和范围显示：主动技能、普攻 AOE 与持续治疗范围均可显示范围效果；神官技能改为 3 秒持续治疗，总治疗量保持不变。
-- 主菜单背景、战斗背景和棋盘素材已接入；按钮和 UI 框体后来统一改为代码生成像素风样式。棋盘最终使用 7 格素材，遗物显示对齐已修复。
+- 主菜单背景和战斗背景后来统一改为背景图库列表选择；棋盘从旧贴图改为代码渲染网格，遗物显示对齐已修复。
 
 本轮常用验证命令：
 
@@ -460,7 +487,10 @@ res://
 │   ├── summons/*.tres              # 召唤物（骷髅/傀儡/魂偶/骨巨人/骨龙）
 │   └── relics/*.tres               # 遗物资源
 ├── assets/
-│   └── game/units/heroes/*.png      # 英雄头像、棋盘图标、图标和立绘资源
+│   ├── game/ui/backgrounds/*.png    # 主菜单和战斗场景共用背景图库
+│   ├── game/units/heroes/*.png      # 英雄头像、棋盘图标、图标和立绘资源
+│   ├── processed/player_units/*.png # 玩家单位透明图标
+│   └── processed/relics/*.png       # 遗物透明图标
 ├── docs/
 │   ├── README.md                   # 文档目录与新旧关系
 │   ├── bond_system.md
@@ -1002,13 +1032,13 @@ MIRROR_CHALLENGE
 
 ### UI 与交互
 
-- 主菜单使用像素风背景图，开始游戏、镜像挑战、图鉴三个入口按钮同组排列、尺寸一致。
-- 战斗背景与 7 格棋盘保留为场景素材。
+- 主菜单使用背景图库中的可切换背景，开始游戏、镜像挑战、图鉴三个入口按钮同组排列、尺寸一致。
+- 战斗背景与主菜单共用背景图库；棋盘和备战席网格由 `BattleBoard` 代码渲染，战斗棋盘网格可开关，备战席网格始终显示。
 - 按钮、金币框、遗物栏、遭遇信息框、出售区、阵容面板等 UI 框体统一使用代码生成的像素风样式，不再使用图片按钮和图片框体皮肤。
 - 出售区显示 `出售` 与 `拖拽单位到这里出售`，并使用统一像素风文字样式。
 - 遗物栏显示对齐和超过 5 个后的展开按钮位置已修复。
 - 英雄选择界面支持先预览再确认：底部方形头像轮播，左右按钮每次移动一格；点击头像展示完整英雄详情（头像框、四列属性、技能按钮弹窗详情、三列强化按钮、经验成长），确认/返回按钮在面板底部。
-- 英雄选择界面已接入英雄头像/立绘；棋盘英雄显示使用裁切后的 96×96 棋盘图标。
+- 英雄选择界面已接入英雄头像/立绘；棋盘英雄显示使用裁切后的 96×96 棋盘图标。30 个玩家单位已接入统一静态 PNG 素材，单位详情与图鉴共用该素材并带占位兜底。
 - 局内菜单按钮和菜单面板层级高于英雄选择面板，选择界面中点击菜单可以正常看到菜单。
 - 单位详情支持点击单位打开，点击空白位置关闭。
 - 英雄单位详情会显示专属技能、等级强化和已选强化。

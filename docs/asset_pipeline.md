@@ -4,6 +4,94 @@
 
 本文档记录当前项目中美术素材的预处理方式，重点用于遗物、单位图标等需要去除背景并输出透明 PNG 的素材。
 
+## 背景图导入
+
+当前主菜单和战斗场景共用同一套背景图库。背景图不做透明背景处理，直接从 `image/` 复制到稳定资源目录，再通过统一目录配置接入游戏。
+
+### 输入文件命名
+
+当前背景源文件位于：
+
+```text
+image/
+```
+
+命名使用中文展示名，格式为：
+
+```text
+草地背景图1.png
+草地背景图2.png
+森林背景图1.png
+森林背景图2.png
+魔法森林背景图1.png
+魔法森林背景图2.png
+魔法森林背景图3.png
+雪原背景图1.png
+雪原背景图2.png
+沙漠背景图1.png
+沙漠背景图2.png
+墓园背景图1.png
+墓园背景图2.png
+火山背景图1.png
+火山背景图2.png
+沼泽背景图1.png
+沼泽背景图2.png
+```
+
+### 输出位置
+
+背景图复制到：
+
+```text
+assets/game/ui/backgrounds/
+```
+
+资源文件使用英文稳定文件名，例如：
+
+```text
+assets/game/ui/backgrounds/grass_background_1.png
+assets/game/ui/backgrounds/forest_background_2.png
+assets/game/ui/backgrounds/magic_forest_background_3.png
+```
+
+### 游戏接入
+
+背景列表统一维护在：
+
+```text
+scripts/ui/background_catalog.gd
+```
+
+`BackgroundCatalog.BACKGROUNDS` 同时保存：
+
+- `name`：游戏内列表显示的中文名；
+- `path`：Godot 资源路径。
+
+主菜单和战斗棋盘都读取该目录：
+
+- 主菜单：`scripts/ui/menu_panel_controller.gd` 创建背景下拉列表，选择后更新主菜单背景；
+- 战斗棋盘：`scripts/battle_board.gd` 读取同一批 texture 和中文名，用于战斗/备战阶段背景选择；
+- 流程协调：`scripts/main.gd` 负责把主菜单选择同步到 `BattleBoard`。
+
+### 导入检查
+
+新增或替换背景后，在项目根目录执行：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\background_import.log --import
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\background_catalog_check.log --check-only --script res://scripts/ui/background_catalog.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\menu_background_selector_check.log --check-only --script res://scripts/ui/menu_panel_controller.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\battle_board_background_check.log --check-only --script res://scripts/battle_board.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\main_background_check.log --check-only --script res://scripts/main.gd
+```
+
+### 后续维护建议
+
+- 替换现有背景时，保持中文源文件名不变，只更新图片内容即可；
+- 新增背景时，同时补充复制到 `assets/game/ui/backgrounds/` 的英文文件名，并在 `BackgroundCatalog.BACKGROUNDS` 增加一条记录；
+- 如果某张背景不适合游戏，可以从 `BackgroundCatalog.BACKGROUNDS` 移除，不必删除源图片；
+- 主菜单和战斗场景必须共用 `BackgroundCatalog`，不要在两个场景里各自维护一份列表。
+
 ## 遗物图标处理
 
 当前遗物图标采用“双背景差分”方式进行透明背景处理。

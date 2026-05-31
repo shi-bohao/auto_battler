@@ -7,6 +7,7 @@ const GAME_END_PANEL_SCENE: PackedScene = preload("res://scenes/ui/game_end_pane
 const GAMEPLAY_MENU_PANEL_SCENE: PackedScene = preload("res://scenes/ui/gameplay_menu_panel.tscn")
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
 const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
+const BACKGROUND_CATALOG: Script = preload("res://scripts/ui/background_catalog.gd")
 
 signal start_requested()
 signal mirror_challenge_requested()
@@ -14,6 +15,7 @@ signal encyclopedia_requested()
 signal game_end_confirmed()
 signal main_menu_requested()
 signal restart_requested()
+signal background_selected(index: int)
 
 
 var canvas_layer: CanvasLayer = null
@@ -23,6 +25,9 @@ var game_end_panel: Panel = null
 var game_end_title_label: Label = null
 var game_end_message_label: Label = null
 var gameplay_menu_panel: Panel = null
+var main_menu_background: TextureRect = null
+var background_selector: OptionButton = null
+var selected_background_index: int = 0
 
 
 func setup(canvas_layer_value: CanvasLayer, rarity_formatter_value: Variant) -> void:
@@ -36,6 +41,7 @@ func setup(canvas_layer_value: CanvasLayer, rarity_formatter_value: Variant) -> 
 func show_main_menu() -> void:
 	if main_menu_panel != null:
 		main_menu_panel.visible = true
+		_refresh_background_selector()
 
 
 func hide_main_menu() -> void:
@@ -100,6 +106,10 @@ func _create_main_menu_ui() -> void:
 	main_menu_panel.add_theme_stylebox_override("panel", _create_panel_style(Color(0.0, 0.0, 0.0, 1.0), Color.TRANSPARENT, 0, 0))
 	canvas_layer.add_child(main_menu_panel)
 
+	main_menu_background = main_menu_panel.get_node_or_null("Background") as TextureRect
+	_create_background_selector()
+	set_background_index(selected_background_index)
+
 	var start_button: Button = main_menu_panel.get_node_or_null("MainMenuContent/StartButton") as Button
 	if start_button != null:
 		start_button.text = "开始游戏"
@@ -117,6 +127,66 @@ func _create_main_menu_ui() -> void:
 		encyclopedia_button.text = "图鉴"
 		PIXEL_UI_THEME.apply_button_style(encyclopedia_button, Color(0.12, 0.22, 0.36, 1.0), Color(0.68, 0.82, 1.0, 1.0), 3, 28)
 		encyclopedia_button.pressed.connect(_on_encyclopedia_button_pressed)
+
+
+func set_background_index(index: int) -> void:
+	var count: int = BACKGROUND_CATALOG.get_count()
+	selected_background_index = 0 if count <= 0 else posmod(index, count)
+	_apply_main_menu_background()
+	_refresh_background_selector()
+
+
+func _create_background_selector() -> void:
+	if main_menu_panel == null:
+		return
+
+	var content: Control = main_menu_panel.get_node_or_null("MainMenuContent") as Control
+	if content == null:
+		return
+
+	background_selector = OptionButton.new()
+	background_selector.name = "BackgroundSelector"
+	background_selector.anchor_left = 1.0
+	background_selector.anchor_right = 1.0
+	background_selector.offset_left = -284.0
+	background_selector.offset_top = 32.0
+	background_selector.offset_right = -32.0
+	background_selector.offset_bottom = 72.0
+	background_selector.focus_mode = Control.FOCUS_NONE
+	background_selector.tooltip_text = "选择主菜单与战斗背景"
+	background_selector.add_theme_font_size_override("font_size", 16)
+	PIXEL_UI_THEME.apply_button_style(background_selector, Color(0.12, 0.22, 0.34, 0.96), Color(0.80, 0.64, 0.36, 1.0), 2, 16)
+	background_selector.item_selected.connect(_on_background_selected)
+	content.add_child(background_selector)
+	_refresh_background_selector()
+
+
+func _refresh_background_selector() -> void:
+	if background_selector == null:
+		return
+
+	var names: Array[String] = BACKGROUND_CATALOG.get_background_names()
+	if background_selector.item_count != names.size():
+		background_selector.clear()
+		for index: int in range(names.size()):
+			background_selector.add_item(names[index], index)
+
+	if background_selector.item_count > 0:
+		background_selector.select(clampi(selected_background_index, 0, background_selector.item_count - 1))
+
+
+func _apply_main_menu_background() -> void:
+	if main_menu_background == null:
+		return
+
+	var texture: Texture2D = load(BACKGROUND_CATALOG.get_texture_path(selected_background_index)) as Texture2D
+	if texture != null:
+		main_menu_background.texture = texture
+
+
+func _on_background_selected(index: int) -> void:
+	set_background_index(index)
+	background_selected.emit(selected_background_index)
 
 
 func _create_game_end_dialog() -> void:

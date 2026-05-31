@@ -21,9 +21,14 @@ const INVALID_CELL: Vector2i = Vector2i(-1, -1)
 @export var viewport_width_ratio: float = 0.78
 @export var viewport_height_ratio: float = 0.80
 @export var bench_gap_ratio: float = 0.25
+@export var board_layout_offset: Vector2 = Vector2(0.0, 48.0)
 @export var background_texture: Texture2D = null
+@export var background_options: Array[Texture2D] = []
+@export var background_names: Array[String] = []
+@export var background_index: int = 0
 @export var board_texture: Texture2D = null
 @export var textured_board_margin_ratio: Vector2 = Vector2(0.015, 0.018)
+@export var show_grid: bool = true
 
 var is_bench_visible: bool = true
 
@@ -50,53 +55,110 @@ func _draw() -> void:
 	var enemy_rect: Rect2 = Rect2(board_origin + Vector2(8.0 * cell_size, 0.0), Vector2(7.0 * cell_size, board_size.y))
 	var bench_rect: Rect2 = Rect2(get_bench_origin(), Vector2(float(BENCH_SLOT_COUNT) * cell_size, cell_size))
 
-	if board_texture != null:
-		_draw_board_texture(board_size)
-		_draw_bench_grid(bench_rect)
-		return
+	if show_grid:
+		_draw_battle_grid(board_size, player_rect, gap_rect, enemy_rect)
 
-	draw_rect(Rect2(board_origin, board_size), Color(0.08, 0.09, 0.10, 0.9), true)
-	draw_rect(player_rect, Color(0.10, 0.24, 0.38, 0.45), true)
-	draw_rect(gap_rect, Color(0.05, 0.05, 0.06, 0.75), true)
-	draw_rect(enemy_rect, Color(0.38, 0.15, 0.10, 0.45), true)
-	if is_bench_visible:
-		draw_rect(bench_rect, Color(0.14, 0.14, 0.16, 0.9), true)
+	_draw_bench_grid(bench_rect)
 
+
+func _draw_battle_grid(board_size: Vector2, player_rect: Rect2, gap_rect: Rect2, enemy_rect: Rect2) -> void:
 	var grid_line_width: float = maxf(2.0, round(cell_size * 0.025))
 	var border_line_width: float = maxf(4.0, round(cell_size * 0.045))
 	for column: int in range(COLUMN_COUNT + 1):
 		var x: float = board_origin.x + float(column) * cell_size
-		var line_color: Color = Color(1.0, 1.0, 1.0, 0.18)
+		var line_color: Color = Color(0.90, 1.0, 0.76, 0.34)
 		if column == GAP_COL or column == GAP_COL + 1:
-			line_color = Color(1.0, 1.0, 1.0, 0.34)
+			line_color = Color(1.0, 0.95, 0.72, 0.50)
 		draw_line(Vector2(x, board_origin.y), Vector2(x, board_origin.y + board_size.y), line_color, grid_line_width)
 
 	for row: int in range(ROW_COUNT + 1):
 		var y: float = board_origin.y + float(row) * cell_size
-		draw_line(Vector2(board_origin.x, y), Vector2(board_origin.x + board_size.x, y), Color(1.0, 1.0, 1.0, 0.18), grid_line_width)
+		draw_line(Vector2(board_origin.x, y), Vector2(board_origin.x + board_size.x, y), Color(0.90, 1.0, 0.76, 0.34), grid_line_width)
 
-	if is_bench_visible:
-		_draw_bench_grid(bench_rect)
-
-	draw_rect(player_rect, Color(0.45, 0.75, 1.0, 0.45), false, border_line_width)
-	draw_rect(gap_rect, Color(1.0, 1.0, 1.0, 0.24), false, border_line_width)
-	draw_rect(enemy_rect, Color(1.0, 0.55, 0.35, 0.45), false, border_line_width)
-	if is_bench_visible:
-		draw_rect(bench_rect, Color(0.95, 0.95, 1.0, 0.35), false, border_line_width)
+	draw_rect(player_rect, Color(0.40, 0.92, 0.48, 0.55), false, border_line_width)
+	draw_rect(gap_rect, Color(1.0, 0.95, 0.72, 0.34), false, border_line_width)
+	draw_rect(enemy_rect, Color(1.0, 0.45, 0.30, 0.55), false, border_line_width)
 
 
 func _draw_background_texture(viewport_size: Vector2) -> void:
-	if background_texture == null:
+	var texture: Texture2D = get_current_background_texture()
+	if texture == null:
 		return
 
-	var texture_size: Vector2 = background_texture.get_size()
+	var texture_size: Vector2 = texture.get_size()
 	if texture_size.x <= 0.0 or texture_size.y <= 0.0:
 		return
 
 	var scale_value: float = maxf(viewport_size.x / texture_size.x, viewport_size.y / texture_size.y)
 	var draw_size: Vector2 = texture_size * scale_value
 	var draw_position: Vector2 = (viewport_size - draw_size) * 0.5
-	draw_texture_rect(background_texture, Rect2(draw_position, draw_size), false)
+	draw_texture_rect(texture, Rect2(draw_position, draw_size), false)
+
+
+func get_current_background_texture() -> Texture2D:
+	if not background_options.is_empty():
+		var safe_index: int = posmod(background_index, background_options.size())
+		var texture: Texture2D = background_options[safe_index]
+		if texture != null:
+			return texture
+
+	return background_texture
+
+
+func get_current_background_number() -> int:
+	if background_options.is_empty():
+		return 1
+	return posmod(background_index, background_options.size()) + 1
+
+
+func get_current_background_index() -> int:
+	if background_options.is_empty():
+		return 0
+	return posmod(background_index, background_options.size())
+
+
+func get_background_count() -> int:
+	return maxi(background_options.size(), 1)
+
+
+func get_background_name(index: int) -> String:
+	if background_options.is_empty():
+		return "默认背景"
+
+	var safe_index: int = posmod(index, background_options.size())
+	if safe_index >= 0 and safe_index < background_names.size():
+		var display_name: String = background_names[safe_index].strip_edges()
+		if display_name != "":
+			return display_name
+	return "背景 " + str(safe_index + 1)
+
+
+func get_current_background_name() -> String:
+	return get_background_name(get_current_background_index())
+
+
+func set_background_index(value: int) -> void:
+	if background_options.is_empty():
+		background_index = 0
+	else:
+		background_index = posmod(value, background_options.size())
+	queue_redraw()
+
+
+func set_background_catalog(textures: Array[Texture2D], names: Array[String], selected_index: int = 0) -> void:
+	background_options = textures.duplicate()
+	background_names = names.duplicate()
+	set_background_index(selected_index)
+
+
+func cycle_background() -> int:
+	var count: int = get_background_count()
+	if count <= 1:
+		return get_current_background_number()
+
+	background_index = posmod(background_index + 1, count)
+	queue_redraw()
+	return get_current_background_number()
 
 
 func _draw_board_texture(board_size: Vector2) -> void:
@@ -117,13 +179,28 @@ func _draw_bench_grid(bench_rect: Rect2) -> void:
 
 	var grid_line_width: float = maxf(2.0, round(cell_size * 0.025))
 	var border_line_width: float = maxf(4.0, round(cell_size * 0.045))
-	draw_rect(bench_rect, Color(0.025, 0.034, 0.052, 0.82), true)
+	draw_rect(bench_rect, Color(0.04, 0.05, 0.035, 0.50), true)
 	for slot_index: int in range(BENCH_SLOT_COUNT + 1):
 		var bench_x: float = bench_rect.position.x + float(slot_index) * cell_size
-		draw_line(Vector2(bench_x, bench_rect.position.y), Vector2(bench_x, bench_rect.position.y + cell_size), Color(0.75, 0.64, 0.48, 0.28), grid_line_width)
-	draw_line(bench_rect.position, bench_rect.position + Vector2(bench_rect.size.x, 0.0), Color(0.75, 0.64, 0.48, 0.28), grid_line_width)
-	draw_line(bench_rect.position + Vector2(0.0, cell_size), bench_rect.position + bench_rect.size, Color(0.75, 0.64, 0.48, 0.28), grid_line_width)
-	draw_rect(bench_rect, Color(0.82, 0.56, 0.28, 0.50), false, border_line_width)
+		draw_line(Vector2(bench_x, bench_rect.position.y), Vector2(bench_x, bench_rect.position.y + cell_size), Color(0.90, 0.78, 0.48, 0.30), grid_line_width)
+	draw_line(bench_rect.position, bench_rect.position + Vector2(bench_rect.size.x, 0.0), Color(0.90, 0.78, 0.48, 0.30), grid_line_width)
+	draw_line(bench_rect.position + Vector2(0.0, cell_size), bench_rect.position + bench_rect.size, Color(0.90, 0.78, 0.48, 0.30), grid_line_width)
+	draw_rect(bench_rect, Color(0.90, 0.64, 0.32, 0.48), false, border_line_width)
+
+
+func set_grid_visible(value: bool) -> void:
+	show_grid = value
+	queue_redraw()
+
+
+func toggle_grid_visible() -> bool:
+	show_grid = not show_grid
+	queue_redraw()
+	return show_grid
+
+
+func is_grid_visible() -> bool:
+	return show_grid
 
 
 func set_bench_visible(value: bool) -> void:
@@ -152,7 +229,7 @@ func _update_board_layout() -> void:
 
 	var board_size: Vector2 = Vector2(float(COLUMN_COUNT) * cell_size, float(ROW_COUNT) * cell_size)
 	var layout_size: Vector2 = Vector2(board_size.x, board_size.y + cell_size * bench_gap_ratio + cell_size)
-	board_origin = (viewport_size - layout_size) * 0.5
+	board_origin = (viewport_size - layout_size) * 0.5 + board_layout_offset
 
 
 func grid_to_world(cell: Vector2i) -> Vector2:

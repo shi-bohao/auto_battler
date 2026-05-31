@@ -29,8 +29,23 @@
 [ext_resource type="PackedScene" path="res://scenes/ui/sell_zone_panel.tscn" id="20_sell_zone_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/encounter_info_panel.tscn" id="21_encounter_info_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/stats_panel.tscn" id="22_stats_panel"]
-[ext_resource type="Texture2D" path="res://assets/game/ui/battle/battle_background.png" id="23_battle_background"]
-[ext_resource type="Texture2D" path="res://assets/game/ui/battle/battle_board.png" id="24_battle_board"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/grass_background_1.png" id="23_grass_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/grass_background_2.png" id="24_grass_2"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/forest_background_1.png" id="25_forest_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/forest_background_2.png" id="26_forest_2"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/magic_forest_background_1.png" id="27_magic_forest_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/magic_forest_background_2.png" id="28_magic_forest_2"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/magic_forest_background_3.png" id="29_magic_forest_3"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/snowfield_background_1.png" id="30_snowfield_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/snowfield_background_2.png" id="31_snowfield_2"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/desert_background_1.png" id="32_desert_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/desert_background_2.png" id="33_desert_2"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/graveyard_background_1.png" id="34_graveyard_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/graveyard_background_2.png" id="35_graveyard_2"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/volcano_background_1.png" id="41_volcano_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/volcano_background_2.png" id="42_volcano_2"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/swamp_background_1.png" id="43_swamp_1"]
+[ext_resource type="Texture2D" path="res://assets/game/ui/backgrounds/swamp_background_2.png" id="44_swamp_2"]
 [ext_resource type="PackedScene" path="res://scenes/ui/hero_selection_panel.tscn" id="36_hero_selection_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/path_selection_panel.tscn" id="37_path_selection_panel"]
 [ext_resource type="PackedScene" path="res://scenes/ui/merchant_panel.tscn" id="38_merchant_panel"]
@@ -60,8 +75,9 @@ puppet_warlock_data = ExtResource("19_puppet_warlock")
 
 [node name="BoardBackground Node2D" type="Node2D" parent="."]
 script = ExtResource("2_board")
-background_texture = ExtResource("23_battle_background")
-board_texture = ExtResource("24_battle_board")
+background_texture = ExtResource("23_grass_1")
+background_options = Array[Texture2D]([ExtResource("23_grass_1"), ExtResource("24_grass_2"), ExtResource("25_forest_1"), ExtResource("26_forest_2"), ExtResource("27_magic_forest_1"), ExtResource("28_magic_forest_2"), ExtResource("29_magic_forest_3"), ExtResource("30_snowfield_1"), ExtResource("31_snowfield_2"), ExtResource("32_desert_1"), ExtResource("33_desert_2"), ExtResource("34_graveyard_1"), ExtResource("35_graveyard_2"), ExtResource("41_volcano_1"), ExtResource("42_volcano_2"), ExtResource("43_swamp_1"), ExtResource("44_swamp_2")])
+background_names = Array[String](["草地背景图1", "草地背景图2", "森林背景图1", "森林背景图2", "魔法森林背景图1", "魔法森林背景图2", "魔法森林背景图3", "雪原背景图1", "雪原背景图2", "沙漠背景图1", "沙漠背景图2", "墓园背景图1", "墓园背景图2", "火山背景图1", "火山背景图2", "沼泽背景图1", "沼泽背景图2"])
 
 [node name="UI CanvasLayer" type="CanvasLayer" parent="." unique_id=943261619]
 
