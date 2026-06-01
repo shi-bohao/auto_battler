@@ -1,0 +1,32 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boss_swamp_devourer"]
+
+[resource]
+script = ExtResource("1_boss_swamp_devourer")
+enemy_tier = "BOSS"
+unit_name = "Boss: Swamp Devourer"
+unit_name_cn = "BOSS：沼泽吞噬者"
+description_cn = "吞噬死亡单位、越战越强型 BOSS，克制召唤和低血量单位阵容。"
+unit_type = "enemy_boss_swamp_devourer"
+catalog_id = 5
+role = "tank"
+price = 0
+max_hp = 860
+attack_damage = 28
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 40
+control_duration_multiplier = 0.65
+hard_control_duration_multiplier = 0.4
+attack_interval = 1.3
+attack_range = 60.0
+search_range = 999.0
+move_speed = 45.0
+passive_id = "boss_corpse_devour"
+active_skill_id = "boss_mire_engulf"
+max_mana = 120
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1

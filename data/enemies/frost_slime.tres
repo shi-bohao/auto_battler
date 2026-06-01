@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_frost_slime"]
+
+[resource]
+script = ExtResource("1_frost_slime")
+enemy_tier = "NORMAL"
+unit_name = "Frost Slime"
+unit_name_cn = "冰霜史莱姆"
+description_cn = "控制型史莱姆，伤害较低，但死亡和技能都会制造迟缓与冻结压力。"
+unit_type = "enemy_frost_slime"
+catalog_id = 20
+role = "support"
+price = 0
+max_hp = 120
+attack_damage = 13
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 3
+attack_interval = 1.55
+attack_range = 55.0
+search_range = 999.0
+move_speed = 52.0
+passive_id = "frost_burst"
+active_skill_id = "frost_explosion"
+max_mana = 85
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

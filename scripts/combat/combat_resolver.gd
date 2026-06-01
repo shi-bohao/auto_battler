@@ -1,6 +1,14 @@
 extends RefCounted
 
 const AOE_RESOLVER_SCRIPT: Script = preload("res://scripts/combat/aoe_resolver.gd")
+const PASSIVE_SLIME_BODY: String = "slime_body"
+const PASSIVE_ENEMY_MIRROR_CARAPACE: String = "enemy_mirror_carapace"
+const SLIME_BODY_BASIC_ATTACK_MULTIPLIER: float = 0.92
+const SLIME_BODY_BASIC_ATTACK_MULTIPLIER_STAR_3: float = 0.85
+const MIRROR_CARAPACE_REFLECT_RATIO: float = 0.25
+const MIRROR_CARAPACE_REFLECT_RATIO_STAR_3: float = 0.35
+const MIRROR_CARAPACE_REFLECT_COOLDOWN: float = 1.0
+const MIRROR_CARAPACE_REFLECT_COOLDOWN_STAR_3: float = 0.6
 
 var aoe_resolver: Variant = AOE_RESOLVER_SCRIPT.new()
 
@@ -61,6 +69,7 @@ func resolve_basic_attack_hit(attacker: Variant, target: Variant, payload: Varia
 		base_damage = int(payload.base_damage)
 	else:
 		base_damage = int(attacker.unit_skill.get_basic_attack_damage(attacker, target, attacker.attack_damage))
+	base_damage = _apply_target_basic_attack_mitigation(target, base_damage)
 
 	# Apply damage through standard take_damage path
 	var actual_damage: int = target.take_damage(base_damage, attacker)
@@ -104,11 +113,51 @@ func resolve_skill_damage(caster: Variant, target: Variant, amount: int, _contex
 		return 0
 	if target.control_state != null and not is_equal_approx(target.control_state.skill_damage_taken_multiplier, 1.0):
 		amount = maxi(1, int(round(float(amount) * target.control_state.skill_damage_taken_multiplier)))
-	return target.take_damage(amount, caster)
+	var had_shield: bool = int(target.shield) > 0
+	var actual_damage: int = target.take_damage(amount, caster)
+	_try_reflect_skill_damage(caster, target, actual_damage, had_shield)
+	return actual_damage
 
 
 func _is_valid_unit(unit: Variant) -> bool:
 	return unit != null and is_instance_valid(unit)
+
+
+func _try_reflect_skill_damage(caster: Variant, target: Variant, actual_damage: int, had_shield: bool) -> void:
+	if actual_damage <= 0 or not had_shield:
+		return
+	if not _is_valid_unit(caster) or not caster.is_alive:
+		return
+	if not _is_valid_unit(target) or not target.is_alive:
+		return
+	if int(caster.team_id) == int(target.team_id):
+		return
+	if str(target.passive_id) != PASSIVE_ENEMY_MIRROR_CARAPACE:
+		return
+
+	var now: float = float(target.battle_elapsed_time)
+	var cooldown: float = MIRROR_CARAPACE_REFLECT_COOLDOWN_STAR_3 if int(target.star) >= 3 else MIRROR_CARAPACE_REFLECT_COOLDOWN
+	var next_allowed: float = float(target.get_meta("mirror_carapace_reflect_ready_at", 0.0))
+	if now < next_allowed:
+		return
+
+	target.set_meta("mirror_carapace_reflect_ready_at", now + cooldown)
+	var reflect_ratio: float = MIRROR_CARAPACE_REFLECT_RATIO_STAR_3 if int(target.star) >= 3 else MIRROR_CARAPACE_REFLECT_RATIO
+	var reflect_damage: int = maxi(1, int(round(float(actual_damage) * reflect_ratio)))
+	caster.take_damage(reflect_damage, target, false)
+	if target.unit_feedback != null:
+		target.unit_feedback.play_skill_feedback(target, "Mirror Carapace")
+
+
+func _apply_target_basic_attack_mitigation(target: Variant, damage: int) -> int:
+	if not _is_valid_unit(target) or damage <= 0:
+		return damage
+
+	if str(target.passive_id) != PASSIVE_SLIME_BODY:
+		return damage
+
+	var multiplier: float = SLIME_BODY_BASIC_ATTACK_MULTIPLIER_STAR_3 if int(target.star) >= 3 else SLIME_BODY_BASIC_ATTACK_MULTIPLIER
+	return maxi(1, int(round(float(damage) * multiplier)))
 
 
 func _apply_enhanced_aoe(attacker: Variant, primary_target: Variant, payload: Variant) -> void:

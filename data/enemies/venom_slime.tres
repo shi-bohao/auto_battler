@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_venom_slime"]
+
+[resource]
+script = ExtResource("1_venom_slime")
+enemy_tier = "NORMAL"
+unit_name = "Venom Slime"
+unit_name_cn = "毒液史莱姆"
+description_cn = "剧毒压力型史莱姆，直接伤害不高，但能持续叠加剧毒层数。"
+unit_type = "enemy_venom_slime"
+catalog_id = 22
+role = "damage"
+price = 0
+max_hp = 130
+attack_damage = 16
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 4
+attack_interval = 1.40
+attack_range = 55.0
+search_range = 999.0
+move_speed = 54.0
+passive_id = "venom_pool"
+active_skill_id = "toxic_blob"
+max_mana = 90
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

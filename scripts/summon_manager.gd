@@ -27,9 +27,15 @@ const SKELETON_SUMMON_DATA: Resource = preload("res://data/summons/skeleton.tres
 const PUPPET_SUMMON_DATA: Resource = preload("res://data/summons/puppet.tres")
 const SOUL_PUPPET_SUMMON_DATA: Resource = preload("res://data/summons/soul_puppet.tres")
 const GIANT_MAGGOT_UNIT_DATA: Resource = preload("res://data/enemies/giant_maggot.tres")
+const GIANT_SLIME_UNIT_DATA: Resource = preload("res://data/enemies/giant_slime.tres")
 
 const PASSIVE_MAGGOT_DEATH_BURST: String = "maggot_death_burst"
 const PASSIVE_AMALGAM_SPLIT_BIRTH: String = "amalgam_split_birth"
+const PASSIVE_FROST_BURST: String = "frost_burst"
+const PASSIVE_FLAME_BURST: String = "flame_burst"
+const PASSIVE_VENOM_POOL: String = "venom_pool"
+const PASSIVE_SLIME_SPLIT: String = "slime_split"
+const SLIME_SPLIT_COUNT_META: String = "slime_split_count"
 
 var battle_manager_ref: WeakRef = null
 var active_unit_summons_by_source: Dictionary = {}
@@ -111,14 +117,25 @@ func handle_unit_death(unit: Unit) -> void:
 	if unit == null or not is_instance_valid(unit):
 		return
 
+	var passive_id: String = str(unit.passive_id)
 	if is_summon(unit):
 		_unregister_summon(unit)
-		return
+		if passive_id != PASSIVE_SLIME_SPLIT:
+			return
 
-	match str(unit.passive_id):
+	match passive_id:
 		PASSIVE_MAGGOT_DEATH_BURST:
 			if unit.unit_skill != null and unit.unit_skill.has_method("apply_maggot_death_burst"):
 				unit.unit_skill.apply_maggot_death_burst(unit)
+		PASSIVE_FROST_BURST:
+			if unit.unit_skill != null and unit.unit_skill.has_method("apply_frost_slime_death_burst"):
+				unit.unit_skill.apply_frost_slime_death_burst(unit)
+		PASSIVE_FLAME_BURST:
+			if unit.unit_skill != null and unit.unit_skill.has_method("apply_flame_slime_death_burst"):
+				unit.unit_skill.apply_flame_slime_death_burst(unit)
+		PASSIVE_VENOM_POOL:
+			if unit.unit_skill != null and unit.unit_skill.has_method("apply_venom_slime_death_pool"):
+				unit.unit_skill.apply_venom_slime_death_pool(unit)
 		PASSIVE_AMALGAM_SPLIT_BIRTH:
 			var maggot_context: Dictionary = {
 				"source_type": SOURCE_TYPE_UNIT,
@@ -134,6 +151,8 @@ func handle_unit_death(unit: Unit) -> void:
 				"ignore_source_alive": true,
 			}
 			summon_units(unit, SKELETON_SUMMON_DATA, 2, context)
+		PASSIVE_SLIME_SPLIT:
+			_handle_slime_split(unit)
 
 func handle_unit_killed_target(attacker: Unit, target: Unit) -> void:
 	if attacker != null and is_instance_valid(attacker) and str(attacker.passive_id) == PASSIVE_ENEMY_KILL_SUMMONS_SKELETONS:
@@ -259,6 +278,8 @@ func _register_summon(source_type: String, source_key: String, summoned_unit: Un
 	var relic_id: String = str(context.get("relic_id", ""))
 	if relic_id != "":
 		summoned_unit.set_meta(META_SUMMON_RELIC_ID, relic_id)
+	if context.has(SLIME_SPLIT_COUNT_META):
+		summoned_unit.set_meta(SLIME_SPLIT_COUNT_META, int(context.get(SLIME_SPLIT_COUNT_META, 0)))
 
 	var duration: float = float(context.get("duration", -1.0))
 	if duration > 0.0:
@@ -266,6 +287,36 @@ func _register_summon(source_type: String, source_key: String, summoned_unit: Un
 			"unit": summoned_unit,
 			"remaining": duration,
 		}
+
+
+func _handle_slime_split(unit: Unit) -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+
+	var split_count: int = int(unit.get_meta(SLIME_SPLIT_COUNT_META, 0))
+	var max_split_count: int = 3 if int(unit.star) >= 3 else 2
+	if split_count >= max_split_count:
+		return
+
+	var hp_ratio: float = 0.40 if int(unit.star) >= 3 else 0.30
+	var child_split_count: int = split_count + 1
+	var child_max_hp: int = maxi(1, int(round(float(unit.max_hp) * hp_ratio)))
+	var child_attack: int = maxi(1, int(round(float(unit.attack_damage) * 0.5)))
+	var child_defense: int = maxi(0, int(round(float(unit.defense) * 0.5)))
+	var context: Dictionary = {
+		"source_type": SOURCE_TYPE_UNIT,
+		"position": unit.position,
+		"ignore_source_alive": true,
+		"summon_cap": 2,
+		"summon_star": unit.star,
+		"team_id": unit.team_id,
+		"override_max_hp": child_max_hp,
+		"override_attack_damage": child_attack,
+		"override_defense": child_defense,
+		"display_name": unit.display_name,
+		SLIME_SPLIT_COUNT_META: child_split_count,
+	}
+	summon_units(unit, GIANT_SLIME_UNIT_DATA, 2, context)
 
 
 func _unregister_summon(unit: Unit) -> void:

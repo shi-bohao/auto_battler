@@ -35,12 +35,15 @@ func take_damage(unit: Variant, amount: int, attacker: Variant, can_crit: bool =
 	var remaining_damage: int = int(damage_result["damage"])
 	var is_critical: bool = bool(damage_result["is_critical"])
 	var shield_damage: int = 0
+	unit.set_meta("incoming_damage_had_shield", unit.shield > 0)
 	if unit.shield > 0:
 		shield_damage = mini(unit.shield, remaining_damage)
 		unit.shield -= shield_damage
 		remaining_damage -= shield_damage
 
 	var life_damage: int = unit.unit_skill.apply_incoming_life_damage_passives(unit, remaining_damage)
+	if unit.has_meta("incoming_damage_had_shield"):
+		unit.remove_meta("incoming_damage_had_shield")
 	var actual_damage: int = mini(life_damage, unit.hp)
 	if shield_damage <= 0 and actual_damage <= 0:
 		return 0

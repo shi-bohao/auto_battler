@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_giant_slime"]
+
+[resource]
+script = ExtResource("1_giant_slime")
+enemy_tier = "ELITE"
+unit_name = "Giant Slime"
+unit_name_cn = "巨型史莱姆"
+description_cn = "高生命承伤型敌人，死亡后会分裂成更小的巨型史莱姆继续阻挡玩家。"
+unit_type = "enemy_giant_slime"
+catalog_id = 23
+role = "tank"
+price = 0
+max_hp = 620
+attack_damage = 24
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 24
+attack_interval = 1.65
+attack_range = 65.0
+search_range = 999.0
+move_speed = 38.0
+passive_id = "slime_split"
+active_skill_id = "heavy_bounce"
+max_mana = 100
+mana_regen_per_second = 8.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

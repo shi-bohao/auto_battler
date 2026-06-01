@@ -5,6 +5,9 @@ extends RefCounted
 const DEBUG_LOG_SCRIPT: Script = preload("res://scripts/debug_log.gd")
 const StatusEffectFactory: Script = preload("res://scripts/combat/status_effect_factory.gd")
 const AoeResolver: Script = preload("res://scripts/combat/aoe_resolver.gd")
+const SKELETON_WARRIOR_SUMMON_DATA: Resource = preload("res://data/summons/skeleton_warrior.tres")
+const SKELETON_ARCHER_SUMMON_DATA: Resource = preload("res://data/summons/skeleton_archer.tres")
+const SKELETON_MAGE_SUMMON_DATA: Resource = preload("res://data/summons/skeleton_mage.tres")
 
 const PASSIVE_ARMOR: String = "armor"
 const PASSIVE_LONG_SHOT: String = "long_shot"
@@ -42,6 +45,8 @@ const PASSIVE_ENEMY_ABYSS_CHANT: String = "enemy_abyss_chant"
 const PASSIVE_MAGGOT_DEATH_BURST: String = "maggot_death_burst"
 const PASSIVE_AMALGAM_SPLIT_BIRTH: String = "amalgam_split_birth"
 const PASSIVE_SUMMONED_BONE_EDGE: String = "summoned_bone_edge"
+const PASSIVE_SUMMONED_BONE_ARROW: String = "summoned_bone_arrow"
+const PASSIVE_SUMMONED_WARRIOR_GUARD: String = "summoned_warrior_guard"
 const PASSIVE_SUMMONED_PUPPET_BODY: String = "summoned_puppet_body"
 const PASSIVE_SOUL_THREAD: String = "soul_thread"
 const PASSIVE_STARFORGED_BODY: String = "starforged_body"
@@ -56,6 +61,20 @@ const PASSIVE_TANGLED_GROWTH: String = "tangled_growth"
 const PASSIVE_CONCUSSIVE_ARMOR: String = "concussive_armor"
 const PASSIVE_SHATTER_FOCUS: String = "shatter_focus"
 const PASSIVE_BANNER_GUARD: String = "banner_guard"
+const PASSIVE_SLIME_BODY: String = "slime_body"
+const PASSIVE_FROST_BURST: String = "frost_burst"
+const PASSIVE_FLAME_BURST: String = "flame_burst"
+const PASSIVE_VENOM_POOL: String = "venom_pool"
+const PASSIVE_SLIME_SPLIT: String = "slime_split"
+const PASSIVE_BOSS_ANCIENT_VITALITY: String = "boss_ancient_vitality"
+const PASSIVE_BOSS_CORPSE_DEVOUR: String = "boss_corpse_devour"
+const PASSIVE_BOSS_MOLTEN_BODY: String = "boss_molten_body"
+const PASSIVE_BOSS_RAISE_THE_FALLEN: String = "boss_raise_the_fallen"
+const PASSIVE_BOSS_GROVE_RESONANCE: String = "boss_grove_resonance"
+const PASSIVE_ENEMY_IRON_BULWARK: String = "enemy_iron_bulwark"
+const PASSIVE_ENEMY_FROST_MARK: String = "enemy_frost_mark"
+const PASSIVE_ENEMY_BLOOD_BANNER_AURA: String = "enemy_blood_banner_aura"
+const PASSIVE_ENEMY_MIRROR_CARAPACE: String = "enemy_mirror_carapace"
 
 const ARMOR_DAMAGE_MULTIPLIER: float = 0.85
 const ARMOR_DAMAGE_MULTIPLIER_STAR_3: float = 0.75
@@ -151,6 +170,11 @@ const ENEMY_BLOOD_RITUAL_HEAL: int = 25
 const SUMMONED_BONE_EDGE_HP_RATIO: float = 0.50
 const SUMMONED_BONE_EDGE_DAMAGE_MULTIPLIER: float = 1.20
 const SUMMONED_BONE_EDGE_DAMAGE_MULTIPLIER_STAR_3: float = 1.35
+const SUMMONED_BONE_ARROW_HP_RATIO: float = 0.50
+const SUMMONED_BONE_ARROW_DAMAGE_MULTIPLIER: float = 1.20
+const SUMMONED_BONE_ARROW_DAMAGE_MULTIPLIER_STAR_3: float = 1.35
+const SUMMONED_WARRIOR_GUARD_DAMAGE_MULTIPLIER: float = 0.90
+const SUMMONED_WARRIOR_GUARD_DAMAGE_MULTIPLIER_STAR_3: float = 0.82
 const SUMMONED_PUPPET_BODY_DAMAGE_MULTIPLIER: float = 0.90
 const SUMMONED_PUPPET_BODY_DAMAGE_MULTIPLIER_STAR_3: float = 0.82
 const INSTANT_AOE_VISUAL_DURATION: float = 0.35
@@ -224,6 +248,95 @@ const VENOM_BROOD_DAMAGE_COUNT_STAR_3: int = 2
 const VENOM_STACK_EFFECT: String = "venom_stack"
 const VENOM_STACK_DURATION: float = 6.0
 const VENOM_STACK_DAMAGE: float = 5.0
+const VENOM_STACK_DECAY_PER_TICK: int = 5
+const SLIME_BODY_BASIC_ATTACK_MULTIPLIER: float = 0.92
+const SLIME_BODY_BASIC_ATTACK_MULTIPLIER_STAR_3: float = 0.85
+const FROST_SLIME_DEATH_RADIUS: float = 115.0
+const FROST_SLIME_DEATH_RADIUS_STAR_3: float = 140.0
+const FROST_SLIME_DEATH_FREEZE_DURATION: float = 1.5
+const FROST_SLIME_DEATH_FREEZE_DURATION_STAR_3: float = 2.0
+const FROST_SLIME_FIELD_DURATION: float = 3.0
+const FROST_SLIME_FIELD_TICK_INTERVAL: float = 1.0
+const FROST_SLIME_FIELD_SLOW_DURATION: float = 2.0
+const FROST_SLIME_FIELD_SLOW_DURATION_STAR_3: float = 2.5
+const FROST_SLIME_FIELD_SLOW_SPEED: float = 0.80
+const FROST_SLIME_FIELD_SLOW_SPEED_STAR_3: float = 0.70
+const FLAME_SLIME_ATTACK_BURN_DURATION: float = 4.0
+const FLAME_SLIME_ATTACK_BURN_DAMAGE_RATIO: float = 0.20
+const FLAME_SLIME_ATTACK_BURN_DAMAGE_RATIO_STAR_3: float = 0.30
+const FLAME_SLIME_DEATH_RADIUS: float = 120.0
+const FLAME_SLIME_DEATH_RADIUS_STAR_3: float = 145.0
+const FLAME_SLIME_DEATH_DAMAGE_RATIO: float = 1.0
+const FLAME_SLIME_DEATH_DAMAGE_RATIO_STAR_3: float = 1.3
+const FLAME_SLIME_FIELD_DURATION: float = 3.0
+const FLAME_SLIME_FIELD_TICK_INTERVAL: float = 1.0
+const VENOM_SLIME_DEATH_RADIUS: float = 120.0
+const VENOM_SLIME_DEATH_RADIUS_STAR_3: float = 145.0
+const VENOM_SLIME_DEATH_STACKS: int = 3
+const VENOM_SLIME_DEATH_STACKS_STAR_3: int = 5
+const VENOM_SLIME_FIELD_DURATION: float = 5.0
+const VENOM_SLIME_FIELD_TICK_INTERVAL: float = 1.0
+const VENOM_SLIME_FIELD_STACKS: int = 1
+const VENOM_SLIME_FIELD_STACKS_STAR_3: int = 2
+const FROST_SLIME_VISUAL_COLOR: Color = Color(0.45, 0.78, 1.0, 0.24)
+const FLAME_SLIME_VISUAL_COLOR: Color = Color(1.0, 0.28, 0.08, 0.24)
+const VENOM_SLIME_VISUAL_COLOR: Color = Color(0.45, 1.0, 0.25, 0.22)
+const MAGGOT_BURST_VISUAL_COLOR: Color = Color(0.42, 0.82, 0.28, 0.22)
+const DRAGON_BREATH_VISUAL_COLOR: Color = Color(0.55, 0.95, 1.0, 0.20)
+const BOSS_ANCIENT_VITALITY_INTERVAL: float = 4.0
+const BOSS_ANCIENT_VITALITY_HEAL_BASE: float = 35.0
+const BOSS_ANCIENT_VITALITY_HEAL_MAX_HP_RATIO: float = 0.03
+const BOSS_ANCIENT_VITALITY_LOW_HP_MULTIPLIER: float = 1.6
+const BOSS_ANCIENT_VITALITY_LOW_HP_RATIO: float = 0.50
+const BOSS_ANCIENT_VITALITY_SHIELD_HP_RATIO: float = 0.15
+const BOSS_ANCIENT_VITALITY_SHIELD_BASE: int = 180
+const BOSS_ANCIENT_VITALITY_SHIELD_TRIGGER_RATIO: float = 0.30
+const BOSS_CORPSE_DEVOUR_MAX_LAYERS: int = 20
+const BOSS_CORPSE_DEVOUR_STAT_RATIO: float = 0.10
+const BOSS_MOLTEN_BODY_CHANCE: float = 0.25
+const BOSS_MOLTEN_BODY_LOW_HP_CHANCE: float = 0.45
+const BOSS_MOLTEN_BODY_LOW_HP_RATIO: float = 0.50
+const BOSS_MOLTEN_BODY_REFLECT_RATIO: float = 0.35
+const BOSS_MOLTEN_BODY_BURN_DURATION: float = 4.0
+const BOSS_MOLTEN_BODY_BURN_RATIO: float = 0.20
+const BOSS_MOLTEN_BODY_LOW_HP_BURN_RATIO: float = 0.30
+const BOSS_RAISE_THE_FALLEN_CHANCE: float = 0.35
+const BOSS_RAISE_THE_FALLEN_CAP: int = 6
+const BOSS_GROVE_RESONANCE_HEAL_BASE: float = 25.0
+const BOSS_GROVE_RESONANCE_HEAL_ATTACK_RATIO: float = 0.80
+const BOSS_GROVE_RESONANCE_SHIELD_BASE: int = 60
+const BOSS_GROVE_RESONANCE_SHIELD_HP_RATIO: float = 0.10
+const BOSS_GROVE_RESONANCE_SHIELD_TRIGGER_RATIO: float = 0.30
+const ENEMY_IRON_BULWARK_START_SHIELD_BASE: int = 120
+const ENEMY_IRON_BULWARK_START_SHIELD_BASE_STAR_3: int = 160
+const ENEMY_IRON_BULWARK_START_SHIELD_HP_RATIO: float = 0.15
+const ENEMY_IRON_BULWARK_START_SHIELD_HP_RATIO_STAR_3: float = 0.20
+const ENEMY_IRON_BULWARK_SHIELDED_DAMAGE_MULTIPLIER: float = 0.80
+const ENEMY_IRON_BULWARK_SHIELDED_DAMAGE_MULTIPLIER_STAR_3: float = 0.70
+const ENEMY_IRON_BULWARK_BREAK_DEFENSE: float = 10.0
+const ENEMY_IRON_BULWARK_BREAK_DEFENSE_STAR_3: float = 18.0
+const ENEMY_IRON_BULWARK_BREAK_DURATION: float = 4.0
+const ENEMY_FROST_MARK_DURATION: float = 5.0
+const ENEMY_FROST_MARK_DURATION_STAR_3: float = 6.0
+const ENEMY_FROST_MARK_FREEZE_DURATION: float = 1.2
+const ENEMY_FROST_MARK_FREEZE_DURATION_STAR_3: float = 1.6
+const ENEMY_BLOOD_BANNER_AURA_DURATION: float = 0.6
+const ENEMY_BLOOD_BANNER_ATTACK_INTERVAL_MULTIPLIER: float = 0.90
+const ENEMY_BLOOD_BANNER_ATTACK_INTERVAL_MULTIPLIER_STAR_3: float = 0.84
+const ENEMY_BLOOD_BANNER_MANA_MULTIPLIER: float = 1.10
+const ENEMY_BLOOD_BANNER_MANA_MULTIPLIER_STAR_3: float = 1.16
+const ENEMY_BLOOD_BANNER_ATTACK_MULTIPLIER_STAR_3: float = 1.08
+const ENEMY_MIRROR_CARAPACE_START_SHIELD_BASE: int = 100
+const ENEMY_MIRROR_CARAPACE_START_SHIELD_BASE_STAR_3: int = 140
+const ENEMY_MIRROR_CARAPACE_START_SHIELD_HP_RATIO: float = 0.12
+const ENEMY_MIRROR_CARAPACE_START_SHIELD_HP_RATIO_STAR_3: float = 0.18
+const ENEMY_MIRROR_CARAPACE_REFLECT_RATIO: float = 0.25
+const ENEMY_MIRROR_CARAPACE_REFLECT_RATIO_STAR_3: float = 0.35
+const ENEMY_MIRROR_CARAPACE_COOLDOWN: float = 1.0
+const ENEMY_MIRROR_CARAPACE_COOLDOWN_STAR_3: float = 0.6
+const ENEMY_REFRACTION_ATTACK_MULTIPLIER: float = 1.35
+const ENEMY_REFRACTION_ATTACK_MULTIPLIER_STAR_3: float = 1.50
+const ENEMY_REFRACTION_ATTACK_MANA: float = 10.0
 const DAWNBELL_OVERHEAL_SHIELD_RATIO: float = 0.70
 const DAWNBELL_OVERHEAL_SHIELD_RATIO_STAR_3: float = 1.50
 const DAWNBELL_REDEMPTION_META: String = "dawnbell_redemption_count"
@@ -316,6 +429,10 @@ func apply_battle_start_passives(unit: Variant) -> void:
 					ally.add_shield(ENEMY_ABYSS_CHANT_SHIELD, unit)
 			_apply_ally_attack_and_mana_regen_bonus(unit, 0.0, ENEMY_ABYSS_CHANT_MANA_REGEN_BONUS)
 			DEBUG_LOG_SCRIPT.combat(unit.display_name + " abyss chant applied.")
+		PASSIVE_ENEMY_IRON_BULWARK:
+			_apply_enemy_iron_bulwark_start(unit)
+		PASSIVE_ENEMY_MIRROR_CARAPACE:
+			_apply_enemy_mirror_carapace_start(unit)
 
 
 func update_periodic_passives(unit: Variant, delta: float) -> void:
@@ -325,6 +442,12 @@ func update_periodic_passives(unit: Variant, delta: float) -> void:
 	match unit.passive_id:
 		PASSIVE_HEALING_AURA:
 			_update_healing_aura(unit, delta)
+		PASSIVE_ENEMY_BLOOD_BANNER_AURA:
+			_update_enemy_blood_banner_aura(unit)
+		PASSIVE_BOSS_ANCIENT_VITALITY:
+			_update_boss_ancient_vitality(unit, delta)
+		PASSIVE_BOSS_GROVE_RESONANCE:
+			_update_boss_grove_resonance(unit)
 
 
 func get_effective_defense_bonus(unit: Variant) -> int:
@@ -377,9 +500,14 @@ func apply_incoming_life_damage_passives(unit: Variant, life_damage: int) -> int
 			var reduced_damage: int = maxi(0, int(round(float(life_damage) * ENEMY_COLOSSUS_CORE_DAMAGE_MULTIPLIER)))
 			_apply_enemy_colossus_threshold_shields(unit, reduced_damage)
 			resolved_damage = reduced_damage
+		PASSIVE_ENEMY_IRON_BULWARK:
+			resolved_damage = _apply_enemy_iron_bulwark_life_damage(unit, life_damage)
 		PASSIVE_SUMMONED_PUPPET_BODY:
 			var puppet_multiplier: float = SUMMONED_PUPPET_BODY_DAMAGE_MULTIPLIER_STAR_3 if _is_star_3(unit) else SUMMONED_PUPPET_BODY_DAMAGE_MULTIPLIER
 			resolved_damage = maxi(0, int(round(float(life_damage) * puppet_multiplier)))
+		PASSIVE_SUMMONED_WARRIOR_GUARD:
+			var warrior_guard_multiplier: float = SUMMONED_WARRIOR_GUARD_DAMAGE_MULTIPLIER_STAR_3 if _is_star_3(unit) else SUMMONED_WARRIOR_GUARD_DAMAGE_MULTIPLIER
+			resolved_damage = maxi(0, int(round(float(life_damage) * warrior_guard_multiplier)))
 		PASSIVE_SUMMONED_GOLEM_BODY:
 			resolved_damage = maxi(0, int(round(float(life_damage) * GOLEM_BODY_DAMAGE_MULTIPLIER)))
 		_:
@@ -429,8 +557,15 @@ func get_basic_attack_damage(unit: Variant, target: Variant, base_damage: int) -
 				var bone_edge_hp_ratio: float = float(target.hp) / float(target.max_hp)
 				if bone_edge_hp_ratio <= SUMMONED_BONE_EDGE_HP_RATIO:
 					damage_multiplier = SUMMONED_BONE_EDGE_DAMAGE_MULTIPLIER_STAR_3 if _is_star_3(unit) else SUMMONED_BONE_EDGE_DAMAGE_MULTIPLIER
+		PASSIVE_SUMMONED_BONE_ARROW:
+			if target.max_hp > 0:
+				var bone_arrow_hp_ratio: float = float(target.hp) / float(target.max_hp)
+				if bone_arrow_hp_ratio <= SUMMONED_BONE_ARROW_HP_RATIO:
+					damage_multiplier = SUMMONED_BONE_ARROW_DAMAGE_MULTIPLIER_STAR_3 if _is_star_3(unit) else SUMMONED_BONE_ARROW_DAMAGE_MULTIPLIER
 		PASSIVE_BLOODBOUND_RAGE:
 			damage_multiplier *= get_bloodbound_rage_attack_multiplier(unit)
+		PASSIVE_ENEMY_MIRROR_CARAPACE:
+			damage_multiplier *= get_enemy_refraction_attack_multiplier(unit)
 
 	if _has_nightblade_order_bonus(unit, target):
 		damage_multiplier *= _get_nightblade_order_damage_multiplier(unit)
@@ -480,9 +615,22 @@ func apply_attack_landed_passives(unit: Variant, target: Variant) -> void:
 		PASSIVE_FROST_ARROW:
 			if _is_valid_unit(target) and target.is_alive:
 				_apply_frost_arrow(unit, target)
+		PASSIVE_FLAME_BURST:
+			if _is_valid_unit(target) and target.is_alive:
+				var burn_ratio: float = FLAME_SLIME_ATTACK_BURN_DAMAGE_RATIO_STAR_3 if _is_star_3(unit) else FLAME_SLIME_ATTACK_BURN_DAMAGE_RATIO
+				status_effect_factory.apply_burning(target, unit, FLAME_SLIME_ATTACK_BURN_DURATION, maxf(1.0, float(unit.attack_damage) * burn_ratio))
+		PASSIVE_VENOM_POOL:
+			if _is_valid_unit(target) and target.is_alive:
+				_apply_maggot_venom_stacks(unit, target, 1, VENOM_STACK_DURATION)
 		PASSIVE_ENEMY_VOID_CHARGE:
 			unit.restore_mana(ENEMY_VOID_CHARGE_MANA, unit)
+		PASSIVE_ENEMY_FROST_MARK:
+			if _is_valid_unit(target) and target.is_alive:
+				_apply_enemy_frost_mark(unit, target, 1)
+		PASSIVE_ENEMY_MIRROR_CARAPACE:
+			_apply_enemy_refraction_attack(unit)
 
+	_apply_boss_molten_body_counter(target, unit)
 	_apply_blood_mark_attack_landed(unit, target)
 
 
@@ -507,6 +655,9 @@ func apply_kill_passives(attacker: Variant, target: Variant) -> void:
 func notify_active_skill_cast(caster: Variant) -> void:
 	if not _is_valid_unit(caster) or not caster.is_alive:
 		return
+
+	if caster.passive_id == PASSIVE_BOSS_GROVE_RESONANCE:
+		_apply_boss_grove_resonance_heal(caster)
 
 	if caster.team_id != 1:
 		return
@@ -666,6 +817,23 @@ func notify_ally_died(unit: Variant, dead_ally: Variant) -> void:
 			target.add_shield(shield_amount, unit)
 
 
+func notify_unit_died(unit: Variant, dead_unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive or not _is_valid_unit(dead_unit):
+		return
+	if unit == dead_unit:
+		return
+
+	match unit.passive_id:
+		PASSIVE_BOSS_CORPSE_DEVOUR:
+			_apply_boss_corpse_devour_bonus(unit)
+		PASSIVE_BOSS_RAISE_THE_FALLEN:
+			_try_boss_raise_the_fallen(unit, dead_unit)
+
+
+func apply_corpse_devour_bonus(unit: Variant) -> void:
+	_apply_boss_corpse_devour_bonus(unit)
+
+
 func notify_heal_overflow(target: Variant, overflow_amount: int, source: Variant) -> void:
 	if not _is_valid_unit(target) or not target.is_alive or overflow_amount <= 0:
 		return
@@ -677,6 +845,272 @@ func notify_heal_overflow(target: Variant, overflow_amount: int, source: Variant
 	var ratio: float = DAWNBELL_OVERHEAL_SHIELD_RATIO_STAR_3 if _is_star_3(dawnbell) else DAWNBELL_OVERHEAL_SHIELD_RATIO
 	var shield_amount: int = maxi(1, int(round(float(overflow_amount) * ratio)))
 	target.add_shield(shield_amount, dawnbell)
+
+
+func _update_boss_ancient_vitality(unit: Variant, delta: float) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+
+	var timer: float = float(unit.get_meta("boss_ancient_vitality_timer", BOSS_ANCIENT_VITALITY_INTERVAL)) - delta
+	if timer <= 0.0:
+		timer += BOSS_ANCIENT_VITALITY_INTERVAL
+		var heal_amount: int = maxi(1, int(round(BOSS_ANCIENT_VITALITY_HEAL_BASE + float(unit.max_hp) * BOSS_ANCIENT_VITALITY_HEAL_MAX_HP_RATIO)))
+		if unit.max_hp > 0 and float(unit.hp) / float(unit.max_hp) <= BOSS_ANCIENT_VITALITY_LOW_HP_RATIO:
+			heal_amount = maxi(1, int(round(float(heal_amount) * BOSS_ANCIENT_VITALITY_LOW_HP_MULTIPLIER)))
+		unit.heal(heal_amount, unit)
+
+	if not bool(unit.get_meta("boss_ancient_vitality_shielded", false)) and unit.max_hp > 0:
+		var hp_ratio: float = float(unit.hp) / float(unit.max_hp)
+		if hp_ratio <= BOSS_ANCIENT_VITALITY_SHIELD_TRIGGER_RATIO:
+			unit.set_meta("boss_ancient_vitality_shielded", true)
+			var shield_amount: int = maxi(1, int(round(float(BOSS_ANCIENT_VITALITY_SHIELD_BASE) + float(unit.max_hp) * BOSS_ANCIENT_VITALITY_SHIELD_HP_RATIO)))
+			unit.add_shield(shield_amount, unit)
+
+	unit.set_meta("boss_ancient_vitality_timer", timer)
+
+
+func _apply_boss_corpse_devour_bonus(unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+	if unit.passive_id != PASSIVE_BOSS_CORPSE_DEVOUR:
+		return
+
+	var layer: int = int(unit.get_meta("boss_corpse_devour_layers", 0))
+	if layer >= BOSS_CORPSE_DEVOUR_MAX_LAYERS:
+		return
+
+	if not unit.has_meta("boss_corpse_devour_base_attack"):
+		unit.set_meta("boss_corpse_devour_base_attack", unit.attack_damage)
+		unit.set_meta("boss_corpse_devour_base_defense", unit.defense)
+		unit.set_meta("boss_corpse_devour_base_max_hp", unit.max_hp)
+
+	layer += 1
+	unit.set_meta("boss_corpse_devour_layers", layer)
+	var stat_index: int = (layer - 1) % 3
+	match stat_index:
+		0:
+			var attack_gain: int = maxi(1, int(round(float(unit.get_meta("boss_corpse_devour_base_attack", unit.attack_damage)) * BOSS_CORPSE_DEVOUR_STAT_RATIO)))
+			unit.attack_damage += attack_gain
+		1:
+			var defense_gain: int = maxi(1, int(round(float(unit.get_meta("boss_corpse_devour_base_defense", unit.defense)) * BOSS_CORPSE_DEVOUR_STAT_RATIO)))
+			unit.defense += defense_gain
+		_:
+			var hp_gain: int = maxi(1, int(round(float(unit.get_meta("boss_corpse_devour_base_max_hp", unit.max_hp)) * BOSS_CORPSE_DEVOUR_STAT_RATIO)))
+			unit.max_hp += hp_gain
+			unit.hp += maxi(1, int(round(float(hp_gain) * 0.5)))
+			unit.hp = mini(unit.hp, unit.max_hp)
+
+	unit._update_hp_bar()
+	unit.update_info_display()
+
+
+func _apply_boss_molten_body_counter(boss: Variant, attacker: Variant) -> void:
+	if not _is_valid_unit(boss) or not boss.is_alive:
+		return
+	if not _is_valid_unit(attacker) or not attacker.is_alive:
+		return
+	if boss.passive_id != PASSIVE_BOSS_MOLTEN_BODY:
+		return
+	if int(boss.team_id) == int(attacker.team_id):
+		return
+	if str(attacker.basic_attack_type) != "melee":
+		return
+
+	var hp_ratio: float = float(boss.hp) / float(maxi(1, boss.max_hp))
+	var chance: float = BOSS_MOLTEN_BODY_LOW_HP_CHANCE if hp_ratio <= BOSS_MOLTEN_BODY_LOW_HP_RATIO else BOSS_MOLTEN_BODY_CHANCE
+	if randf() > chance:
+		return
+
+	var reflect_damage: int = maxi(1, int(round(float(boss.attack_damage) * BOSS_MOLTEN_BODY_REFLECT_RATIO)))
+	attacker.take_damage(reflect_damage, boss, false)
+	if _is_valid_unit(attacker) and attacker.is_alive:
+		var burn_ratio: float = BOSS_MOLTEN_BODY_LOW_HP_BURN_RATIO if hp_ratio <= BOSS_MOLTEN_BODY_LOW_HP_RATIO else BOSS_MOLTEN_BODY_BURN_RATIO
+		status_effect_factory.apply_burning(attacker, boss, BOSS_MOLTEN_BODY_BURN_DURATION, maxf(1.0, float(boss.attack_damage) * burn_ratio))
+
+
+func _try_boss_raise_the_fallen(unit: Variant, dead_unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+	if unit.passive_id != PASSIVE_BOSS_RAISE_THE_FALLEN:
+		return
+	if not _is_valid_unit(dead_unit) or int(dead_unit.team_id) == int(unit.team_id):
+		return
+	if randf() > BOSS_RAISE_THE_FALLEN_CHANCE:
+		return
+
+	var context: Dictionary = {
+		"source_type": "unit",
+		"source_key": "boss_raise_the_fallen:" + str(unit.unit_id),
+		"summon_cap": BOSS_RAISE_THE_FALLEN_CAP,
+		"position": dead_unit.position,
+		"team_id": unit.team_id,
+		"spawn_radius": 38.0,
+	}
+	_summon_units(unit, _get_random_boss_undead_summon_data(), 1, context)
+
+
+func _update_boss_grove_resonance(unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+
+	for ally_value: Variant in unit.ally_units:
+		var ally: Variant = ally_value
+		if not _is_valid_unit(ally) or not ally.is_alive or ally.max_hp <= 0:
+			continue
+		var meta_key: String = "boss_grove_resonance_shielded_by_" + str(unit.unit_id)
+		if bool(ally.get_meta(meta_key, false)):
+			continue
+		if float(ally.hp) / float(ally.max_hp) > BOSS_GROVE_RESONANCE_SHIELD_TRIGGER_RATIO:
+			continue
+		ally.set_meta(meta_key, true)
+		var shield_amount: int = maxi(1, int(round(float(BOSS_GROVE_RESONANCE_SHIELD_BASE) + float(ally.max_hp) * BOSS_GROVE_RESONANCE_SHIELD_HP_RATIO)))
+		ally.add_shield(shield_amount, unit)
+
+
+func _apply_boss_grove_resonance_heal(unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+
+	var heal_amount: int = maxi(1, int(round(BOSS_GROVE_RESONANCE_HEAL_BASE + float(unit.attack_damage) * BOSS_GROVE_RESONANCE_HEAL_ATTACK_RATIO)))
+	for ally_value: Variant in unit.ally_units:
+		var ally: Variant = ally_value
+		if _is_valid_unit(ally) and ally.is_alive:
+			ally.heal(heal_amount, unit)
+
+
+func _apply_enemy_iron_bulwark_start(unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+
+	var shield_base: int = ENEMY_IRON_BULWARK_START_SHIELD_BASE_STAR_3 if _is_star_3(unit) else ENEMY_IRON_BULWARK_START_SHIELD_BASE
+	var shield_ratio: float = ENEMY_IRON_BULWARK_START_SHIELD_HP_RATIO_STAR_3 if _is_star_3(unit) else ENEMY_IRON_BULWARK_START_SHIELD_HP_RATIO
+	unit.add_shield(maxi(1, int(round(float(shield_base) + float(unit.max_hp) * shield_ratio))), unit)
+
+
+func _apply_enemy_iron_bulwark_life_damage(unit: Variant, life_damage: int) -> int:
+	if not _is_valid_unit(unit) or life_damage <= 0:
+		return life_damage
+
+	var had_shield: bool = bool(unit.get_meta("incoming_damage_had_shield", false))
+	var resolved_damage: int = life_damage
+	if had_shield:
+		var multiplier: float = ENEMY_IRON_BULWARK_SHIELDED_DAMAGE_MULTIPLIER_STAR_3 if _is_star_3(unit) else ENEMY_IRON_BULWARK_SHIELDED_DAMAGE_MULTIPLIER
+		resolved_damage = maxi(0, int(round(float(life_damage) * multiplier)))
+
+	if had_shield and int(unit.shield) <= 0 and not bool(unit.get_meta("enemy_iron_bulwark_break_triggered", false)):
+		unit.set_meta("enemy_iron_bulwark_break_triggered", true)
+		var defense_bonus: float = ENEMY_IRON_BULWARK_BREAK_DEFENSE_STAR_3 if _is_star_3(unit) else ENEMY_IRON_BULWARK_BREAK_DEFENSE
+		_apply_status_effect(unit, "enemy_iron_bulwark_break_defense", StatusEffectFactory.EFFECT_TYPE_STAT_ADD, unit, ENEMY_IRON_BULWARK_BREAK_DURATION, 0.0, defense_bonus, "defense", {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+			"polarity": StatusEffectFactory.POLARITY_POSITIVE,
+			"category": StatusEffectFactory.CATEGORY_STAT,
+		})
+
+	return resolved_damage
+
+
+func _apply_enemy_mirror_carapace_start(unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+
+	var shield_base: int = ENEMY_MIRROR_CARAPACE_START_SHIELD_BASE_STAR_3 if _is_star_3(unit) else ENEMY_MIRROR_CARAPACE_START_SHIELD_BASE
+	var shield_ratio: float = ENEMY_MIRROR_CARAPACE_START_SHIELD_HP_RATIO_STAR_3 if _is_star_3(unit) else ENEMY_MIRROR_CARAPACE_START_SHIELD_HP_RATIO
+	unit.add_shield(maxi(1, int(round(float(shield_base) + float(unit.max_hp) * shield_ratio))), unit)
+
+
+func _update_enemy_blood_banner_aura(unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+
+	var attack_interval_multiplier: float = ENEMY_BLOOD_BANNER_ATTACK_INTERVAL_MULTIPLIER_STAR_3 if _is_star_3(unit) else ENEMY_BLOOD_BANNER_ATTACK_INTERVAL_MULTIPLIER
+	var mana_multiplier: float = ENEMY_BLOOD_BANNER_MANA_MULTIPLIER_STAR_3 if _is_star_3(unit) else ENEMY_BLOOD_BANNER_MANA_MULTIPLIER
+	for ally_value: Variant in unit.ally_units:
+		var ally: Variant = ally_value
+		if not _is_valid_unit(ally) or not ally.is_alive:
+			continue
+		_apply_status_effect(ally, "enemy_blood_banner_aura_attack_interval", StatusEffectFactory.EFFECT_TYPE_STAT_MULTIPLY, unit, ENEMY_BLOOD_BANNER_AURA_DURATION, 0.0, attack_interval_multiplier, "attack_interval", {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+			"polarity": StatusEffectFactory.POLARITY_POSITIVE,
+			"category": StatusEffectFactory.CATEGORY_AURA,
+		})
+		_apply_status_effect(ally, "enemy_blood_banner_aura_mana", StatusEffectFactory.EFFECT_TYPE_STAT_MULTIPLY, unit, ENEMY_BLOOD_BANNER_AURA_DURATION, 0.0, mana_multiplier, "mana_regen_per_second", {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+			"polarity": StatusEffectFactory.POLARITY_POSITIVE,
+			"category": StatusEffectFactory.CATEGORY_AURA,
+		})
+		if _is_star_3(unit):
+			_apply_status_effect(ally, "enemy_blood_banner_aura_attack", StatusEffectFactory.EFFECT_TYPE_STAT_MULTIPLY, unit, ENEMY_BLOOD_BANNER_AURA_DURATION, 0.0, ENEMY_BLOOD_BANNER_ATTACK_MULTIPLIER_STAR_3, "attack_damage", {
+				"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+				"polarity": StatusEffectFactory.POLARITY_POSITIVE,
+				"category": StatusEffectFactory.CATEGORY_AURA,
+			})
+
+
+func _apply_enemy_frost_mark(unit: Variant, target: Variant, count: int = 1) -> void:
+	if not _is_valid_unit(unit) or not _is_valid_unit(target) or count <= 0:
+		return
+
+	var duration: float = ENEMY_FROST_MARK_DURATION_STAR_3 if _is_star_3(unit) else ENEMY_FROST_MARK_DURATION
+	for _index: int in range(count):
+		_apply_status_effect(target, "enemy_frost_mark", StatusEffectFactory.EFFECT_TYPE_STAT_ADD, unit, duration, 0.0, 0.0, "", {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_STACK_INDEPENDENT_DURATION,
+			"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+			"category": StatusEffectFactory.CATEGORY_MARK,
+			"stack_group_key": "enemy_frost_mark_" + str(target.unit_id),
+		})
+
+	if target.get_status_effect_count("enemy_frost_mark") < 3:
+		return
+
+	target.remove_status_effect("enemy_frost_mark")
+	status_effect_factory.apply_control_effect(target, "FREEZE", unit, ENEMY_FROST_MARK_FREEZE_DURATION_STAR_3 if _is_star_3(unit) else ENEMY_FROST_MARK_FREEZE_DURATION, {
+		"effect_id": "enemy_frost_mark_freeze",
+		"stack_group_key": "freeze",
+		"source_key": "enemy_frost_mark",
+	})
+
+
+func _apply_enemy_refraction_attack(unit: Variant) -> void:
+	if not _is_valid_unit(unit) or not unit.is_alive:
+		return
+
+	var remaining_attacks: int = int(unit.get_meta("enemy_refraction_shell_attacks", 0))
+	if remaining_attacks <= 0:
+		return
+
+	unit.set_meta("enemy_refraction_shell_attacks", remaining_attacks - 1)
+	unit.restore_mana(ENEMY_REFRACTION_ATTACK_MANA, unit)
+
+
+func get_enemy_refraction_attack_multiplier(unit: Variant) -> float:
+	if not _is_valid_unit(unit) or unit.passive_id != PASSIVE_ENEMY_MIRROR_CARAPACE:
+		return 1.0
+	if int(unit.get_meta("enemy_refraction_shell_attacks", 0)) <= 0:
+		return 1.0
+	return ENEMY_REFRACTION_ATTACK_MULTIPLIER_STAR_3 if _is_star_3(unit) else ENEMY_REFRACTION_ATTACK_MULTIPLIER
+
+
+func _summon_units(unit: Variant, summon_unit_data: Resource, count: int, context: Dictionary = {}) -> Array[Unit]:
+	var empty_units: Array[Unit] = []
+	if not _is_valid_unit(unit) or summon_unit_data == null or count <= 0:
+		return empty_units
+
+	var battle_root: Node = unit.get_parent() as Node
+	if battle_root == null or not is_instance_valid(battle_root):
+		return empty_units
+	if not battle_root.has_method("summon_units"):
+		return empty_units
+
+	return battle_root.summon_units(unit, summon_unit_data, count, context)
+
+
+func _get_random_boss_undead_summon_data() -> Resource:
+	var pool: Array[Resource] = [
+		SKELETON_WARRIOR_SUMMON_DATA,
+		SKELETON_ARCHER_SUMMON_DATA,
+		SKELETON_MAGE_SUMMON_DATA,
+	]
+	return pool[randi_range(0, pool.size() - 1)]
 
 
 func _apply_starforged_body(unit: Variant) -> void:
@@ -758,12 +1192,14 @@ func _apply_venom_stack(source: Variant, target: Variant, count: int) -> void:
 	if not _is_valid_unit(source) or not _is_valid_unit(target) or count <= 0:
 		return
 
-	for _index: int in range(count):
-		_apply_status_effect(target, VENOM_STACK_EFFECT, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, source, VENOM_STACK_DURATION, STATUS_EFFECT_TICK_INTERVAL, VENOM_STACK_DAMAGE, "", {
-			"stack_policy": StatusEffectFactory.STACK_POLICY_STACK_INDEPENDENT_DURATION,
-			"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
-			"category": StatusEffectFactory.CATEGORY_DOT,
-		})
+	_apply_status_effect(target, VENOM_STACK_EFFECT, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, source, VENOM_STACK_DURATION, STATUS_EFFECT_TICK_INTERVAL, VENOM_STACK_DAMAGE, "", {
+		"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+		"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+		"category": StatusEffectFactory.CATEGORY_DOT,
+		"stack_count": count,
+		"stack_decay_after_duration": true,
+		"stack_decay_per_tick": VENOM_STACK_DECAY_PER_TICK,
+	})
 
 
 func _get_prism_refraction_multiplier(unit: Variant) -> float:
@@ -1265,6 +1701,20 @@ func _create_visual_field(unit: Variant, center_position: Vector2, radius: float
 	return int(battle_root.create_visual_field(center_position, radius, duration, color))
 
 
+func _create_status_field(unit: Variant, center_position: Vector2, radius: float, duration: float, tick_interval: float, status_data: Dictionary, color: Color) -> int:
+	if not _is_valid_unit(unit):
+		return -1
+
+	var battle_root: Node = unit.get_parent() as Node
+	if battle_root == null or not is_instance_valid(battle_root):
+		return -1
+
+	if not battle_root.has_method("create_status_field"):
+		return -1
+
+	return int(battle_root.create_status_field(unit, center_position, radius, duration, tick_interval, status_data, color))
+
+
 func _create_aoe_shape_visual(unit: Variant, shape_data: Dictionary, duration: float, color: Color) -> void:
 	if not _is_valid_unit(unit):
 		return
@@ -1693,6 +2143,7 @@ func _apply_dragon_breath_splash(unit: Variant, target: Variant) -> void:
 
 	var splash_damage: int = maxi(1, int(round(float(unit.attack_damage) * DRAGON_BREATH_SPLASH_RATIO)))
 	var enemies: Array[Variant] = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, DRAGON_BREATH_SPLASH_RADIUS, [target])
+	_create_visual_field(unit, target.global_position, DRAGON_BREATH_SPLASH_RADIUS, INSTANT_AOE_VISUAL_DURATION, DRAGON_BREATH_VISUAL_COLOR)
 	for enemy_value: Variant in enemies:
 		var enemy: Variant = enemy_value
 		if _is_valid_unit(enemy) and enemy.is_alive:
@@ -1706,6 +2157,7 @@ func apply_maggot_death_burst(unit: Variant) -> void:
 	var death_position: Vector2 = unit.global_position
 	var burst_damage: int = maxi(1, int(round(MAGGOT_DEATH_BURST_BASE_DAMAGE + float(unit.max_hp) * MAGGOT_DEATH_BURST_HP_RATIO)))
 	var targets: Array = aoe_resolver.get_enemy_units_in_radius(unit, death_position, MAGGOT_DEATH_BURST_RADIUS)
+	_create_visual_field(unit, death_position, MAGGOT_DEATH_BURST_RADIUS, INSTANT_AOE_VISUAL_DURATION, MAGGOT_BURST_VISUAL_COLOR)
 	var hit_count: int = aoe_resolver.deal_aoe_damage(unit, targets, burst_damage, false)
 	DEBUG_LOG_SCRIPT.combat(unit.display_name + " death burst: " + str(hit_count) + " targets hit for " + str(burst_damage))
 
@@ -1717,13 +2169,100 @@ func apply_maggot_death_burst(unit: Variant) -> void:
 		_apply_maggot_venom_stacks(unit, target, MAGGOT_DEATH_BURST_VENOM_STACKS, MAGGOT_DEATH_BURST_VENOM_DURATION)
 
 
-func _apply_maggot_venom_stacks(source: Variant, target: Variant, count: int, duration: float) -> void:
-	for _index: int in range(count):
-		_apply_status_effect(target, VENOM_STACK_EFFECT, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, source, duration, STATUS_EFFECT_TICK_INTERVAL, VENOM_STACK_DAMAGE, "", {
-			"stack_policy": StatusEffectFactory.STACK_POLICY_STACK_INDEPENDENT_DURATION,
+func apply_frost_slime_death_burst(unit: Variant) -> void:
+	if not _is_valid_unit(unit):
+		return
+
+	var death_position: Vector2 = unit.global_position
+	var radius: float = FROST_SLIME_DEATH_RADIUS_STAR_3 if _is_star_3(unit) else FROST_SLIME_DEATH_RADIUS
+	var freeze_duration: float = FROST_SLIME_DEATH_FREEZE_DURATION_STAR_3 if _is_star_3(unit) else FROST_SLIME_DEATH_FREEZE_DURATION
+	var slow_duration: float = FROST_SLIME_FIELD_SLOW_DURATION_STAR_3 if _is_star_3(unit) else FROST_SLIME_FIELD_SLOW_DURATION
+	var slow_speed: float = FROST_SLIME_FIELD_SLOW_SPEED_STAR_3 if _is_star_3(unit) else FROST_SLIME_FIELD_SLOW_SPEED
+	var targets: Array = aoe_resolver.get_enemy_units_in_radius(unit, death_position, radius)
+	_create_visual_field(unit, death_position, radius, INSTANT_AOE_VISUAL_DURATION, FROST_SLIME_VISUAL_COLOR)
+	for target_value: Variant in targets:
+		var target: Variant = target_value
+		if _is_valid_unit(target) and target.is_alive:
+			status_effect_factory.apply_control_effect(target, "FREEZE", unit, freeze_duration, {
+				"effect_id": "frost_slime_death_freeze",
+				"stack_group_key": "freeze",
+				"source_key": "frost_slime_death",
+			})
+
+	_create_status_field(unit, death_position, radius, FROST_SLIME_FIELD_DURATION, FROST_SLIME_FIELD_TICK_INTERVAL, {
+		"mode": "control",
+		"control_type": "SLOW",
+		"duration": slow_duration,
+		"options": {
+			"effect_id": "frost_slime_field_slow",
+			"move_speed_multiplier": slow_speed,
+			"stack_group_key": "slow",
+			"source_key": "frost_slime_field",
+		},
+	}, FROST_SLIME_VISUAL_COLOR)
+
+
+func apply_flame_slime_death_burst(unit: Variant) -> void:
+	if not _is_valid_unit(unit):
+		return
+
+	var death_position: Vector2 = unit.global_position
+	var radius: float = FLAME_SLIME_DEATH_RADIUS_STAR_3 if _is_star_3(unit) else FLAME_SLIME_DEATH_RADIUS
+	var damage_ratio: float = FLAME_SLIME_DEATH_DAMAGE_RATIO_STAR_3 if _is_star_3(unit) else FLAME_SLIME_DEATH_DAMAGE_RATIO
+	var burn_ratio: float = FLAME_SLIME_ATTACK_BURN_DAMAGE_RATIO_STAR_3 if _is_star_3(unit) else FLAME_SLIME_ATTACK_BURN_DAMAGE_RATIO
+	var burst_damage: int = maxi(1, int(round(float(unit.attack_damage) * damage_ratio)))
+	var burn_damage: float = maxf(1.0, float(unit.attack_damage) * burn_ratio)
+	var targets: Array = aoe_resolver.get_enemy_units_in_radius(unit, death_position, radius)
+	_create_visual_field(unit, death_position, radius, INSTANT_AOE_VISUAL_DURATION, FLAME_SLIME_VISUAL_COLOR)
+	aoe_resolver.deal_aoe_damage(unit, targets, burst_damage, false)
+	_create_status_field(unit, death_position, radius, FLAME_SLIME_FIELD_DURATION, FLAME_SLIME_FIELD_TICK_INTERVAL, {
+		"mode": "burning",
+		"duration": FLAME_SLIME_ATTACK_BURN_DURATION,
+		"damage_per_second": burn_damage,
+	}, FLAME_SLIME_VISUAL_COLOR)
+
+
+func apply_venom_slime_death_pool(unit: Variant) -> void:
+	if not _is_valid_unit(unit):
+		return
+
+	var death_position: Vector2 = unit.global_position
+	var radius: float = VENOM_SLIME_DEATH_RADIUS_STAR_3 if _is_star_3(unit) else VENOM_SLIME_DEATH_RADIUS
+	var death_stacks: int = VENOM_SLIME_DEATH_STACKS_STAR_3 if _is_star_3(unit) else VENOM_SLIME_DEATH_STACKS
+	var field_stacks: int = VENOM_SLIME_FIELD_STACKS_STAR_3 if _is_star_3(unit) else VENOM_SLIME_FIELD_STACKS
+	var targets: Array = aoe_resolver.get_enemy_units_in_radius(unit, death_position, radius)
+	_create_visual_field(unit, death_position, radius, INSTANT_AOE_VISUAL_DURATION, VENOM_SLIME_VISUAL_COLOR)
+	for target_value: Variant in targets:
+		var target: Variant = target_value
+		if _is_valid_unit(target) and target.is_alive:
+			_apply_maggot_venom_stacks(unit, target, death_stacks, VENOM_STACK_DURATION)
+
+	_create_status_field(unit, death_position, radius, VENOM_SLIME_FIELD_DURATION, VENOM_SLIME_FIELD_TICK_INTERVAL, {
+		"effect_id": VENOM_STACK_EFFECT,
+		"effect_type": StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME,
+		"duration": VENOM_STACK_DURATION,
+		"tick_interval": STATUS_EFFECT_TICK_INTERVAL,
+		"value": VENOM_STACK_DAMAGE,
+		"options": {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
 			"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
 			"category": StatusEffectFactory.CATEGORY_DOT,
-		})
+			"stack_count": field_stacks,
+			"stack_decay_after_duration": true,
+			"stack_decay_per_tick": VENOM_STACK_DECAY_PER_TICK,
+		},
+	}, VENOM_SLIME_VISUAL_COLOR)
+
+
+func _apply_maggot_venom_stacks(source: Variant, target: Variant, count: int, duration: float) -> void:
+	_apply_status_effect(target, VENOM_STACK_EFFECT, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, source, duration, STATUS_EFFECT_TICK_INTERVAL, VENOM_STACK_DAMAGE, "", {
+		"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+		"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+		"category": StatusEffectFactory.CATEGORY_DOT,
+		"stack_count": count,
+		"stack_decay_after_duration": true,
+		"stack_decay_per_tick": VENOM_STACK_DECAY_PER_TICK,
+	})
 
 
 func _apply_putrid_mark(source: Variant, target: Variant, duration: float) -> void:

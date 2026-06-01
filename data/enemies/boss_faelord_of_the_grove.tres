@@ -1,0 +1,35 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boss_faelord_of_the_grove"]
+
+[resource]
+script = ExtResource("1_boss_faelord_of_the_grove")
+enemy_tier = "BOSS"
+unit_name = "Boss: Faelord of the Grove"
+unit_name_cn = "BOSS：森精灵之王"
+description_cn = "范围 AoE、治疗与自然增幅型 BOSS，技能会同时压制玩家并恢复敌方。"
+unit_type = "enemy_boss_faelord_of_the_grove"
+catalog_id = 8
+role = "support"
+price = 0
+max_hp = 760
+attack_damage = 26
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 28
+control_duration_multiplier = 0.65
+hard_control_duration_multiplier = 0.4
+attack_interval = 1.25
+attack_range = 150.0
+search_range = 999.0
+move_speed = 60.0
+passive_id = "boss_grove_resonance"
+active_skill_id = "boss_starleaf_storm"
+max_mana = 115
+mana_regen_per_second = 13.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 460.0
+projectile_visual_type = "magic"

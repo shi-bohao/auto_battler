@@ -73,6 +73,12 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 			return "傀儡契约：主动技能标记敌人，标记目标死亡后在其位置召唤傀儡，受自身召唤上限限制。"
 		"summoned_bone_edge":
 			return "骨刃：普攻命中生命低于 50% 的敌人时，伤害提高 " + ("35%。" if safe_star >= 3 else "20%。")
+		"summoned_warrior_guard":
+			return "骨盾守备：受到生命伤害降低 " + ("18%。" if safe_star >= 3 else "10%。")
+		"summoned_bone_arrow":
+			return "骨箭：普通攻击命中生命低于 50% 的敌人时，伤害提高 " + ("35%。" if safe_star >= 3 else "20%。")
+		"summoned_soul_spark":
+			return "残魂聚流：释放主动技能后回复自身 " + ("18" if safe_star >= 3 else "10") + " 魔力。"
 		"summoned_puppet_body":
 			return "傀儡身躯：受到生命伤害降低 " + ("18%。" if safe_star >= 3 else "10%。")
 		"summoned_golem_body":
@@ -147,6 +153,34 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 			return "碎冰聚焦：对被冻结目标造成主动技能伤害提高 20%。" + (" 3 星若击杀被冻结目标，恢复 30 魔力。" if safe_star >= 3 else "")
 		"banner_guard":
 			return "护旗姿态：被至少 1 个敌人嘲讽锁定时获得 12% 伤害减免；每 1 个被自身嘲讽的敌人额外 +4 护盾强度，最多 4 个。" + (" 3 星被嘲讽敌人攻击自身时恢复 3 魔力。" if safe_star >= 3 else "")
+		"slime_body":
+			return "胶质身躯：受到的普通攻击伤害降低 " + ("15%" if safe_star >= 3 else "8%") + "。"
+		"frost_burst":
+			return "寒霜溃散：死亡时冻结周围目标 " + ("2" if safe_star >= 3 else "1.5") + " 秒，并生成寒霜区域 3 秒；区域每秒施加一次迟缓，行动速率降至 " + ("70%" if safe_star >= 3 else "80%") + "，持续 " + ("2.5" if safe_star >= 3 else "2") + " 秒。"
+		"flame_burst":
+			return "爆燃核心：普通攻击施加燃烧 4 秒，每秒造成 " + ("30%" if safe_star >= 3 else "20%") + " 攻击力伤害；死亡时爆燃并生成熔岩区域，区域每秒施加同等燃烧。"
+		"venom_pool":
+			return "毒液残留：普通攻击施加 1 层剧毒；死亡时周围目标获得 " + ("5" if safe_star >= 3 else "3") + " 层剧毒，并生成毒液区域，区域每秒施加 " + ("2" if safe_star >= 3 else "1") + " 层剧毒。"
+		"slime_split":
+			return "分裂躯体：死亡时分裂为 2 个巨型史莱姆；分裂体最大生命为本体死亡前最大生命的 " + ("40%" if safe_star >= 3 else "30%") + "，攻击和防御减半；每条分裂链最多触发 " + ("3" if safe_star >= 3 else "2") + " 次。"
+		"boss_ancient_vitality":
+			return "古树生命：每 4 秒恢复自身 35 + 3% 最大生命值；生命低于 50% 时恢复量提高 60%；每场战斗首次低于 30% 生命时获得 180 + 15% 最大生命值的护盾。"
+		"boss_corpse_devour":
+			return "吞噬尸骸：场上任意其他单位死亡时获得 1 层吞噬，按攻击、防御、最大生命循环提高 10%，最多 20 层。泥沼吞没击杀单位时额外获得 1 层。"
+		"boss_molten_body":
+			return "熔火之躯：受到近战普通攻击命中时有 25% 概率反伤并施加燃烧；生命低于 50% 后触发概率提高至 45%，燃烧伤害提高。"
+		"boss_raise_the_fallen":
+			return "亡者复苏：敌对单位死亡时有 35% 概率在其死亡位置召唤随机亡灵，最多同时保留 6 个该被动召唤的亡灵。"
+		"boss_grove_resonance":
+			return "森灵共鸣：每次释放主动技能后治疗所有敌方单位；敌方单位每场战斗首次低于 30% 生命时获得一次护盾。"
+		"enemy_iron_bulwark":
+			return "铁甲壁垒：战斗开始时获得护盾；护盾被击破并受到生命伤害时降低该次伤害并获得短暂防御提升。"
+		"enemy_frost_mark":
+			return "寒霜印记：普攻命中玩家单位时施加 1 层寒霜印记，达到 3 层时清除印记并冻结目标。"
+		"enemy_blood_banner_aura":
+			return "血旗号令：存活时持续强化敌方单位，使其攻击间隔降低、魔力回复提高；3 星额外提高攻击力。"
+		"enemy_mirror_carapace":
+			return "镜面甲壳：战斗开始时获得护盾；护盾存在时受到主动技能伤害会按比例反射给施法者。"
 		_ :
 			return _format_unknown_skill(passive_id)
 
@@ -190,6 +224,12 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 			return "傀儡标记：优先标记未被标记的当前敌人，否则选择低生命未标记敌人；目标死亡时召唤 1 个傀儡，并使其受到伤害提高 " + ("25%，持续 10 秒。" if safe_star >= 3 else "15%，持续 8 秒。")
 		"summoned_bone_slash":
 			return "骨斩：对当前目标造成 " + ("210%" if safe_star >= 3 else "160%") + " 攻击力的技能伤害。"
+		"summoned_guarded_slash":
+			return "护骨斩：对当前目标造成 " + ("200%" if safe_star >= 3 else "150%") + " 攻击力的技能伤害，并获得 " + ("25 + 18% 最大生命" if safe_star >= 3 else "15 + 12% 最大生命") + " 的护盾。"
+		"summoned_piercing_bone_arrow":
+			return "穿骨箭：对当前目标造成 " + ("230%" if safe_star >= 3 else "170%") + " 攻击力的技能伤害" + ("，本次伤害获得 15 防御穿透。" if safe_star >= 3 else "。")
+		"summoned_bone_blast":
+			return "骨火爆裂：以当前目标为中心，对半径 " + ("90" if safe_star >= 3 else "75") + " 内敌人造成 " + ("190%" if safe_star >= 3 else "140%") + " 攻击力的技能伤害；释放后回复自身 " + ("18" if safe_star >= 3 else "10") + " 魔力。"
 		"summoned_puppet_guard":
 			return "傀儡护架：自身获得 " + ("40 + 25% 最大生命" if safe_star >= 3 else "25 + 18% 最大生命") + " 的护盾。"
 		"summoned_golem_smash":
@@ -262,6 +302,34 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 			return "冰棱囚牢：以当前目标为中心，对 " + ("110" if safe_star >= 3 else "90") + " 内最多 " + ("4" if safe_star >= 3 else "3") + " 个敌人造成 170% 攻击力的技能伤害；主目标冻结 " + ("1.8 秒。" if safe_star >= 2 else "1.5 秒。") + " 周围目标冻结 0.8 秒。"
 		"challenge_banner":
 			return "挑战旗帜：嘲讽自身周围 120 内最多 " + ("3" if safe_star >= 2 else "2") + " 个敌人，持续 " + ("3.5 秒。" if safe_star >= 3 else "3 秒。") + " 自身获得 40 + 15% 最大生命护盾。" + (" 3 星额外获得 20 防御，持续 3.5 秒。" if safe_star >= 3 else "")
+		"slime_bounce":
+			return "弹跳撞击：对当前目标造成 " + ("200%" if safe_star >= 3 else "160%") + " 攻击力的技能伤害。"
+		"frost_explosion":
+			return "冰霜爆裂：以当前目标为中心，对半径 " + ("110" if safe_star >= 3 else "90") + " 内所有敌人造成 " + ("125%" if safe_star >= 3 else "100%") + " 攻击力的技能伤害，并施加迟缓，行动速率降至 " + ("70%" if safe_star >= 3 else "80%") + "，持续 " + ("2.5" if safe_star >= 3 else "2") + " 秒。"
+		"fire_splash":
+			return "火焰溅射：以当前目标为中心，对半径 " + ("110" if safe_star >= 3 else "90") + " 内所有敌人造成 " + ("160%" if safe_star >= 3 else "130%") + " 攻击力的技能伤害，并施加燃烧 4 秒，每秒造成 " + ("30%" if safe_star >= 3 else "20%") + " 攻击力伤害。"
+		"toxic_blob":
+			return "毒液爆团：以当前目标为中心，对半径 " + ("110" if safe_star >= 3 else "90") + " 内所有敌人造成 " + ("135%" if safe_star >= 3 else "110%") + " 攻击力的技能伤害，并施加 " + ("5" if safe_star >= 3 else "3") + " 层剧毒。"
+		"heavy_bounce":
+			return "重压弹跳：对当前目标造成 " + ("170%" if safe_star >= 3 else "140%") + " 攻击力的技能伤害，并获得最大生命 " + ("12%" if safe_star >= 3 else "8%") + " 的护盾。"
+		"boss_root_sweep":
+			return "根须横扫：朝当前目标方向释放大范围扇形根须，造成 180% 攻击力的技能伤害，并眩晕命中的玩家单位 1.25 秒。"
+		"boss_mire_engulf":
+			return "泥沼吞没：在当前目标位置生成持续 5 秒的泥沼区域，每秒造成 18 + 45% 攻击力的伤害，并施加 30% 迟缓 2 秒；区域击杀单位时额外触发一次吞噬尸骸。"
+		"boss_magma_fissure":
+			return "岩浆裂痕：朝当前目标方向制造持续 5 秒的矩形岩浆裂缝，每秒造成 20 + 40% 攻击力的伤害，并施加燃烧 4 秒。"
+		"boss_undead_warband":
+			return "亡灵小队：在自身附近召唤 3 个随机亡灵，可能为骷髅战士、骷髅弓箭手或骷髅法师，最多同时保留 6 个该技能召唤的亡灵。"
+		"boss_starleaf_storm":
+			return "星叶风暴：以当前目标为中心释放大范围风暴，对玩家单位造成 170% 攻击力的技能伤害，并治疗区域内敌方单位；每命中 1 个玩家单位恢复 10 魔力，最多恢复 50% 最大魔力。"
+		"enemy_bulwark_slam":
+			return "震地铁壁：对自身周围玩家单位造成范围技能伤害并短暂眩晕，同时自身获得护盾。"
+		"enemy_frost_thorn_burst":
+			return "冰棘爆裂：以当前目标为中心造成范围冰伤，冻结目标受到更高伤害，并为命中单位施加寒霜印记。"
+		"enemy_crimson_banner":
+			return "猩红战旗：为所有敌方单位施加短暂攻速与回魔增幅，并为自身获得护盾。"
+		"enemy_refraction_shell":
+			return "折光甲壳：重新获得护盾，并强化接下来数次普通攻击，使其伤害提高且命中时恢复魔力。"
 		_:
 			return _format_unknown_skill(active_skill_id)
 

@@ -99,9 +99,39 @@ func notify_ally_died(unit: Variant, dead_ally: Variant) -> void:
 		passive_resolver.notify_ally_died(unit, dead_ally)
 
 
+func notify_unit_died(unit: Variant, dead_unit: Variant) -> void:
+	if passive_resolver != null and passive_resolver.has_method("notify_unit_died"):
+		passive_resolver.notify_unit_died(unit, dead_unit)
+
+
+func apply_corpse_devour_bonus(unit: Variant) -> void:
+	if passive_resolver != null and passive_resolver.has_method("apply_corpse_devour_bonus"):
+		passive_resolver.apply_corpse_devour_bonus(unit)
+
+
 func notify_heal_overflow(target: Variant, overflow_amount: int, source: Variant) -> void:
 	if passive_resolver != null and passive_resolver.has_method("notify_heal_overflow"):
 		passive_resolver.notify_heal_overflow(target, overflow_amount, source)
+
+
+func apply_maggot_death_burst(unit: Variant) -> void:
+	if passive_resolver != null and passive_resolver.has_method("apply_maggot_death_burst"):
+		passive_resolver.apply_maggot_death_burst(unit)
+
+
+func apply_frost_slime_death_burst(unit: Variant) -> void:
+	if passive_resolver != null and passive_resolver.has_method("apply_frost_slime_death_burst"):
+		passive_resolver.apply_frost_slime_death_burst(unit)
+
+
+func apply_flame_slime_death_burst(unit: Variant) -> void:
+	if passive_resolver != null and passive_resolver.has_method("apply_flame_slime_death_burst"):
+		passive_resolver.apply_flame_slime_death_burst(unit)
+
+
+func apply_venom_slime_death_pool(unit: Variant) -> void:
+	if passive_resolver != null and passive_resolver.has_method("apply_venom_slime_death_pool"):
+		passive_resolver.apply_venom_slime_death_pool(unit)
 
 
 func _is_valid_unit(unit: Variant) -> bool:

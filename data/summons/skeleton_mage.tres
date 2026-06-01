@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_skeleton_mage"]
+
+[resource]
+script = ExtResource("1_skeleton_mage")
+unit_name = "Skeleton Mage"
+unit_name_cn = "骷髅法师"
+description_cn = "远程法术召唤物，身板脆弱，能以骨火打击小范围敌人。"
+unit_type = "summoned_skeleton_mage"
+catalog_id = 7
+role = "damage"
+rarity = "COMMON"
+price = 0
+max_hp = 50
+attack_damage = 11
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 1
+attack_interval = 1.4
+attack_range = 135.0
+search_range = 999.0
+move_speed = 95.0
+passive_id = "summoned_soul_spark"
+active_skill_id = "summoned_bone_blast"
+max_mana = 80
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+basic_attack_type = "projectile"
+projectile_speed = 480.0
+projectile_visual_type = "dark"

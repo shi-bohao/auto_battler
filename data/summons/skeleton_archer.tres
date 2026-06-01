@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_skeleton_archer"]
+
+[resource]
+script = ExtResource("1_skeleton_archer")
+unit_name = "Skeleton Archer"
+unit_name_cn = "骷髅弓箭手"
+description_cn = "远程物理召唤物，生命较低，擅长收割受伤目标。"
+unit_type = "summoned_skeleton_archer"
+catalog_id = 6
+role = "damage"
+rarity = "COMMON"
+price = 0
+max_hp = 55
+attack_damage = 13
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 1
+attack_interval = 1.25
+attack_range = 145.0
+search_range = 999.0
+move_speed = 105.0
+passive_id = "summoned_bone_arrow"
+active_skill_id = "summoned_piercing_bone_arrow"
+max_mana = 70
+mana_regen_per_second = 8.0
+target_mode = "NEAREST"
+basic_attack_type = "projectile"
+projectile_speed = 600.0
+projectile_visual_type = "arrow"

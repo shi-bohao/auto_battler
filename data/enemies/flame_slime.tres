@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_flame_slime"]
+
+[resource]
+script = ExtResource("1_flame_slime")
+enemy_tier = "NORMAL"
+unit_name = "Flame Slime"
+unit_name_cn = "火焰史莱姆"
+description_cn = "持续伤害型史莱姆，普通攻击、主动技能和死亡熔岩都会施加燃烧。"
+unit_type = "enemy_flame_slime"
+catalog_id = 21
+role = "damage"
+price = 0
+max_hp = 115
+attack_damage = 19
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 3
+attack_interval = 1.35
+attack_range = 55.0
+search_range = 999.0
+move_speed = 55.0
+passive_id = "flame_burst"
+active_skill_id = "fire_splash"
+max_mana = 90
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

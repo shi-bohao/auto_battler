@@ -1,0 +1,35 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_elite_frost_thorn_witch"]
+
+[resource]
+script = ExtResource("1_elite_frost_thorn_witch")
+enemy_tier = "ELITE"
+unit_name = "Elite: Frost Thorn Witch"
+unit_name_cn = "精英：冰棘女巫"
+description_cn = "控制法师精英，普攻叠加寒霜印记并通过范围冰伤冻结目标。"
+unit_type = "enemy_elite_frost_thorn_witch"
+catalog_id = 25
+role = "support"
+price = 0
+max_hp = 260
+attack_damage = 24
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 14
+control_duration_multiplier = 0.8
+hard_control_duration_multiplier = 0.6
+attack_interval = 1.2
+attack_range = 145.0
+search_range = 999.0
+move_speed = 70.0
+passive_id = "enemy_frost_mark"
+active_skill_id = "enemy_frost_thorn_burst"
+max_mana = 100
+mana_regen_per_second = 13.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 460.0
+projectile_visual_type = "magic"

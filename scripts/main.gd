@@ -2262,6 +2262,40 @@ func create_heal_field(
 	return int(battle_manager.create_heal_field(source_unit, follow_unit, center_position, radius, duration, tick_interval, heal_tick_values, color))
 
 
+func create_status_field(
+	source_unit: Variant,
+	center_position: Vector2,
+	radius: float,
+	duration: float,
+	tick_interval: float,
+	status_data: Dictionary,
+	color: Color
+) -> int:
+	if battle_manager == null:
+		return -1
+	if not battle_manager.has_method("create_status_field"):
+		return -1
+
+	return int(battle_manager.create_status_field(source_unit, center_position, radius, duration, tick_interval, status_data, color))
+
+
+func create_shape_status_field(
+	source_unit: Variant,
+	shape_data: Dictionary,
+	duration: float,
+	tick_interval: float,
+	status_data: Dictionary,
+	color: Color
+) -> int:
+	if battle_manager == null:
+		return -1
+	if not battle_manager.has_method("create_shape_status_field"):
+		return -1
+
+	return int(battle_manager.create_shape_status_field(source_unit, shape_data, duration, tick_interval, status_data, color))
+
+
+
 func summon_units(source_unit: Unit, summon_unit_data: Resource, count: int, context: Dictionary = {}) -> Array[Unit]:
 	if battle_manager == null or not battle_manager.has_method("summon_units"):
 		var empty_units: Array[Unit] = []

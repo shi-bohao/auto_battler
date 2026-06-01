@@ -13,6 +13,8 @@ const SUMMON_MANAGER_SCRIPT: Script = preload("res://scripts/summon_manager.gd")
 const UNIT_SCALING_SERVICE_SCRIPT: Script = preload("res://scripts/roster/unit_scaling_service.gd")
 const BOND_MANAGER_SCRIPT: Script = preload("res://scripts/bond_manager.gd")
 const PROJECTILE_MANAGER_SCRIPT: Script = preload("res://scripts/combat/projectile_manager.gd")
+const BATTLE_VISUAL_LAYER_NAME: String = "BattleVisualLayer"
+const BATTLE_VISUAL_LAYER_Z_INDEX: int = 3
 
 var battle_root: Node = null
 var unit_scene: PackedScene = null
@@ -67,7 +69,7 @@ func setup(
 	hero_manager = configured_hero_manager
 	if configured_bond_manager != null:
 		bond_manager = configured_bond_manager
-	field_effect_manager.setup(configured_battle_root)
+	field_effect_manager.setup(configured_battle_root, _get_battle_visual_layer())
 	summon_manager.setup(self)
 	projectile_manager.setup(configured_battle_root)
 
@@ -273,9 +275,30 @@ func create_aoe_shape_visual(shape_data: Dictionary, color: Color, duration: flo
 
 	var visual: Node2D = AOE_SHAPE_VISUAL_SCRIPT.new() as Node2D
 	visual.global_position = anchor
-	battle_root.add_child(visual)
+	var visual_parent: Node = _get_battle_visual_layer()
+	if visual_parent == null or not is_instance_valid(visual_parent):
+		return
+	visual_parent.add_child(visual)
 	if visual.has_method("setup"):
 		visual.setup(shape_data, color, duration, battle_speed_multiplier)
+
+
+func _get_battle_visual_layer() -> Node:
+	if battle_root == null or not is_instance_valid(battle_root):
+		return null
+
+	var existing_layer: Node = battle_root.get_node_or_null(BATTLE_VISUAL_LAYER_NAME)
+	if existing_layer != null:
+		return existing_layer
+
+	var layer: Node2D = Node2D.new()
+	layer.name = BATTLE_VISUAL_LAYER_NAME
+	layer.z_as_relative = false
+	layer.z_index = BATTLE_VISUAL_LAYER_Z_INDEX
+	battle_root.add_child(layer)
+	return layer
+
+
 func create_heal_field(
 	source_unit: Variant,
 	follow_unit: Variant,
@@ -287,6 +310,31 @@ func create_heal_field(
 	color: Color
 ) -> int:
 	return field_effect_manager.create_heal_field(source_unit, follow_unit, center_position, radius, duration, tick_interval, heal_tick_values, color)
+
+
+func create_status_field(
+	source_unit: Variant,
+	center_position: Vector2,
+	radius: float,
+	duration: float,
+	tick_interval: float,
+	status_data: Dictionary,
+	color: Color
+) -> int:
+	return field_effect_manager.create_status_field(source_unit, center_position, radius, duration, tick_interval, status_data, color)
+
+
+func create_shape_status_field(
+	source_unit: Variant,
+	shape_data: Dictionary,
+	duration: float,
+	tick_interval: float,
+	status_data: Dictionary,
+	color: Color
+) -> int:
+	if field_effect_manager == null or not field_effect_manager.has_method("create_shape_status_field"):
+		return -1
+	return field_effect_manager.create_shape_status_field(source_unit, shape_data, duration, tick_interval, status_data, color)
 
 
 func summon_units(source_unit: Unit, summon_unit_data: Resource, count: int, context: Dictionary = {}) -> Array[Unit]:
@@ -376,6 +424,13 @@ func _create_summon_unit_data(source_unit: Unit, summon_unit_data: Resource, con
 	var bonus_attack_damage: int = int(context.get("bonus_attack_damage", 0))
 	if bonus_attack_damage != 0:
 		runtime_data.set("attack_damage", maxi(1, int(runtime_data.get("attack_damage")) + bonus_attack_damage))
+
+	if context.has("override_max_hp"):
+		runtime_data.set("max_hp", maxi(1, int(context.get("override_max_hp"))))
+	if context.has("override_attack_damage"):
+		runtime_data.set("attack_damage", maxi(1, int(context.get("override_attack_damage"))))
+	if context.has("override_defense"):
+		runtime_data.set("defense", maxi(0, int(context.get("override_defense"))))
 
 	return runtime_data
 
@@ -922,6 +977,7 @@ func _on_unit_died(unit: Unit) -> void:
 		stats_manager.capture_unit_snapshot(unit)
 
 	_notify_ally_death_passives(unit)
+	_notify_unit_death_passives(unit)
 
 	if hero_manager != null and hero_manager.has_method("apply_hero_death_effect"):
 		hero_manager.apply_hero_death_effect(unit, left_units)
@@ -964,6 +1020,18 @@ func _notify_ally_death_passives(dead_unit: Unit) -> void:
 			continue
 		if ally.unit_skill != null and ally.unit_skill.has_method("notify_ally_died"):
 			ally.unit_skill.notify_ally_died(ally, dead_unit)
+
+
+func _notify_unit_death_passives(dead_unit: Unit) -> void:
+	if dead_unit == null or not is_instance_valid(dead_unit):
+		return
+
+	var units_snapshot: Array[Unit] = all_units.duplicate()
+	for unit: Unit in units_snapshot:
+		if unit == null or not is_instance_valid(unit) or not unit.is_alive or unit == dead_unit:
+			continue
+		if unit.unit_skill != null and unit.unit_skill.has_method("notify_unit_died"):
+			unit.unit_skill.notify_unit_died(unit, dead_unit)
 
 
 func _on_unit_attack_landed(attacker: Unit, target: Unit) -> void:

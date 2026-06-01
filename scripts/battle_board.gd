@@ -434,8 +434,10 @@ func _get_player_recommended_cells(unit_id: String, role: String) -> Array[Vecto
 			return [Vector2i(6, 3), Vector2i(5, 3), Vector2i(6, 2), Vector2i(6, 4), Vector2i(5, 2), Vector2i(5, 4)]
 		"enemy_shield_guard":
 			return [Vector2i(6, 2), Vector2i(6, 4), Vector2i(5, 2), Vector2i(5, 4), Vector2i(6, 3), Vector2i(5, 3)]
-		"enemy_stoneback_beast", "enemy_elite_iron_warden", "enemy_boss_earthbreaker_colossus":
+		"enemy_stoneback_beast", "enemy_elite_iron_warden", "enemy_elite_iron_bulwark", "enemy_elite_mirror_carapace_beetle", "enemy_boss_earthbreaker_colossus", "enemy_boss_treant_overlord", "enemy_boss_swamp_devourer", "enemy_boss_lava_colossus":
 			return [Vector2i(6, 3), Vector2i(5, 3), Vector2i(6, 2), Vector2i(6, 4), Vector2i(5, 2), Vector2i(5, 4)]
+		"enemy_common_slime", "enemy_frost_slime", "enemy_flame_slime", "enemy_venom_slime", "enemy_giant_slime":
+			return [Vector2i(6, 3), Vector2i(6, 2), Vector2i(6, 4), Vector2i(5, 3), Vector2i(5, 2), Vector2i(5, 4)]
 		"archer":
 			return [Vector2i(0, 2), Vector2i(0, 4), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 3), Vector2i(1, 3), Vector2i(2, 3)]
 		"bomb_thrower":
@@ -460,13 +462,13 @@ func _get_player_recommended_cells(unit_id: String, role: String) -> Array[Vecto
 			return [Vector2i(1, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(2, 3), Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 4)]
 		"forest_druid":
 			return [Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 4), Vector2i(1, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(2, 3)]
-		"enemy_dark_acolyte", "enemy_elite_blood_oracle":
+		"enemy_dark_acolyte", "enemy_elite_blood_oracle", "enemy_elite_frost_thorn_witch":
 			return [Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 4), Vector2i(1, 3), Vector2i(1, 2), Vector2i(1, 4)]
 		"bard":
 			return [Vector2i(1, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 4), Vector2i(2, 3)]
 		"wind_chanter":
 			return [Vector2i(1, 3), Vector2i(0, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 2), Vector2i(0, 4), Vector2i(2, 3)]
-		"enemy_war_drummer", "enemy_boss_abyss_hierophant":
+		"enemy_war_drummer", "enemy_elite_blood_banner_warlord", "enemy_boss_abyss_hierophant", "enemy_boss_scourge_lord", "enemy_boss_faelord_of_the_grove":
 			return [Vector2i(1, 3), Vector2i(0, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 2), Vector2i(0, 4)]
 		_:
 			return _get_default_player_cells_for_role(role)
@@ -499,6 +501,15 @@ func _get_player_fallback_columns(unit_id: String, role: String) -> Array[int]:
 		return [6, 5]
 
 	if unit_id == "guardian_captain":
+		return [6, 5]
+
+	if unit_id == "enemy_common_slime" \
+		or unit_id == "enemy_frost_slime" \
+		or unit_id == "enemy_flame_slime" \
+		or unit_id == "enemy_venom_slime" \
+		or unit_id == "enemy_giant_slime" \
+		or unit_id == "enemy_elite_iron_bulwark" \
+		or unit_id == "enemy_elite_mirror_carapace_beetle":
 		return [6, 5]
 
 	if unit_id == "assassin" or unit_id == "enemy_elite_shadow_reaper":

@@ -1,0 +1,28 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_skeleton_warrior"]
+
+[resource]
+script = ExtResource("1_skeleton_warrior")
+unit_name = "Skeleton Warrior"
+unit_name_cn = "骷髅战士"
+description_cn = "近战前排召唤物，比普通骷髅更能承伤，能用骨盾保护自身。"
+unit_type = "summoned_skeleton_warrior"
+catalog_id = 8
+role = "tank"
+rarity = "COMMON"
+price = 0
+max_hp = 105
+attack_damage = 12
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 8
+attack_interval = 1.25
+attack_range = 50.0
+search_range = 999.0
+move_speed = 105.0
+passive_id = "summoned_warrior_guard"
+active_skill_id = "summoned_guarded_slash"
+max_mana = 80
+mana_regen_per_second = 7.0
+target_mode = "NEAREST"

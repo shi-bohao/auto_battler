@@ -1,0 +1,32 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_elite_mirror_carapace_beetle"]
+
+[resource]
+script = ExtResource("1_elite_mirror_carapace_beetle")
+enemy_tier = "ELITE"
+unit_name = "Elite: Mirror Carapace Beetle"
+unit_name_cn = "精英：反射甲虫"
+description_cn = "反制精英，护盾存在时反射主动技能伤害，并能重新获得护盾强化普攻。"
+unit_type = "enemy_elite_mirror_carapace_beetle"
+catalog_id = 27
+role = "tank"
+price = 0
+max_hp = 430
+attack_damage = 20
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 38
+control_duration_multiplier = 0.8
+hard_control_duration_multiplier = 0.6
+attack_interval = 1.05
+attack_range = 60.0
+search_range = 999.0
+move_speed = 70.0
+passive_id = "enemy_mirror_carapace"
+active_skill_id = "enemy_refraction_shell"
+max_mana = 105
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
