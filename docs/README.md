@@ -1,6 +1,6 @@
 # 项目文档目录
 
-更新时间：2026-06-01
+更新时间：2026-06-02
 
 本文档说明 `docs/` 目录下各文档的用途、维护优先级和过期文档处理方式。判断当前项目真实状态时，优先级为：实际代码与资源 > `content_reference.md` > `project_status.md` > 专题设计文档 > 历史设计记录。
 
@@ -9,64 +9,85 @@
 | 文档 | 用途 | 维护方式 |
 | --- | --- | --- |
 | `../README.md` | GitHub 首页与项目当前状态摘要 | 对外展示前必须保持严格真实 |
-| `project_status.md` | 当前项目进度、系统范围、目录结构、近期修复和验证命令 | 完成系统级功能或流程调整后更新 |
-| `content_reference.md` | 当前玩家单位、英雄、敌人、召唤物和遗物的数值/技能/羁绊总览 | 通过 `scripts/tools/generate_content_reference.gd` 重新生成 |
-| `feature_design_log.md` | 已完成大型功能的设计记录、实现入口和边界条件 | 新功能完成后补充实现入口；不再使用“待实现”旧口径 |
+| `project_status.md` | 当前项目进度、系统范围、目录结构、近期更新和验证命令 | 完成系统级功能或流程调整后更新 |
+| `content_reference.md` | 当前玩家单位、英雄、敌人、召唤物和遗物的数值/技能/羁绊总览 | 通过 `scripts/tools/generate_content_reference.gd` 自动生成，**不手改** |
 
-## 当前专题文档
+## 系统规则文档（`systems/`）
 
-| 文档 | 维护范围 |
+| 文档 | 范围 |
 | --- | --- |
-| `unit_design.md` | 玩家单位、扩展属性、星级成长和高稀有度单位设计参考；当前精确数值以 `content_reference.md` 为准 |
-| `hero_design.md` | 英雄系统、英雄成长、强化规则、英雄选择 UI 和英雄素材接入 |
-| `relic_design.md` | 遗物结构、触发类型、当前遗物池、常驻光环、金币遗物和永久成长遗物 |
+| `combat_system.md` | 索敌设计：自动索敌、目标合法性、目标黏性和攻击系统协作 |
+| `status_effect_system.md` | Buff/Debuff、燃烧、剧毒 + 控制效果系统（Slow/Root/Stun/Freeze/Taunt） |
+| `stat_modifier_system.md` | 运行时属性修饰器层级、动态属性、来源移除和验证入口 |
+| `summon_system.md` | 召唤物、召唤上限、召唤事件 |
 | `bond_system.md` | 6 类羁绊的成员、档位效果、战斗事件接入和 UI 查询 |
-| `stat_modifier_system_design.md` | 运行时属性修饰器层级、动态属性、来源移除和验证入口 |
-| `path_selection_design.md` | 波次路径选择、商人、训练场、事件、宝箱、Boss 锁定和过渡动画 |
-| `lineup_snapshot_design.md` | Boss 胜利阵容快照保存、结构和还原入口 |
-| `mirror_challenge_design.md` | 镜像挑战入口、快照选择和 Boss 替换规则 |
-| `maggot_enemy_design.md` | 蛆虫族敌人设计；当前实现使用剧毒 `venom_stack`，腐痕 `putrid_mark` 不是持续伤害 |
-| `slime_enemy_design.md` | 史莱姆系列敌人设计；覆盖普通、冰霜、火焰、毒液与巨型分裂史莱姆 |
-| `ui_layering_design.md` | UI 大层级、语义 `z_index` 常量和新增 UI 分层规则 |
-| `ui_and_stats_design.md` | 单位详情、遗物显示、奖励详情、出售区域、战斗统计和 UI 性能规则 |
-| `shop_ui_design.md` | 商店栏位、购买状态、详情提示和购买单位后的预览复用策略 |
-| `reward_ui_design.md` | 奖励三选一结构、文本、稀有度颜色和悬停详情规则 |
-| `asset_pipeline.md` | 背景图导入、遗物图标处理、玩家单位图标切分/去背景流程和脚本调用方式 |
-| `索敌设计.md` | 自动索敌、目标合法性、目标黏性和攻击系统协作设计 |
+| `hero_system.md` | 英雄系统规则 |
+| `relic_system.md` | 遗物触发、光环、永久成长 |
+| `progression_system.md` | 路径选择、商人、训练、事件、宝箱、波次推进 |
+| `snapshot_and_mirror.md` | 阵容快照 + 镜像挑战 |
+| `ui_system.md` | UI 分层、主界面 HUD、单位详情、出售区域、战斗统计、商店、奖励选择 |
 
-## 待实现设计文档
+## 内容设计文档（`content/`）
 
-| 文档 | 维护范围 |
+设计意图文档，不放精确数值长表。数值以 `content_reference.md` 为准。
+
+| 文档 | 范围 |
 | --- | --- |
-| `control_effect_system_design.md` | 控制效果系统设计，包含减速、禁锢、眩晕、冻结、嘲讽、控制抗性、UI、日志和文件级实现步骤 |
-| `control_test_units_design.md` | 控制效果实战测试单位设计，为 Slow/Root/Stun/Freeze/Taunt 各提供 1 个玩家单位和接入清单 |
+| `unit_design.md` | 玩家单位设计意图和扩展规划 |
+| `enemy_design.md` | 普通/精英/BOSS/史莱姆/蛆虫统一敌人设计 |
+| `summon_design.md` | 骷髅、傀儡等召唤物设计 |
+| `relic_design.md` | 遗物设计意图和扩展规划 |
+| `hero_design.md` | 英雄设计意图和强化方向 |
+
+## 素材与测试流程（`pipeline/`）
+
+| 文档 | 范围 |
+| --- | --- |
+| `asset_pipeline.md` | 美术素材处理、切图、导入导出 |
+| `testing.md` | Godot 检查命令、测试脚本、导出验证 |
+
+## 历史文档（`archive/`）
+
+| 文档 | 说明 |
+| --- | --- |
+| `feature_design_log.md` | 已完成大型功能的设计记录、实现入口和边界条件，只做追溯，不作为当前规格 |
+| `changelog.md` | 2026-05-28 及更早的历史更新日志 |
 
 ## 已合并或移除的旧文档
 
-以下文档已从当前文档集移除，原因是内容被现有入口覆盖，继续保留容易误导后续维护。需要历史内容时可通过 Git 历史查看。
+以下文档已在 2026-06-02 文档重组中合并或移除：
 
-| 已移除文档 | 替代入口 |
-| --- | --- |
-| `phase_summary_2026-05-04.md` | `project_status.md` |
-| `refactor_plan_2026-05-06.md` | `project_status.md` 的目录结构与脚本职责章节 |
-| `unit_skill_design.md` | `content_reference.md`、`unit_design.md`、`scripts/combat/` |
-| `unit_design_with_new_units.md` | `unit_design.md`、`content_reference.md` |
-| `enemy_design.md` | `content_reference.md`、`maggot_enemy_design.md`、`scripts/catalog/enemy_catalog.gd` |
-| `future_features.md` | 已改名为 `feature_design_log.md` |
+| 操作 | 文档 | 去向 |
+| --- | --- | --- |
+| 合并 | `ui_layering_design.md`、`ui_and_stats_design.md`、`shop_ui_design.md`、`reward_ui_design.md` | → `systems/ui_system.md` |
+| 合并 | `slime_enemy_design.md`、`maggot_enemy_design.md` | → `content/enemy_design.md` |
+| 合并 | `control_effect_system_design.md`、`control_test_units_design.md` | → `systems/status_effect_system.md` |
+| 合并 | `lineup_snapshot_design.md`、`mirror_challenge_design.md` | → `systems/snapshot_and_mirror.md` |
+| 移动 | `feature_design_log.md` | → `archive/feature_design_log.md` |
+| 更名 | `stat_modifier_system_design.md` → `systems/stat_modifier_system.md` | |
+| 更名 | `path_selection_design.md` → `systems/progression_system.md` | |
+| 更名 | `索敌设计.md` → `systems/combat_system.md` | |
+| 提取 | `project_status.md` 中 2026-05-28 及更早更新 | → `archive/changelog.md` |
 
 ## 维护规则
 
-- README 只写已经实现且当前可验证的内容，不写愿景式承诺。
-- 新增单位、敌人、召唤物、英雄或遗物后，优先运行内容总览生成脚本。
-- 新增系统时同步更新 `project_status.md`，并按需要新增或更新专题文档。
-- 已完成的大型功能设计保留在 `feature_design_log.md`，但不要再把它当作待办清单。
-- 旧草案如果与实现不一致，应删除或在本文件中明确标注替代入口。
+1. **数值、技能描述、单位/遗物清单只认 `content_reference.md`，并且只由脚本生成，不手改。**
+2. 当前状态 → `project_status.md`
+3. 系统规则 → `systems/*.md`
+4. 内容设计意图 → `content/*.md`
+5. 素材/测试流程 → `pipeline/*.md`
+6. 历史方案 → `archive/*.md`
+7. 新增系统时同步更新 `project_status.md`，并按需要新增或更新对应专题文档。
+8. 旧草案如果与实现不一致，应删除或移入 `archive/`。
 
 ## 常用维护命令
 
 ```text
-Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\main_check.log --check-only --script res://scripts/main.gd
-Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\content_reference.log --script res://scripts/tools/generate_content_reference.gd
+# 编译检查
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --check-only --script res://scripts/main.gd
+
+# 刷新内容参考文档
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tools/generate_content_reference.gd
 ```
 
-`generate_content_reference.gd` 会扫描 `data/units`、`data/heroes`、`data/enemies`、`data/summons` 和 `data/relics`，按各分类资源中的 `catalog_id` 稳定排序，并重写 `docs/content_reference.md`。
+`generate_content_reference.gd` 会扫描 `data/units`、`data/heroes`、`data/enemies`、`data/summons` 和 `data/relics`，按 `catalog_id` 稳定排序，并重写 `docs/content_reference.md`。
