@@ -20,17 +20,8 @@
 
 本轮新增 5 个 BOSS 与 4 个精英敌人，并接入敌方单位池、推荐站位、技能系统、被动触发、场地效果、召唤物、图鉴/内容总览和测试：
 
-- **新 BOSS**：
-  - **BOSS：树妖领主 / Boss: Treant Overlord**：高生命、恢复与控制型 BOSS。被动 `boss_ancient_vitality` 提供周期恢复、低血强化恢复和首次低血护盾；主动 `boss_root_sweep` 释放大范围扇形根须，造成技能伤害并眩晕。
-  - **BOSS：沼泽吞噬者 / Boss: Swamp Devourer**：吞噬死亡单位、越战越强型 BOSS。被动 `boss_corpse_devour` 根据场上死亡叠加吞噬层并循环提高攻击、防御、最大生命；主动 `boss_mire_engulf` 生成泥沼场地，持续伤害并施加迟缓。
-  - **BOSS：熔岩巨人 / Boss: Lava Colossus**：高 AoE、燃烧和场地压制型 BOSS。被动 `boss_molten_body` 会在受到近战普攻时概率反伤并施加燃烧；主动 `boss_magma_fissure` 生成矩形岩浆裂缝，持续伤害并施加燃烧。
-  - **BOSS：天灾领主 / Boss: Scourge Lord**：亡灵召唤型 BOSS。被动 `boss_raise_the_fallen` 会将阵亡敌对单位概率转化为随机亡灵；主动 `boss_undead_warband` 召唤由骷髅战士、骷髅弓箭手、骷髅法师组成的亡灵小队。
-  - **BOSS：森精灵之王 / Boss: Faelord of the Grove**：范围 AoE、治疗与自然增幅型 BOSS。被动 `boss_grove_resonance` 在释放主动后治疗敌方单位，并为首次低血敌方单位提供护盾；主动 `boss_starleaf_storm` 对玩家单位造成范围伤害，同时治疗范围内敌方单位并按命中数量回魔。
-- **新精英敌人**：
-  - **精英：铁甲巨卫 / Elite: Iron Bulwark**：承伤前排精英，拥有开局护盾、护盾破裂减伤和短暂防御提升；主动 `enemy_bulwark_slam` 周围范围伤害、短暂眩晕并为自身加盾。
-  - **精英：冰棘女巫 / Elite: Frost Thorn Witch**：控制法师精英，普攻叠加寒霜印记，三层触发冻结；主动 `enemy_frost_thorn_burst` 范围冰伤，冻结目标受到更高伤害。
-  - **精英：血旗督军 / Elite: Blood Banner Warlord**：团队辅助精英，存活时提供敌方攻速/回魔光环；主动 `enemy_crimson_banner` 短时间进一步强化全体敌方单位。
-  - **精英：反射甲虫 / Elite: Mirror Carapace Beetle**：反制精英，护盾存在时反射主动技能伤害；主动 `enemy_refraction_shell` 重新获得护盾并强化接下来数次普攻。
+- **新 BOSS（5 个）**：树妖领主（恢复/控制）、沼泽吞噬者（吞噬成长）、熔岩巨人（AoE/燃烧场地）、天灾领主（亡灵召唤）、森精灵之王（AoE/治疗增幅）。详细机制见 `docs/content/enemy_design.md`。
+- **新精英敌人（4 个）**：铁甲巨卫（承伤/护盾）、冰棘女巫（控制/冻结）、血旗督军（团队光环）、反射甲虫（反制/反射）。详细机制见 `docs/content/enemy_design.md`。
 - **召唤物补充**：新增骷髅弓箭手、骷髅法师、骷髅战士，供天灾领主和后续亡灵召唤逻辑使用。
 - **系统接入**：`EnemyCatalog`、`BattleBoard`、`ActiveSkillCaster`、`PassiveResolver`、`CombatResolver`、`FieldEffectManager`、`SummonManager`、`UnitCombat` 等接入 BOSS/精英技能、反射、状态场地、吞噬、亡灵召唤和护盾判定。
 - **文档与测试**：`docs/content_reference.md` 已重新生成。新增 `scripts/tests/test_boss_units.gd`、`scripts/tests/test_elite_enemies.gd`。
@@ -191,7 +182,7 @@ res://
 玩家阵容与成长管理器。管理全队生命/攻击倍率、本局永久属性 `permanent_stat_bonuses`、新增单位、升星、Restart 恢复。
 
 ### `relic_manager.gd`
-遗物持有与效果触发管理器。触发类型：`AURA`（常驻光环）、`BATTLE_START`（一次性增益）、`ON_ATTACK`、`ON_KILL`、`ON_DEATH`。当前 43 件遗物。
+遗物持有与效果触发管理器。触发类型：`AURA`（常驻光环）、`BATTLE_START`（一次性增益）、`ON_ATTACK`、`ON_KILL`、`ON_DEATH`、`ON_ROUND_REWARD`。当前 43 件遗物。
 
 ### `stats_manager.gd`
 战斗统计管理器。记录伤害/承伤/攻击次数/击杀/存活状态，保存死亡单位快照。
@@ -249,6 +240,7 @@ MIRROR_CHALLENGE (总波次相同，Boss 波用历史镜像替换)              
 ### 阵容快照与镜像挑战
 - Boss 胜利后保存阵容快照（单位/遗物/全局效果/永久属性）
 - 镜像挑战开局锁定历史 Boss 通关阵容替换 Boss 波
+- 镜像挑战入口与基础替换流程已存在，但快照还原细节（永久属性还原、随机选择规则等）仍暂缓校准，剩余问题见 `docs/audit_issues_draft.md`
 
 ### 奖励/遗物/召唤/统计系统
 - 三选一奖励（属性/单位/遗物），悬停详情
