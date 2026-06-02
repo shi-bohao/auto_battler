@@ -133,9 +133,9 @@ Used by Archer.
 Used by Assassin.
 
 - Normal trigger: target HP ratio <= `0.4`.
-- Normal: basic attack damage multiplier `1.25`.
+- Normal: basic attack damage multiplier `1.35`.
 - 3-star trigger: target HP ratio <= `0.5`.
-- 3-star enhanced: basic attack damage multiplier `1.4`.
+- 3-star enhanced: basic attack damage multiplier `1.6`.
 
 ### `fortress`
 
@@ -214,13 +214,13 @@ Used by Assassin.
 
 Normal:
 
-- Deals `attack_damage * 2.2` direct skill damage to current target.
-- If this skill kills the target, heal self for `20`.
+- Deals `attack_damage * 2.6` direct skill damage to current target.
+- If this skill kills the target, heal self for `35`.
 
 3-star enhanced:
 
-- Deals `attack_damage * 2.8` direct skill damage to current target.
-- If this skill kills the target, heal self for `40`.
+- Deals `attack_damage * 3.4` direct skill damage to current target.
+- If this skill kills the target, heal self for `60`.
 
 ### `stone_guard`
 

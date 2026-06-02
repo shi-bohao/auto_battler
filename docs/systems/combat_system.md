@@ -1,15 +1,17 @@
-# 战斗系统：索敌设计
+# 战斗系统：索敌与目标控制
 
-> 本文档当前仅覆盖索敌子系统。其他战斗系统（伤害结算、弹道、AoE、场地效果）详见 `docs/systems/status_effect_system.md` 及各专题文档。
+> 本文档当前覆盖索敌、目标合法性、嘲讽强制目标和控制状态对行动的影响。伤害结算、弹道、AoE、场地效果的实现入口主要位于 `scripts/combat/`，状态与控制规则见 `docs/systems/status_effect_system.md`。
 
 ## 1. 文档目标
 
-本文档用于指导 Codex 在当前 Godot 自走棋自动战斗 demo 中实现基础索敌功能。
+本文档记录当前 Godot 自走棋自动战斗 demo 的索敌与目标控制规则。
 
-当前阶段只实现两种索敌模式：
+当前实现两种基础索敌模式：
 
 1. `NEAREST`：最近目标模式
 2. `LOWEST_HP`：血量最少目标模式
+
+在基础索敌之外，控制系统中的 `TAUNT` 会通过 `UnitControlState.forced_target` 强制覆盖当前攻击目标；敌方进攻型主动技能也会优先读取该强制目标。治疗、护盾和自我增益类技能不受嘲讽目标限制。
 
 本系统需要能够稳定处理以下情况：
 
@@ -43,62 +45,50 @@
     负责判断攻击范围、攻击冷却、造成伤害
 ```
 
-### 2.2 当前阶段不做复杂策略
+### 2.2 当前已实现与未实现范围
 
-当前只实现：
+当前已实现：
 
 ```text
 NEAREST
 LOWEST_HP
+TAUNT forced_target overlay
+offensive skill target respects forced_target
 ```
 
-暂不实现：
+当前未实现的独立索敌策略：
 
 ```text
 随机目标
 攻击力最高
 后排优先
-嘲讽
 隐身
 仇恨系统
-技能独立索敌
+技能独立目标模式表
 ```
 
-但代码结构需要方便后续扩展这些模式。
+这些未实现项不是当前规则的一部分；后续新增时应扩展 `UnitTargeting` 和对应技能目标选择入口。
 
 ---
 
 ## 3. 核心数据结构
 
-每个战斗单位建议至少拥有以下字段。
-
-字段名称可根据项目现有命名调整。
+当前运行时单位和索敌系统使用以下关键字段/组件：
 
 ```text
-team                阵营，用于判断敌我
+team_id             阵营，用于判断敌我
 hp                  当前生命值
 max_hp              最大生命值
-is_alive            是否存活
-is_targetable       是否可以被选中
+is_dead             是否死亡
 current_target      当前攻击目标
 target_mode         当前索敌模式
-state               当前单位状态
 attack_range        攻击范围
 search_range        索敌范围
-leash_range         追击范围，可选
 retarget_interval   重新索敌间隔
 retarget_timer      重新索敌计时器
 attack_cooldown     攻击冷却
-```
-
-
-
-推荐后续增加：
-
-```text
-unit_id             单位唯一 ID，用于排序稳定
-is_stunned          是否被眩晕
-is_disabled         是否无法行动
+unit_id             单位唯一 ID，用于来源/目标稳定追踪
+control_state       UnitControlState，提供 can_move/can_attack/can_cast/can_retarget/forced_target
 ```
 
 ---
@@ -119,35 +109,24 @@ enum TargetMode {
 ```text
 enum UnitState {
     IDLE,          // 空闲，没有目标
-    SEARCHING,     // 正在索敌
     MOVING,        // 有目标，但不在攻击范围内，正在靠近
     ATTACKING,     // 有目标，且目标在攻击范围内，正在攻击
-    RETARGETING,   // 当前目标失效，准备重新索敌
     DEAD,          // 自身死亡
-    DISABLED       // 被控制，暂时不能行动
 }
 ```
 
-如果当前 demo 还没有完整状态机，可以先实现最小版：
+> 注：当前代码中 `UnitState` 实际定义为上述 4 种状态（见 `scripts/unit.gd`）。文档中部分伪代码仍使用 `SEARCHING`、`RETARGETING`、`DISABLED` 等逻辑状态名，这些是索敌流程中的概念状态，并非当前枚举值。后续如需显式状态机，可在此基础上扩展。
 
-```text
-IDLE
-MOVING
-ATTACKING
-DEAD
-```
-
-但索敌逻辑内部仍建议按上述完整流程设计。
 
 ---
 
 ## 5. 距离计算规则
 
-根据当前 demo 类型选择距离计算方式。
+当前项目使用 Godot 2D 直线距离（`global_position.distance_to()`）计算索敌距离。以下列出其他可选方案，供后续扩展参考。
 
 ### 5.1 棋盘格战斗
 
-如果单位在格子上移动，推荐使用曼哈顿距离：
+如果单位在格子上移动，可使用曼哈顿距离：
 
 ```text
 distance = abs(a.grid_x - b.grid_x) + abs(a.grid_y - b.grid_y)
@@ -814,13 +793,10 @@ current_target = null
 ### 11.6 自身被控制
 
 ```text
-self.is_disabled == true
+control_state.can_move / can_attack / can_cast / can_retarget 发生限制
     ↓
-state = DISABLED
 保留 current_target
-暂停移动
-暂停攻击
-暂停主动索敌
+根据控制类型暂停移动、普攻、施法或主动重选目标
 ```
 
 控制结束后：
@@ -832,6 +808,8 @@ state = DISABLED
 否则：
     清空目标并重新索敌
 ```
+
+如果单位处于嘲讽状态，`UnitTargeting` 会优先尝试 `control_state.get_valid_forced_target()`；嘲讽来源死亡、失效或不再是合法敌方目标时，会重建控制状态并恢复正常索敌。
 
 ---
 
@@ -1277,16 +1255,16 @@ search_range = 999
 
 ```text
 scripts/
-    combat/
-        combat_unit.gd
-        targeting_component.gd
-        battle_manager.gd
+    unit.gd               # 单位主逻辑（移动、攻击、状态）
+    unit_targeting.gd     # 索敌逻辑
+    battle_manager.gd     # 战斗管理（生成、清理、胜负判定）
+    unit_combat.gd        # 伤害结算与攻击触发
 ```
 
 如果当前 demo 比较简单，也可以先把索敌逻辑写在：
 
 ```text
-combat_unit.gd
+scripts/unit_targeting.gd
 ```
 
 但建议至少用清晰的函数分隔：

@@ -67,7 +67,7 @@ Restart 时调用：
 - 去重依据为 `relic_id`。
 - 战斗开始类遗物只修改本场战斗中的运行时单位，不永久修改原始 `UnitData`。
 - 伤害类遗物需要明确是否暴击；除非特别说明，遗物额外伤害不暴击。
-- 临时属性、光环属性和动态属性增益优先通过 `UnitStatController` 的 modifier 系统接入，避免直接改写字段后互相覆盖；详细层级见 `docs/stat_modifier_system_design.md`。
+- 临时属性、光环属性和动态属性增益优先通过 `UnitStatController` 的 modifier 系统接入，避免直接改写字段后互相覆盖；详细层级见 `docs/systems/stat_modifier_system.md`。
 - 本局永久属性成长不写回 `.tres`，而是写入 `RosterManager` 或 `HeroManager` 的 `permanent_stat_bonuses`，由后续单位生成流程重新应用。
 
 ## 3. 当前遗物池

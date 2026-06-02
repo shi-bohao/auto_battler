@@ -8,8 +8,8 @@
 
 - 新增根目录 `README.md`，用于 GitHub 首页展示。
 - `docs/README.md` 重写为维护索引，明确"代码 > content_reference.md > project_status.md > 专题文档 > 历史记录"的优先级。
-- `docs/future_features.md` 改名为 `docs/feature_design_log.md`。
-- 移除过期文档：`phase_summary_2026-05-04.md`、`refactor_plan_2026-05-06.md`、`unit_skill_design.md`、`unit_design_with_new_units.md`、`enemy_design.md`。
+- `docs/future_features.md` 改名为 `docs/archive/feature_design_log.md`。
+- 移除过期文档：`phase_summary_2026-05-04.md`、`refactor_plan_2026-05-06.md`、`unit_skill_design.md`、`unit_design_with_new_units.md`；旧版 `enemy_design.md` 合并重写为 `docs/content/enemy_design.md`。
 
 ## 2026-05-28 性能与稳定性修复
 

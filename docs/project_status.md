@@ -99,19 +99,24 @@ res://
 │   ├── project_status.md           # 当前文档
 │   ├── systems/
 │   │   ├── bond_system.md
-│   │   ├── combat_system.md        # 索敌设计
+│   │   ├── combat_system.md        # 索敌与目标控制
+│   │   ├── hero_system.md
 │   │   ├── progression_system.md   # 路径选择系统
+│   │   ├── relic_system.md
 │   │   ├── snapshot_and_mirror.md  # 阵容快照 + 镜像挑战
 │   │   ├── stat_modifier_system.md
 │   │   ├── status_effect_system.md # Buff/Debuff + 控制效果
+│   │   ├── summon_system.md
 │   │   └── ui_system.md            # UI 分层、主界面、商店、奖励
 │   ├── content/
 │   │   ├── enemy_design.md         # 普通/精英/BOSS 统一敌人设计
 │   │   ├── hero_design.md
 │   │   ├── relic_design.md
+│   │   ├── summon_design.md
 │   │   └── unit_design.md
 │   ├── pipeline/
-│   │   └── asset_pipeline.md
+│   │   ├── asset_pipeline.md
+│   │   └── testing.md
 │   └── archive/
 │       ├── changelog.md            # 历史更新日志
 │       └── feature_design_log.md   # 历史设计记录
@@ -156,7 +161,7 @@ res://
         ├── test_slime_enemies.gd
         ├── test_summon_system.gd
         ├── test_stat_modifier_system.gd
-        └── ...
+        └── ...（共 22 个，完整清单见 `docs/pipeline/testing.md`）
 ```
 
 ## 场景职责
@@ -224,14 +229,16 @@ MIRROR_CHALLENGE (总波次相同，Boss 波用历史镜像替换)              
 
 ### 索敌
 - `NEAREST` / `LOWEST_HP` 策略
+- 嘲讽强制目标通过 `UnitControlState.forced_target` 接入索敌
 - 目标死亡/无效/不可选中/超出搜索范围后的重新索敌
 - 卡住检测
 
 ### 多阶段/多轮战斗
 - 准备→战斗→结果→奖励→下一轮→结束
-- 30 波推进：普通战、每 5 波精英、每 10 波 Boss
+- 30 个节点推进：Boss 固定 10/20/30；精英战由路径选择节点或强制精英节点触发
 - 敌方强度随波次/遭遇类型/星级递增
 - 路径选择系统（6 种节点类型：普通/精英/商人/训练/事件/宝箱）
+- 商人全局强化中的 `death_prevention` 当前保存为全局标记，致死拦截逻辑尚未接入战斗结算
 - Restart 重置整局
 
 ### 英雄系统
@@ -245,7 +252,7 @@ MIRROR_CHALLENGE (总波次相同，Boss 波用历史镜像替换)              
 
 ### 奖励/遗物/召唤/统计系统
 - 三选一奖励（属性/单位/遗物），悬停详情
-- 43 件遗物，5 种触发类型
+- 43 件遗物，6 种触发类型
 - 召唤系统：召唤物参与胜负，独立/共享上限，限时/永续
 - 战斗统计：伤害/承伤/击杀/治疗/护盾/回蓝，死亡单位快照
 

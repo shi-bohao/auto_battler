@@ -38,7 +38,8 @@
   - 骨巨人 / 骨龙：各独立上限 1（织骨者英雄技能控制）
   - 蛆虫聚合体分裂：上限 4
   - 巨型史莱姆分裂：上限 2（受 `slime_split_count` 限制）
-  - 天灾领主亡灵召唤：上限 6
+  - 天灾领主（Boss）主动亡灵小队：`boss_undead_warband`，上限 6（`active_skill_caster.gd`）
+  - 天灾领主（Boss）被动亡者复苏：`boss_raise_the_fallen`，上限 6（`passive_resolver.gd`）
 - **遗物召唤**：由遗物效果本身决定数量，不占用单位召唤上限
 
 ### 胜负判定
@@ -62,5 +63,6 @@
 | 正式召唤物数据 | `data/summons/*.tres`（8 个） |
 | 分裂用敌人数据 | `data/enemies/giant_maggot.tres`、`data/enemies/giant_slime.tres` |
 | 单位召唤技能 | `scripts/combat/active_skill_caster.gd` |
-| 死亡触发召唤 | `scripts/combat/passive_resolver.gd` |
+| 单位被动/分裂类死亡召唤 | `scripts/summon_manager.gd` |
+| 遗物「骸骨坠饰」死亡召唤 | `scripts/relic/relic_trigger_dispatcher.gd` → `scripts/relic/relic_effect_resolver.gd`（`apply_gravebone_charm_relic`） |
 | 分裂/亡语召唤 | `scripts/summon_manager.gd` |
