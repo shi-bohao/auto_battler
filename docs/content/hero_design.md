@@ -1,6 +1,6 @@
 # 英雄系统设计文档
 
-> 维护提示：本文档仍是英雄系统的设计入口。当前已实现英雄为铁誓统帅、奥术导师、血影猎主和织骨者；实际 UnitData 资源位于 `data/heroes/iron_oath_commander_unit.tres`、`data/heroes/arcane_mentor_unit.tres`、`data/heroes/bloodshadow_hunter_unit.tres`、`data/heroes/boneweaver_unit.tres`。当前数值以 `docs/content_reference.md` 的英雄章节为准，织骨者的完整技能与强化以 `HeroManager` 和内容参考文档为准。
+> 维护提示：本文档仍是英雄系统的设计入口。当前已实现英雄为铁誓统帅、奥术导师、血影猎手和织骨者；实际 UnitData 资源位于 `data/heroes/iron_oath_commander_unit.tres`、`data/heroes/arcane_mentor_unit.tres`、`data/heroes/bloodshadow_hunter_unit.tres`、`data/heroes/boneweaver_unit.tres`。当前数值以 `docs/content_reference.md` 的英雄章节为准，织骨者的完整技能与强化以 `HeroManager` 和内容参考文档为准。
 
 ## 1. 文档目标
 
@@ -42,7 +42,7 @@
 |---|---|---|
 | 铁誓统帅 | 防御、护盾、前排、持久战 | 战士、坦克、巨剑骑士、神官、牧师 |
 | 奥术导师 | 技能、魔力、法术爆发 | 法师、炼金术士、爆弹投手、游吟诗人、风语者 |
-| 血影猎主 | 暴击、刺杀、收割 | 刺客、弓手、巨剑骑士、爆弹投手 |
+| 血影猎手 | 暴击、刺杀、收割 | 刺客、弓手、巨剑骑士、爆弹投手 |
 | 织骨者 | 召唤、亡灵、数量压制 | 亡灵法师、傀儡术士、缚魂祭司、骨巨人、骨龙 |
 
 ---
@@ -555,7 +555,7 @@ target_mode = NEAREST
 
 ---
 
-## 7. 英雄三：血影猎主 / Bloodshadow Hunter
+## 7. 英雄三：血影猎手 / Bloodshadow Hunter
 
 ### 7.1 定位
 

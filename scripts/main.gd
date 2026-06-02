@@ -1479,7 +1479,11 @@ func _on_path_selected(candidate: Dictionary) -> void:
 		"NORMAL":
 			encounter_manager.forced_encounter_type = "NORMAL"
 			_show_transition(Callable(self, "_enter_prepare_state"))
-		"ELITE", "BOSS":
+		"ELITE":
+			encounter_manager.forced_encounter_type = "ELITE"
+			_show_transition(Callable(self, "_enter_prepare_state"))
+		"BOSS":
+			encounter_manager.forced_encounter_type = "BOSS"
 			_show_transition(Callable(self, "_enter_prepare_state"))
 		"MERCHANT":
 			_show_transition(Callable(self, "_enter_merchant_state"))

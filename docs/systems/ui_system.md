@@ -73,7 +73,7 @@
 ### 新增 UI 流程
 
 1. 判断它属于哪一个大类。
-2. 在 `scripts/ui/ui_layer.gd` 中新增语义常量。
+2. 在 `res://scripts/ui/ui_layer.gd` 中新增语义常量。
 3. 在创建节点或初始化控制器时设置 `z_index = UI_LAYER.<NAME>`。
 4. 如果是子节点局部弹窗，使用父面板内的局部 `z_index`。
 5. 用主菜单、英雄选择、奖励、图鉴、局内菜单至少各打开一次做遮挡检查。
@@ -109,14 +109,14 @@
 
 ### 遗物显示 UI
 
-- `RelicBarPanel` 显示当前已有遗物，主界面只显示一行，默认最多 5 个，超出显示 `+N`。
+- `RelicBarPanel` 显示当前已有遗物，主界面只显示一行，默认最多 8 个槽位；超出时最后一个槽位显示 `+N`。
 - `RelicDetailPanel` 显示全部已拥有遗物，点击后展示名称、稀有度、触发类型、数值和描述。
 
 ### 出售区域
 
 出售交互为拖拽：准备阶段拖动上场单位或备战席单位到左下角出售区域即可出售，返还金币。
 
-相关代码：`scripts/main.gd`、`scripts/roster_manager.gd`、`scenes/main.tscn`
+相关代码：`res://scripts/main.gd`、`res://scripts/roster_manager.gd`、`res://scenes/main.tscn`
 
 主要函数：
 | 函数 | 说明 |
@@ -139,7 +139,7 @@
 
 统计逻辑：`res://scripts/stats_manager.gd`
 
-统计字段：`damage_dealt`、`damage_taken`、`kills`、`healing_done`、`shield_given`、`mana_restored`、`battle_duration`
+统计字段：`damage_dealt`、`damage_taken`、`kill_count`、`healing_done`、`shield_given`、`mana_restored`、`battle_duration`
 
 展示内容：战斗总时长、最高伤害/承伤/击杀/治疗/护盾/魔力恢复、每个单位的详细统计、遗物伤害总量。
 
@@ -202,14 +202,14 @@
 
 | 文件 | 职责 |
 | --- | --- |
-| `scripts/shop_manager.gd` | 生成 10 格商品、区分已解锁单位/新单位/遗物、遗物去重、定价 |
-| `scripts/roster_manager.gd` | 维护已解锁单位池、判断可升星目标 |
-| `scripts/ui/shop_panel_controller.gd` | 商店面板 UI 刷新、按钮状态与交互 |
-| `scripts/main.gd` | 购买流程、金币扣除、阵容/遗物写入、刷新调用、商店开关、遗物详情入口 |
-| `scripts/battle_manager.gd` | 备战预览单位刷新；按 `roster_id` 复用节点 |
-| `scripts/unit.gd` | `reset_prepare_preview()` 为被复用的备战预览单位清理运行时状态 |
-| `scripts/combat/unit_stat_controller.gd` | `clear_runtime_state()` 清理复用节点的运行时属性 |
-| `scripts/unit_text_formatter.gd` | 为单位商品简介提供被动和主动技能描述 |
+| `res://scripts/shop_manager.gd` | 生成 10 格商品、区分已解锁单位/新单位/遗物、遗物去重、定价 |
+| `res://scripts/roster_manager.gd` | 维护已解锁单位池、判断可升星目标 |
+| `res://scripts/ui/shop_panel_controller.gd` | 商店面板 UI 刷新、按钮状态与交互 |
+| `res://scripts/main.gd` | 购买流程、金币扣除、阵容/遗物写入、刷新调用、商店开关、遗物详情入口 |
+| `res://scripts/battle_manager.gd` | 备战预览单位刷新；按 `roster_id` 复用节点 |
+| `res://scripts/unit.gd` | `reset_prepare_preview()` 为被复用的备战预览单位清理运行时状态 |
+| `res://scripts/combat/unit_stat_controller.gd` | `clear_runtime_state()` 清理复用节点的运行时属性 |
+| `res://scripts/unit_text_formatter.gd` | 为单位商品简介提供被动和主动技能描述 |
 
 ### 性能说明
 
@@ -231,7 +231,9 @@ UI CanvasLayer
     ├── RewardTitle Label
     ├── RewardButton1 Button
     ├── RewardButton2 Button
-    └── RewardButton3 Button
+    ├── RewardButton3 Button
+    └── HoverDetailPanel Panel
+        └── HoverDetailText RichTextLabel
 ```
 
 主要逻辑：
@@ -282,7 +284,7 @@ UI CanvasLayer
 ## 5. 死亡与刷新性能
 
 - 死亡单位保留统计快照，保证离场单位数据可查。
-- `UnitCombat._handle_death()` 清理状态效果时使用静默批量清理。
+- `UnitCombat._handle_death()` 在单个单位死亡时调用 `clear_status_effects(false, false)`，逐单位静默清理状态效果。
 - `BattleManager` 对死亡、召唤和单位列表变化使用批量刷新请求。
 - 只有仍有效的单位参与后续目标列表和状态更新。
 

@@ -31,8 +31,8 @@
 | 脚本 | 覆盖范围 |
 | --- | --- |
 | `test_slime_enemies.gd` | 史莱姆系列（5种）：资源加载、技能、分裂、死亡场地 |
-| `test_boss_units.gd` | BOSS（5种）：技能、被动、召唤、场地效果 |
-| `test_elite_enemies.gd` | 精英敌人（4种）：技能、被动、反射 |
+| `test_boss_units.gd` | 新增 BOSS（5 种）：技能、被动、召唤、场地效果 |
+| `test_elite_enemies.gd` | 新增精英敌人（4 种）：技能、被动、反射 |
 
 ### UI/素材测试
 

@@ -11,7 +11,7 @@
 1. `NEAREST`：最近目标模式
 2. `LOWEST_HP`：血量最少目标模式
 
-在基础索敌之外，控制系统中的 `TAUNT` 会通过 `UnitControlState.forced_target` 强制覆盖当前攻击目标；敌方进攻型主动技能也会优先读取该强制目标。治疗、护盾和自我增益类技能不受嘲讽目标限制。
+在基础索敌之外，控制系统中的 `TAUNT` 会通过 `UnitControlState.forced_target` 强制覆盖当前攻击目标。单位每帧会先更新索敌，再更新技能，因此大多数直接读取 `unit.current_target` 的进攻型主动技能会间接受嘲讽影响；使用 `_get_offensive_skill_target()` 的技能会显式优先读取强制目标。治疗、护盾和自我增益类技能不受嘲讽目标限制。
 
 本系统需要能够稳定处理以下情况：
 
@@ -88,7 +88,9 @@ retarget_interval   重新索敌间隔
 retarget_timer      重新索敌计时器
 attack_cooldown     攻击冷却
 unit_id             单位唯一 ID，用于来源/目标稳定追踪
-control_state       UnitControlState，提供 can_move/can_attack/can_cast/can_retarget/forced_target
+control_state       UnitControlState，提供 can_move/can_attack/can_cast/can_retarget/forced_target/
+                    move_speed_multiplier/attack_cooldown_rate_multiplier/
+                    mana_regen_multiplier/skill_damage_taken_multiplier
 ```
 
 ---
@@ -196,7 +198,7 @@ if not is_instance_valid(target):
 ### 6.3 推荐伪代码
 
 ```text
-function is_valid_target(target):
+function is_valid_target(unit, target):
     if target == null:
         return false
 
@@ -284,7 +286,7 @@ all_units = BattleManager.get_all_units()
 #### 方式二：从 BattleManager 获取敌方单位
 
 ```text
-enemy_units = BattleManager.get_enemy_units(self.team)
+enemy_units = unit.enemy_units
 ```
 
 推荐方式二，逻辑更清晰。
@@ -974,8 +976,9 @@ if attack_cooldown <= 0:
 
 ```text
 get_all_units() -> Array
-get_enemy_units(team) -> Array
-is_battle_running() -> bool
+get_left_units() -> Array
+get_right_units() -> Array
+is_battle_active: bool
 ```
 
 推荐单位通过 BattleManager 获取敌方单位，而不是自己遍历整个场景树。
@@ -983,7 +986,7 @@ is_battle_running() -> bool
 示例：
 
 ```text
-enemy_units = BattleManager.get_enemy_units(self.team)
+enemy_units = unit.enemy_units
 ```
 
 如果当前项目没有 BattleManager，可以先在战斗场景中维护一个数组：
@@ -1216,18 +1219,18 @@ lowest_hp_switch_threshold
 
 ```text
 attack_range = 根据当前单位配置决定
-search_range = 6 个格子，或 300 像素
+search_range = 999（当前项目默认全场索敌）
 retarget_interval = 0.4
 lowest_hp_switch_threshold = 0.1
 ```
 
-如果当前 demo 是非常小的棋盘，例如 6x6，可以让：
+如果后续改为更大地图或需要限制追击范围，可以调整为：
 
 ```text
-search_range = 999
+search_range = 6 个格子，或 300 像素
 ```
 
-代表全场索敌。
+当前实现尚未接入寻路可达性判断，距离使用 `global_position.distance_to()`。
 
 ---
 

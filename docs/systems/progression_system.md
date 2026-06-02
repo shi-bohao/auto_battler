@@ -62,7 +62,9 @@ const TREASURE: int = 12
 
 ### 3.5 Boss 锁定
 
-`current_round + 1` 在 BOSS_ROUNDS [10, 20, 30] 中时，不显示选择面板，直接进入 Boss 准备。
+`current_round + 1` 在 BOSS_ROUNDS [10, 20, 30] 中时，不显示普通三选一选择面板，而是进入只包含 Boss 节点的强制单选项路径选择。Boss 节点优先于精英节点。
+
+`current_round + 1` 不是 Boss 且满足 `% 5 == 0` 时，进入只包含精英节点的强制单选项路径选择。
 
 ### 3.6 非战斗节点 UI 清理
 
@@ -83,7 +85,7 @@ Round 1-2：强制 3 个 NORMAL。
 | MERCHANT | 2 | 冷却 2 回合 |
 | EVENT | 2 | 冷却 1 回合 |
 | TREASURE | 1 | 冷却 2 回合 |
-| TRAINING | 1 | 冷却 2 回合 |
+| TRAINING | 2 | 冷却 2 回合 |
 
 ### 4.3 约束
 
@@ -93,7 +95,7 @@ Round 1-2：强制 3 个 NORMAL。
 
 ## 5. 精英战斗（ELITE）
 
-选择精英路径时，`encounter_manager.forced_encounter_type = "ELITE"` 强制 `encounter_generator.create_random_encounter()` 生成精英遭遇，不依赖 `wave_rule.get_encounter_type_for_round()` 的回合 % 5 判定。避免路径选择后因回合数不对应仍生成普通遭遇。
+选择精英路径时，`main.gd` 在进入准备阶段前设置 `encounter_manager.forced_encounter_type = "ELITE"`，强制 `encounter_generator.create_random_encounter()` 生成精英遭遇，不依赖 `wave_rule.get_encounter_type_for_round()` 的回合 % 5 判定。避免普通三选一路径中选到精英后，因下一回合不是 5 的倍数而生成普通遭遇。
 
 ## 6. 商人节点（MERCHANT）
 
@@ -110,7 +112,7 @@ Round 1-2：强制 3 个 NORMAL。
 - 价格：RARE=8 / EPIC=12 / LEGENDARY=16。
 
 **下栏 — 奇货货架（4 格，不可刷新）**
-- Slot 0：高稀有度单位（3 费及以上），价格 = `unit_price × 1.5` 向上取整。
+- Slot 0：高稀有度单位（RARE 及以上单位池），固定价格 5 金币。
 - Slot 1：人口提升（始终出现，可重复购买）。
 - Slot 2-3：全局强化（从 8 个中随机，不可重复购买）。
 
@@ -164,6 +166,8 @@ PATH_SELECT → TRAINING
 ### 7.2 木桩单位
 
 `data/enemies/training_dummy.tres`：
+
+木桩资源本身的基础生命为 120；训练场根据回合计算目标生命 `120 + round × 20`，并通过遭遇数据中的 `enemy_hp_multiplier = target_hp / 120.0` 间接应用。
 
 | 属性 | 值 |
 |---|---|
