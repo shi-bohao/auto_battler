@@ -12,6 +12,7 @@ unit_name = "Starforged Vanguard"
 unit_name_cn = "星铸禁卫"
 description_cn = "升星流前排核心，场上高星单位越多，承伤能力越强。"
 unit_type = "starforged_vanguard"
+catalog_id = 14
 role = "tank"
 bond_tags = Array[String](["iron_wall"])
 rarity = "EPIC"

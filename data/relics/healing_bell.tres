@@ -7,6 +7,7 @@
 script = ExtResource("1_bell")
 icon_texture = ExtResource("2_icon")
 relic_id = "healing_bell"
+catalog_id = 27
 relic_name = "Healing Bell"
 relic_name_cn = "治愈铃"
 description = "Aura: player priests gain +40% active skill healing."

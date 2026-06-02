@@ -7,6 +7,7 @@
 script = ExtResource("1_lens")
 icon_texture = ExtResource("2_icon")
 relic_id = "mage_lens"
+catalog_id = 28
 relic_name = "Mage Lens"
 relic_name_cn = "法师透镜"
 description = "Aura: player mages gain +35% active skill damage."

@@ -12,6 +12,7 @@ unit_name = "Soul Binder"
 unit_name_cn = "缚魂祭司"
 description_cn = "召唤流高稀有辅助核心，从友方死亡中获得魔力和护盾收益，并通过主动技能制造魂偶。"
 unit_type = "soul_binder"
+catalog_id = 24
 role = "support"
 bond_tags = Array[String](["summon"])
 rarity = "EPIC"

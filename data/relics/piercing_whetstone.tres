@@ -7,6 +7,7 @@
 script = ExtResource("1_whetstone")
 icon_texture = ExtResource("2_icon")
 relic_id = "piercing_whetstone"
+catalog_id = 32
 relic_name = "Armorbreaker Whetstone"
 relic_name_cn = "破甲砺石"
 description = "Aura: all player units gain +8 defense penetration."

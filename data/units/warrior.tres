@@ -12,6 +12,7 @@ unit_name = "Warrior"
 unit_name_cn = "战士"
 description_cn = "前排承伤，依靠减伤和护盾保护队伍。"
 unit_type = "warrior"
+catalog_id = 12
 role = "tank"
 bond_tags = Array[String](["iron_wall"])
 rarity = "COMMON"

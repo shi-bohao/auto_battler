@@ -7,6 +7,7 @@
 script = ExtResource("1_fang")
 icon_texture = ExtResource("2_icon")
 relic_id = "broken_fang"
+catalog_id = 24
 relic_name = "Broken Fang"
 relic_name_cn = "断牙"
 description = "Aura: player archers and assassins gain +55% crit damage."

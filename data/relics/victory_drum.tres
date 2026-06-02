@@ -7,6 +7,7 @@
 script = ExtResource("1_victory_drum")
 icon_texture = ExtResource("2_icon")
 relic_id = "victory_drum"
+catalog_id = 6
 relic_name = "Victory Drum"
 relic_name_cn = "凯歌战鼓"
 description = "When a player unit kills an enemy, all surviving player units gain 12 shield."

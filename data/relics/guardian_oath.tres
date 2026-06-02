@@ -7,6 +7,7 @@
 script = ExtResource("1_guardian")
 icon_texture = ExtResource("2_icon")
 relic_id = "guardian_oath"
+catalog_id = 16
 relic_name = "Guardian Oath"
 relic_name_cn = "守护誓约"
 description = "At battle start, the player unit with the highest defense gains 70 shield and +25 defense."

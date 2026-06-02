@@ -9,6 +9,7 @@ unit_name = "Maggot Amalgam"
 unit_name_cn = "蛆虫聚合体"
 description_cn = "精英坦克敌人，死亡分裂召唤巨型蛆虫，主动技能释放扇形腐潮。"
 unit_type = "enemy_elite_maggot_amalgam"
+catalog_id = 15
 role = "tank"
 price = 0
 max_hp = 520

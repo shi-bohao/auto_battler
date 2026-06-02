@@ -9,6 +9,7 @@ unit_name = "Boss: Void Cannon"
 unit_name_cn = "Boss：虚空炮台"
 description_cn = "远程爆发 Boss，依靠高技能伤害撕开阵线。"
 unit_type = "enemy_boss_void_cannon"
+catalog_id = 2
 role = "damage"
 price = 0
 max_hp = 620

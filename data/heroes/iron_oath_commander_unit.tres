@@ -14,6 +14,7 @@ unit_name = "Iron Oath Commander"
 unit_name_cn = "铁誓统帅"
 description_cn = "防御 / 前排 / 护盾构筑英雄。"
 unit_type = "hero_iron_oath_commander"
+catalog_id = 1
 role = "tank"
 bond_tags = Array[String](["iron_wall"])
 rarity = "MYTHIC"

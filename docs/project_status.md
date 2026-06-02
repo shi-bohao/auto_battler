@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-06-01（含导出资源修复、玩家单位/遗物素材改为数据资源显式引用、图鉴导出资源扫描兼容）
+更新时间：2026-06-01（含史莱姆系列敌人、导出资源修复、玩家单位/遗物素材改为数据资源显式引用、图鉴导出资源扫描兼容）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成大型功能的设计与实现入口见 `docs/feature_design_log.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
@@ -14,6 +14,29 @@
 
 截至当前版本，早期 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。过期阶段总结和重构计划已从当前文档集中移除，目录和职责以本文档下方说明为准。
 
+## 2026-06-01 史莱姆系列敌人
+
+本轮新增 5 个史莱姆系列敌人，并接入敌人池、技能系统、状态场地、分裂召唤和内容总览：
+
+- **普通史莱姆 / Common Slime**（NORMAL, tank）：`slime_body` 只降低普通攻击伤害，基础 8%，三星 15%；主动 `slime_bounce` 对当前目标造成 160%/200% 攻击力技能伤害。
+- **冰霜史莱姆 / Frost Slime**（NORMAL, support）：死亡冻结周围目标并生成寒霜区域；主动 `frost_explosion` 以目标为中心造成范围伤害并施加迟缓。迟缓继续复用当前 `SLOW` 控制语义，即降低行动速率。
+- **火焰史莱姆 / Flame Slime**（NORMAL, damage）：普通攻击、主动技能和死亡熔岩区域均接入 `burning`；三星强化提高燃烧每秒伤害、主动范围和爆燃伤害。
+- **毒液史莱姆 / Venom Slime**（NORMAL, damage）：普通攻击、主动技能、死亡爆发和毒液区域均接入 `venom_stack`；剧毒继续使用单状态层数 + 过期后每秒衰减的当前规则。
+- **巨型史莱姆 / Giant Slime**（ELITE, tank）：死亡分裂为 2 个巨型史莱姆，分裂体生命按本体死亡前最大生命 30%/40% 继承，攻击和防御减半，并通过 `slime_split_count` 限制每条分裂链最多 2/3 次。
+- **状态场地扩展**：`FieldEffectManager` 新增 `FIELD_TYPE_STATUS` 与 `create_status_field()`，寒霜、熔岩、毒液区域通过统一字段每 tick 施加控制、燃烧或剧毒，不再写散落的区域逻辑；场地视觉层级已调整到战场可见层。
+- **AoE 范围反馈补齐**：龙息溅射、蛆虫死亡爆发和史莱姆死亡爆发会显示瞬时范围提示；史莱姆亡语残留场地会显示持续范围提示。
+- **召唤/分裂兼容**：`SummonManager` 允许 `slime_split` 召唤体死亡时继续触发自身分裂；分裂体仍标记为召唤物并参与胜负判定。
+- **敌人池接入**：`EnemyCatalog` 新增 5 个敌人；普通史莱姆进入普通坦克池，冰霜史莱姆进入普通辅助池，火焰/毒液史莱姆进入普通输出池，巨型史莱姆进入精英坦克池；遭遇生成模板补充史莱姆权重。
+- **文档与测试**：新增 `docs/slime_enemy_design.md` 和 `scripts/tests/test_slime_enemies.gd`；`docs/content_reference.md` 已重新生成，当前统计为 30 个玩家单位、4 个英雄、23 个敌方单位、5 个召唤物、43 个遗物。
+
+本轮验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\slime_check.log --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\test_slime_enemies.log --script res://scripts/tests/test_slime_enemies.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\content_reference.log --script res://scripts/tools/generate_content_reference.gd
+```
+
 ## 2026-06-01 导出资源与美术接入修复
 
 本轮重点修复导出后图鉴内容缺失、单位/遗物图标失效以及旧导出包启动闪退的问题：
@@ -24,6 +47,7 @@
 - **导出包图标修复**：删除 `assets/processed/.gdignore`，仅保留 `assets/processed/ui/.gdignore`，避免玩家单位和遗物处理图被排除在 Godot 导入/导出之外；`assets/processed/player_units/*.png.import` 与 `assets/processed/relics/*.png.import` 必须纳入版本库。
 - **图标加载兜底**：`UnitArtHelper` 与 `RelicIconHelper` 仍保留动态路径加载作为兜底；缺失素材时安静返回 `null`，交由 UI 显示占位，避免导出或浏览敌方单位时刷 `Image.load()` 文件错误。
 - **导出闪退定位与修复**：旧正式导出包因 `data/units/*.tres` 引用了新 PNG 但包内缺少对应导入纹理而启动失败；已重新导入资源并重新导出正式包，`auto_battler.console.exe` 运行 6 秒未退出，确认启动闪退已消除。
+- **分类内稳定排序 ID**：新增 `catalog_id`，玩家单位、敌人、召唤物和英雄运行时单位使用 `UnitData.catalog_id`，遗物使用 `RelicData.catalog_id`，英雄定义使用 `HeroData.catalog_id`。该字段只用于图鉴、内容总览、奖励/单位池和素材切图的稳定排序，不替代 `unit_type`、`relic_id`、`hero_id` 等逻辑 ID。
 - **新增/更新文件**：`scripts/relic_data.gd`、`scripts/unit_art_helper.gd`、`scripts/ui/relic_icon_helper.gd`、`scripts/catalog/unit_catalog.gd`、`scripts/catalog/encyclopedia_catalog.gd`、`data/units/*.tres`、`data/relics/*.tres`、`assets/processed/player_units/*.png.import`、`assets/processed/relics/*.png.import`。
 
 本轮常用验证命令：
@@ -88,7 +112,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
 
 - 新增根目录 `README.md`，用于 GitHub 首页展示当前项目状态、运行方式、检查命令和未纳入范围。
 - `docs/README.md` 重写为维护索引，明确“实际代码与资源 > `content_reference.md` > `project_status.md` > 专题文档 > 历史设计记录”的优先级。
-- `docs/content_reference.md` 已通过 `scripts/tools/generate_content_reference.gd` 重新生成，当前统计为 30 个玩家单位、4 个英雄、18 个敌方单位、5 个召唤物、43 个遗物。
+- `docs/content_reference.md` 已通过 `scripts/tools/generate_content_reference.gd` 重新生成；截至 2026-06-01 史莱姆系列敌人接入后，当前统计为 30 个玩家单位、4 个英雄、23 个敌方单位、5 个召唤物、43 个遗物。
 - `docs/future_features.md` 改名为 `docs/feature_design_log.md`，避免把已经完成的金币经济遗物、远程弹道和非圆形 AoE 继续表现为待办。
 - 移除已被覆盖的旧文档：`phase_summary_2026-05-04.md`、`refactor_plan_2026-05-06.md`、`unit_skill_design.md`、`unit_design_with_new_units.md`、`enemy_design.md`。替代入口已记录在 `docs/README.md`。
 
@@ -206,6 +230,8 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --check
   - **蛆虫聚合体 / Maggot Amalgam**（ELITE, tank）：近战，死亡分裂召唤 4 只巨型蛆虫，主动技能扇形腐潮（若目标有腐痕则增伤）。
 - 新增 Debuff **putrid_mark（腐痕）**：`STAT_MULTIPLY` 类型，`damage_taken_multiplier = 1.25`（承伤 +25%），由蛆虫族所有技能施加，腐潮检测后 ×1.25 增伤并刷新。
 - 蛆虫族所有持续伤害统一使用已有 `venom_stack`（剧毒），通过层数区分强度：死亡自爆 1 层、喷吐 2 层、腐潮 2 层。
+- `venom_stack` 已改为单状态记录层数：新剧毒增加层数并刷新持续时间，持续时间结束后不立即清空，而是每秒衰减 5 层直到移除；剧毒羁绊的额外层也会合并进本次施加层数。
+- 新增持续伤害 `burning`（燃烧）：同一目标只保留一个燃烧状态，新燃烧会将每秒伤害相加，剩余时间取当前剩余时间与新持续时间的较大值；燃烧正常到期移除，不使用剧毒的层数与衰减逻辑。
 - 蛆虫族接入 `EnemyCatalog` 池（NORMAL_DAMAGE + ELITE_TANK），并在遭遇生成器模板权重中配置出现频率。
 - **难度曲线全面调整**：
   - 普通 HP 每波 ×0.04 → ×0.06，数量上限 6 → 12。

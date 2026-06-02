@@ -7,6 +7,7 @@
 script = ExtResource("1_compound")
 icon_texture = ExtResource("2_icon")
 relic_id = "compound_core"
+catalog_id = 13
 relic_name = "Compound Core"
 relic_name_cn = "复利核心"
 description = "After each victorious battle, gain 1 extra gold per 8 gold held. No cap."

@@ -7,6 +7,7 @@
 script = ExtResource("1_duelist")
 icon_texture = ExtResource("2_icon")
 relic_id = "duelist_glove"
+catalog_id = 5
 relic_name = "Duelist Glove"
 relic_name_cn = "决斗手套"
 description = "Player assassins deal extra 35% non-critical attack damage to targets below 50% HP on attack hit."

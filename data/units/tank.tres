@@ -12,6 +12,7 @@ unit_name = "Tank"
 unit_name_cn = "重装坦克"
 description_cn = "核心承伤单位，拥有高生命和防御。"
 unit_type = "tank"
+catalog_id = 27
 role = "tank"
 bond_tags = Array[String](["iron_wall"])
 rarity = "COMMON"

@@ -12,6 +12,7 @@ unit_name = "Taunt Banneret"
 unit_name_cn = "挑衅旗手"
 description_cn = "前排目标控制单位，能迫使敌人转火自身。"
 unit_type = "taunt_banneret"
+catalog_id = 13
 role = "tank"
 bond_tags = Array[String](["iron_wall", "divine"])
 rarity = "RARE"

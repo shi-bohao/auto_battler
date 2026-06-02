@@ -9,6 +9,7 @@ unit_name = "Grave Caller"
 unit_name_cn = "唤墓者"
 description_cn = "召唤型敌方辅助，主动技能召唤骷髅加入战斗。"
 unit_type = "enemy_grave_caller"
+catalog_id = 5
 role = "support"
 price = 0
 max_hp = 135

@@ -7,6 +7,7 @@
 script = ExtResource("1_golden_charm")
 icon_texture = ExtResource("2_icon")
 relic_id = "golden_charm"
+catalog_id = 43
 relic_name = "Golden Charm"
 relic_name_cn = "黄金护符"
 description = "Aura: all player units gain +1% attack damage per 1 gold held, up to +20%."

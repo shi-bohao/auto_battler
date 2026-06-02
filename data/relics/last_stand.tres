@@ -7,6 +7,7 @@
 script = ExtResource("1_last")
 icon_texture = ExtResource("2_icon")
 relic_id = "last_stand"
+catalog_id = 2
 relic_name = "Ember Bulwark"
 relic_name_cn = "余烬壁垒"
 description = "When a player unit dies, all surviving player units gain 60 shield."

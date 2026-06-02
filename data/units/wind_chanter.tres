@@ -12,6 +12,7 @@ unit_name = "Wind Chanter"
 unit_name_cn = "风语者"
 description_cn = "节奏辅助，提高全队攻速和魔力回复。"
 unit_type = "wind_chanter"
+catalog_id = 30
 role = "support"
 bond_tags = Array[String](["arcane"])
 rarity = "FINE"

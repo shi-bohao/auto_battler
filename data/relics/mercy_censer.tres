@@ -7,6 +7,7 @@
 script = ExtResource("1_censer")
 icon_texture = ExtResource("2_icon")
 relic_id = "mercy_censer"
+catalog_id = 19
 relic_name = "Mercy Censer"
 relic_name_cn = "慈悲香炉"
 description = "Aura: all player units gain +20% healing power and +20% shield power."

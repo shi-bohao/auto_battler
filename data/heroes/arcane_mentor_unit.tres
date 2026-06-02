@@ -14,6 +14,7 @@ unit_name = "Arcane Mentor"
 unit_name_cn = "奥术导师"
 description_cn = "技能 / 魔力 / 法术构筑英雄。"
 unit_type = "hero_arcane_mentor"
+catalog_id = 2
 role = "damage"
 bond_tags = Array[String](["arcane"])
 rarity = "MYTHIC"

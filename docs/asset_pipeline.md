@@ -145,7 +145,7 @@ image/遗物33-43白色背景.png
 - 每组暗底图和白底图尺寸必须一致；
 - 每组暗底图和白底图的图标位置必须一致；
 - 每张遗物图按 4 x 4 网格切分；
-- 遗物顺序使用 `docs/content_reference.md` 中“遗物”表格的顺序；
+- 遗物顺序使用 `data/relics/*.tres` 中的分类内 `catalog_id` 排序；`docs/content_reference.md` 的“遗物”表格由该字段生成，可作为切图顺序核对表；
 - 当前第三张图只使用前 11 个有效格子，对应总计 43 个遗物。
 
 ### 输出位置
@@ -202,7 +202,7 @@ powershell -ExecutionPolicy Bypass -File tools\process_relic_icons_diff.ps1 `
 
 ### 后续维护建议
 
-- 新增遗物后，先更新 `docs/content_reference.md` 中的遗物顺序，再重跑脚本；
+- 新增遗物后，先在对应 `RelicData` 资源中追加新的 `catalog_id`，再重新生成 `docs/content_reference.md` 并重跑脚本；
 - 如果遗物数量超过当前图片容量，继续追加下一张 `遗物44-59.png` 和对应白底图，并扩展脚本中的 `$sheetPairs`；
 - 不建议再使用单背景颜色阈值法处理图标；
 - 如果主体边缘仍有背景残留，优先检查两张输入图是否完全对齐，而不是先调高删除阈值。
@@ -235,7 +235,7 @@ image/玩家单位17-30白色背景.png
 - 每组黑底图和白底图的单位位置必须一致；
 - 每张图按 4 x 4 网格切分；
 - 第二张图只使用前 14 个有效格子，对应总计 30 个玩家单位；
-- 单位命名顺序使用 `docs/content_reference.md` 中“玩家单位”表格的顺序；
+- 单位命名顺序使用 `data/units/*.tres` 中的分类内 `catalog_id` 排序；`docs/content_reference.md` 的“玩家单位”表格由该字段生成，可作为切图顺序核对表；
 - 素材中的细网格线会在整图和单图输出中一起移除；
 - 去除网格线时，脚本会先完成双背景差分，再在预期网格边界附近检测整行 / 整列的低饱和度线状像素比例；
 - 被判定为分割线的行 / 列会和相邻 1 像素一起透明化，用于处理细线残留；
@@ -337,7 +337,7 @@ powershell -ExecutionPolicy Bypass -File tools\process_player_unit_icons_diff.ps
 
 ### 后续维护建议
 
-- 新增玩家单位后，先更新 `docs/content_reference.md` 中的玩家单位顺序，再重跑脚本；
+- 新增玩家单位后，先在对应 `UnitData` 资源中追加新的 `catalog_id`，再重新生成 `docs/content_reference.md` 并重跑脚本；
 - 如果玩家单位数量超过 30，继续追加下一组黑底/白底素材，并扩展脚本中的 `$sheetPairs`；
 - 如果网格线仍有残留，优先调整脚本中的整行 / 整列线状像素检测阈值；
 - 如果切分位置不正确，优先检查 `player_unit_grid_scan.csv` 中对应理论边界附近是否存在已标记且空白的候选行 / 列；
@@ -350,6 +350,7 @@ powershell -ExecutionPolicy Bypass -File tools\process_player_unit_icons_diff.ps
 - 玩家单位：`data/units/*.tres` 中的 `board_sprite`、`portrait_texture`、`icon_texture` 直接引用 `assets/processed/player_units/*.png`。
 - 遗物：`RelicData` 提供 `icon_texture: Texture2D` 字段，`data/relics/*.tres` 直接引用 `assets/processed/relics/*.png`。
 - 运行时 helper 只作为兜底：`UnitArtHelper` 和 `RelicIconHelper` 优先读取数据资源中配置的贴图；动态路径加载仅用于缺字段或旧资源兼容。
+- 分类内排序使用 `catalog_id`：玩家单位、敌人、召唤物和英雄运行时单位由 `UnitData.catalog_id` 保存；遗物由 `RelicData.catalog_id` 保存；英雄定义由 `HeroData.catalog_id` 保存。该字段只用于稳定显示、文档和素材顺序，不替代 `unit_type`、`relic_id`、`hero_id` 等逻辑 ID。
 
 导出相关规则：
 

@@ -12,6 +12,7 @@ unit_name = "Venom Matriarch"
 unit_name_cn = "剧毒女王"
 description_cn = "剧毒叠层流核心，提高玩家单位施毒效率，并通过主动技能引爆毒层造成爆发。"
 unit_type = "venom_matriarch"
+catalog_id = 5
 role = "damage"
 bond_tags = Array[String](["venom"])
 rarity = "EPIC"

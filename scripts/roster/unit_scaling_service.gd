@@ -107,6 +107,12 @@ func get_star_growth(unit_type: String, star: int) -> Dictionary:
 			return _get_taunt_banneret_star_growth(safe_star)
 		"summoned_skeleton":
 			return _get_summoned_skeleton_star_growth(safe_star)
+		"summoned_skeleton_warrior":
+			return _get_summoned_skeleton_warrior_star_growth(safe_star)
+		"summoned_skeleton_archer":
+			return _get_summoned_skeleton_archer_star_growth(safe_star)
+		"summoned_skeleton_mage":
+			return _get_summoned_skeleton_mage_star_growth(safe_star)
 		"summoned_puppet":
 			return _get_summoned_puppet_star_growth(safe_star)
 		"summoned_soul_puppet":
@@ -371,6 +377,36 @@ func _get_summoned_skeleton_star_growth(star: int) -> Dictionary:
 			return _create_star_growth(1.45, 1.35, 6, 0.95, 1.05, 0.05, 0.0)
 		3:
 			return _create_star_growth(2.0, 1.8, 14, 0.9, 1.1, 0.10, 0.25)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_summoned_skeleton_warrior_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.55, 1.25, 12, 0.98, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.15, 1.60, 28, 0.95, 1.05, 0.05, 0.10)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_summoned_skeleton_archer_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.35, 1.45, 3, 0.95, 1.05, 0.08, 0.0)
+		3:
+			return _create_star_growth(1.75, 2.0, 8, 0.9, 1.1, 0.16, 0.20)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_summoned_skeleton_mage_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.30, 1.50, 2, 0.95, 1.0, 0.03, 0.0)
+		3:
+			return _create_star_growth(1.65, 2.10, 6, 0.9, 1.0, 0.08, 0.20)
 		_:
 			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
 

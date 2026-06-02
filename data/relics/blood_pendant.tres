@@ -7,6 +7,7 @@
 script = ExtResource("1_blood")
 icon_texture = ExtResource("2_icon")
 relic_id = "blood_pendant"
+catalog_id = 42
 relic_name = "Blood Pendant"
 relic_name_cn = "鲜血吊坠"
 description = "When a player unit kills an enemy, it heals 35 HP."

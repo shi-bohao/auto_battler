@@ -7,6 +7,7 @@
 script = ExtResource("1_golden_armor")
 icon_texture = ExtResource("2_icon")
 relic_id = "golden_armor_contract"
+catalog_id = 37
 relic_name = "Golden Armor Contract"
 relic_name_cn = "金甲契约"
 description = "Aura: frontline player units gain +1 defense per 2 gold held, up to +25 defense."

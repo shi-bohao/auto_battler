@@ -7,6 +7,7 @@
 script = ExtResource("1_steel")
 icon_texture = ExtResource("2_icon")
 relic_id = "steel_formation"
+catalog_id = 38
 relic_name = "Steel Formation"
 relic_name_cn = "钢铁阵列"
 description = "Aura: all player units gain +12 defense."

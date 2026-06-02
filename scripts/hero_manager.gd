@@ -75,6 +75,7 @@ func get_available_heroes() -> Array[Resource]:
 		if hero != null:
 			hero_list.append(hero)
 
+	hero_list.sort_custom(Callable(self, "_sort_heroes_by_catalog_id"))
 	return hero_list
 
 
@@ -425,6 +426,7 @@ func _register_hero(hero: Resource) -> void:
 func _create_iron_oath_commander() -> Resource:
 	var hero: Resource = HERO_DATA_SCRIPT.new()
 	hero.hero_id = HERO_ID_IRON_OATH_COMMANDER
+	hero.catalog_id = 1
 	hero.hero_name = "Iron Oath Commander"
 	hero.hero_name_cn = "铁誓统帅"
 	hero.hero_unit_data = IRON_OATH_COMMANDER_UNIT
@@ -456,6 +458,7 @@ func _create_iron_oath_commander() -> Resource:
 func _create_arcane_mentor() -> Resource:
 	var hero: Resource = HERO_DATA_SCRIPT.new()
 	hero.hero_id = HERO_ID_ARCANE_MENTOR
+	hero.catalog_id = 2
 	hero.hero_name = "Arcane Mentor"
 	hero.hero_name_cn = "奥术导师"
 	hero.hero_unit_data = ARCANE_MENTOR_UNIT
@@ -488,6 +491,7 @@ func _create_arcane_mentor() -> Resource:
 func _create_bloodshadow_hunter() -> Resource:
 	var hero: Resource = HERO_DATA_SCRIPT.new()
 	hero.hero_id = HERO_ID_BLOODSHADOW_HUNTER
+	hero.catalog_id = 3
 	hero.hero_name = "Bloodshadow Hunter"
 	hero.hero_name_cn = "血影猎手"
 	hero.hero_unit_data = BLOODSHADOW_HUNTER_UNIT
@@ -521,6 +525,7 @@ func _create_bloodshadow_hunter() -> Resource:
 func _create_boneweaver() -> Resource:
 	var hero: Resource = HERO_DATA_SCRIPT.new()
 	hero.hero_id = HERO_ID_BONEWEAVER
+	hero.catalog_id = 4
 	hero.hero_name = "Boneweaver"
 	hero.hero_name_cn = "织骨者"
 	hero.hero_unit_data = BONEWEAVER_UNIT
@@ -556,6 +561,27 @@ func _create_cell_list(cells: Array) -> Array[Vector2i]:
 		typed_cells.append(cell_value as Vector2i)
 
 	return typed_cells
+
+
+func _sort_heroes_by_catalog_id(a: Resource, b: Resource) -> bool:
+	var a_catalog_id: int = _get_hero_catalog_id(a)
+	var b_catalog_id: int = _get_hero_catalog_id(b)
+	if a_catalog_id > 0 and b_catalog_id > 0 and a_catalog_id != b_catalog_id:
+		return a_catalog_id < b_catalog_id
+	if a_catalog_id > 0 and b_catalog_id <= 0:
+		return true
+	if a_catalog_id <= 0 and b_catalog_id > 0:
+		return false
+	return str(a.get("hero_id")) < str(b.get("hero_id"))
+
+
+func _get_hero_catalog_id(hero: Resource) -> int:
+	if hero == null:
+		return 0
+	var value: Variant = hero.get("catalog_id")
+	if value == null:
+		return 0
+	return maxi(0, int(value))
 
 
 func _create_upgrade_pool(upgrades: Array) -> Array[Resource]:

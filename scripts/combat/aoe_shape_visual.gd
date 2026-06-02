@@ -5,6 +5,7 @@ extends Node2D
 ## Draws in local coordinates — caller must set global_position to the shape anchor.
 
 const SHAPE_GEOMETRY_SCRIPT: Script = preload("res://scripts/combat/shape_geometry.gd")
+const VISUAL_Z_INDEX: int = 3
 
 var shape_geometry: Variant = SHAPE_GEOMETRY_SCRIPT.new()
 var shape_data: Dictionary = {}
@@ -21,7 +22,8 @@ func setup(configured_shape_data: Dictionary, configured_color: Color, configure
 	border_color = Color(fill_color.r + 0.15, fill_color.g + 0.05, fill_color.b + 0.15, minf(1.0, fill_color.a + 0.15))
 	duration = maxf(0.05, configured_duration)
 	time_scale = maxf(0.01, configured_time_scale)
-	z_index = -5
+	z_as_relative = false
+	z_index = VISUAL_Z_INDEX
 	queue_redraw()
 
 

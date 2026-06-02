@@ -8,6 +8,7 @@ unit_name = "Soul Puppet"
 unit_name_cn = "魂偶"
 description_cn = "由缚魂仪式制造的近战召唤物，会继承被标记目标的部分生命和攻击。"
 unit_type = "summoned_soul_puppet"
+catalog_id = 5
 role = "tank"
 rarity = "COMMON"
 price = 0

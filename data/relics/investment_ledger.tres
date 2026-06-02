@@ -7,6 +7,7 @@
 script = ExtResource("1_investment")
 icon_texture = ExtResource("2_icon")
 relic_id = "investment_ledger"
+catalog_id = 22
 relic_name = "Investment Ledger"
 relic_name_cn = "投资账本"
 description = "After each victorious battle, gain 1 extra gold per 10 gold held, up to 3 extra gold."

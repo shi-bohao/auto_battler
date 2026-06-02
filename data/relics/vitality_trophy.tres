@@ -7,6 +7,7 @@
 script = ExtResource("1_vitality")
 icon_texture = ExtResource("2_icon")
 relic_id = "vitality_trophy"
+catalog_id = 34
 relic_name = "Blood Oath Chalice"
 relic_name_cn = "血誓杯"
 description = "When a non-summoned player unit kills an enemy, that unit permanently gains +5 max HP for this run."

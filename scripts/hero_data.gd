@@ -3,6 +3,7 @@ extends Resource
 
 
 @export var hero_id: String = ""
+@export var catalog_id: int = 0
 @export var hero_name: String = ""
 @export var hero_name_cn: String = ""
 @export var hero_unit_data: Resource = null

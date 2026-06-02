@@ -12,6 +12,7 @@ unit_name = "Arcane Artillerist"
 unit_name_cn = "奥术炮师"
 description_cn = "技能爆发流高稀有输出核心，依赖魔力循环和技能强度打出范围伤害。"
 unit_type = "arcane_artillerist"
+catalog_id = 8
 role = "damage"
 bond_tags = Array[String](["arcane"])
 rarity = "EPIC"

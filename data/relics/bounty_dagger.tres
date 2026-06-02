@@ -7,6 +7,7 @@
 script = ExtResource("1_bounty_dagger")
 icon_texture = ExtResource("2_icon")
 relic_id = "bounty_dagger"
+catalog_id = 36
 relic_name = "Bounty Dagger"
 relic_name_cn = "赏金匕首"
 description = "Player units gain 1 gold every 3 kills, up to 3 gold per battle."

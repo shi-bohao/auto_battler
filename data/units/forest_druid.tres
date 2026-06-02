@@ -12,6 +12,7 @@ unit_name = "Forest Druid"
 unit_name_cn = "森林德鲁伊"
 description_cn = "持续治疗辅助，通过恢复跳数保护低血量友军。"
 unit_type = "forest_druid"
+catalog_id = 16
 role = "support"
 bond_tags = Array[String](["divine"])
 rarity = "FINE"

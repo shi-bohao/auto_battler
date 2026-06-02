@@ -7,6 +7,7 @@
 script = ExtResource("1_tome")
 icon_texture = ExtResource("2_icon")
 relic_id = "opening_tome"
+catalog_id = 18
 relic_name = "Opening Tome"
 relic_name_cn = "开场秘典"
 description = "At battle start, all player units gain 20 mana."

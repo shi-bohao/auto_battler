@@ -22,6 +22,7 @@ When adding a new unit later, add its design here first. Implementation should c
 | `unit_name_cn` | Chinese display name. UI prefers this when non-empty. | empty |
 | `description_cn` | Chinese short description used by shop, details, and content reference | empty |
 | `unit_type` | Unit id / type key | `unit` |
+| `catalog_id` | Stable sort id within the current category; used by encyclopedia, content reference, and art pipeline ordering only | `0` |
 | `role` | Main lineup role: `tank`, `damage`, or `support` | `damage` |
 | `bond_tags` | Synergy/bond tags counted by BondManager | empty |
 | `star` | Star level | `1` |
@@ -768,7 +769,7 @@ Used by Venom Matriarch.
 - Normal: every `4` player-team damage events against enemies apply `1` venom stack to the damaged target.
 - 3-star enhanced: threshold becomes every `2` damage events.
 
-Venom stack implementation: `venom_stack`, damage over time, `6` seconds, `5` damage per second, independent stacking duration.
+Venom stack implementation: `venom_stack`, damage over time, `6` seconds, `5` damage per second per stack. The target keeps a single merged venom status: new venom adds stack count and refreshes duration; after duration ends, venom does not clear immediately and instead decays by `5` stacks per tick until removed.
 
 #### `dawnbell_echo`
 

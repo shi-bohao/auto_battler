@@ -12,6 +12,7 @@ unit_name = "Thundermaul Vanguard"
 unit_name_cn = "震锤先锋"
 description_cn = "前排硬控坦克，能用重锤打断敌人的行动。"
 unit_type = "thundermaul_vanguard"
+catalog_id = 28
 role = "tank"
 bond_tags = Array[String](["iron_wall"])
 rarity = "RARE"

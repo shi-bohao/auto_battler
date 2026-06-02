@@ -206,17 +206,17 @@ func _get_template_unit_weights(template_id: String) -> Dictionary:
 		"assassin", "elite_assassin":
 			return {"enemy_elite_shadow_reaper": 5.0, "enemy_crossbow_raider": 1.0, "enemy_flame_imp": 1.0, "enemy_giant_maggot": 2.0}
 		"arcane":
-			return {"enemy_flame_imp": 5.0, "enemy_war_drummer": 3.0, "enemy_crossbow_raider": 1.0}
+			return {"enemy_flame_imp": 5.0, "enemy_war_drummer": 3.0, "enemy_crossbow_raider": 1.0, "enemy_frost_slime": 2.0}
 		"elite_mage":
-			return {"enemy_flame_imp": 5.0, "enemy_elite_blood_oracle": 3.0, "enemy_war_drummer": 2.0, "enemy_elite_maggot_amalgam": 2.0}
+			return {"enemy_flame_imp": 5.0, "enemy_elite_blood_oracle": 3.0, "enemy_war_drummer": 2.0, "enemy_elite_maggot_amalgam": 2.0, "enemy_giant_slime": 2.0}
 		"elite_iron_wall":
-			return {"enemy_elite_iron_warden": 5.0, "enemy_stoneback_beast": 3.0, "enemy_elite_blood_oracle": 4.0, "enemy_elite_maggot_amalgam": 4.0}
+			return {"enemy_elite_iron_warden": 5.0, "enemy_stoneback_beast": 3.0, "enemy_elite_blood_oracle": 4.0, "enemy_elite_maggot_amalgam": 4.0, "enemy_giant_slime": 4.0}
 		"summoner":
-			return {"enemy_grave_caller": 5.0, "enemy_bone_carrier": 3.0, "enemy_flame_imp": 1.0}
+			return {"enemy_grave_caller": 5.0, "enemy_bone_carrier": 3.0, "enemy_flame_imp": 1.0, "enemy_venom_slime": 2.0}
 		"elite_summoner":
-			return {"enemy_puppet_binder": 5.0, "enemy_grave_caller": 4.0, "enemy_bone_carrier": 3.0, "enemy_giant_maggot": 2.0}
+			return {"enemy_puppet_binder": 5.0, "enemy_grave_caller": 4.0, "enemy_bone_carrier": 3.0, "enemy_giant_maggot": 2.0, "enemy_giant_slime": 2.0}
 		"frontline":
-			return {"enemy_shield_guard": 2.0, "enemy_stoneback_beast": 2.0, "enemy_giant_maggot": 2.0}
+			return {"enemy_shield_guard": 2.0, "enemy_stoneback_beast": 2.0, "enemy_giant_maggot": 2.0, "enemy_common_slime": 3.0}
 		_:
 			return {}
 

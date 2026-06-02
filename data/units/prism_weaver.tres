@@ -12,6 +12,7 @@ unit_name = "Prism Weaver"
 unit_name_cn = "棱镜术师"
 description_cn = "技能流辅助单位，随机增强主动技能伤害，并短时间强化关键输出单位。"
 unit_type = "prism_weaver"
+catalog_id = 17
 role = "support"
 bond_tags = Array[String](["arcane"])
 rarity = "RARE"

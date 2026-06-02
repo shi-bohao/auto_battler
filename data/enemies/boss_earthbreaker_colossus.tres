@@ -9,6 +9,7 @@ unit_name = "Boss: Earthbreaker Colossus"
 unit_name_cn = "Boss：裂地巨像"
 description_cn = "高压迫感承伤 Boss，依靠阶段护盾拖入持久战。"
 unit_type = "enemy_boss_earthbreaker_colossus"
+catalog_id = 3
 role = "tank"
 price = 0
 max_hp = 900

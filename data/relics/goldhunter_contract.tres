@@ -7,6 +7,7 @@
 script = ExtResource("1_goldhunter")
 icon_texture = ExtResource("2_icon")
 relic_id = "goldhunter_contract"
+catalog_id = 31
 relic_name = "Goldhunter Contract"
 relic_name_cn = "猎金契约"
 description = "Player units have a 35% chance to gain 1 gold on kill. No per-battle cap."

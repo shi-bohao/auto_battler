@@ -14,6 +14,7 @@ unit_name = "Boneweaver"
 unit_name_cn = "织骨者"
 description_cn = "召唤 / 亡灵 / 数量压制英雄。"
 unit_type = "hero_boneweaver"
+catalog_id = 4
 role = "damage"
 bond_tags = Array[String](["summon"])
 rarity = "MYTHIC"

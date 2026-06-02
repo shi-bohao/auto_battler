@@ -7,6 +7,7 @@
 script = ExtResource("1_soul")
 icon_texture = ExtResource("2_icon")
 relic_id = "soul_ember"
+catalog_id = 29
 relic_name = "Soul Ember"
 relic_name_cn = "灵魂余烬"
 description = "When a player unit dies, all surviving player units restore 45 mana."

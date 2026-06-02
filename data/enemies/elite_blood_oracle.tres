@@ -9,6 +9,7 @@ unit_name = "Elite Blood Oracle"
 unit_name_cn = "精英血谕者"
 description_cn = "精英治疗辅助敌人，显著提高敌方续航。"
 unit_type = "enemy_elite_blood_oracle"
+catalog_id = 13
 role = "support"
 price = 0
 max_hp = 220

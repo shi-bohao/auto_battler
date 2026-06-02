@@ -12,6 +12,7 @@ unit_name = "Puppet Warlock"
 unit_name_cn = "傀儡术士"
 description_cn = "标记型召唤单位，主动技能标记敌人，目标死亡后召唤傀儡。"
 unit_type = "puppet_warlock"
+catalog_id = 2
 role = "damage"
 bond_tags = Array[String](["summon"])
 rarity = "RARE"

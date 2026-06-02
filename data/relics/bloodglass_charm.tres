@@ -7,6 +7,7 @@
 script = ExtResource("1_bloodglass")
 icon_texture = ExtResource("2_icon")
 relic_id = "bloodglass_charm"
+catalog_id = 33
 relic_name = "Bloodglass Charm"
 relic_name_cn = "血玻璃护符"
 description = "Aura: all player units gain +8% life steal."

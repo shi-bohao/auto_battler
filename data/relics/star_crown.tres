@@ -7,6 +7,7 @@
 script = ExtResource("1_star")
 icon_texture = ExtResource("2_icon")
 relic_id = "star_crown"
+catalog_id = 26
 relic_name = "Star Crown"
 relic_name_cn = "星冠"
 description = "Aura: player units with 2 or more stars gain +25% attack damage and +18 defense."

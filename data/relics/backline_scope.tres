@@ -7,6 +7,7 @@
 script = ExtResource("1_scope")
 icon_texture = ExtResource("2_icon")
 relic_id = "backline_scope"
+catalog_id = 9
 relic_name = "Backline Scope"
 relic_name_cn = "后排瞄镜"
 description = "At battle start, player backline units gain +12% attack damage for this battle."

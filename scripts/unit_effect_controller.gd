@@ -11,6 +11,9 @@ const OVERFLOW_REFRESH_OLDEST: String = "REFRESH_OLDEST"
 const OVERFLOW_REPLACE_OLDEST: String = "REPLACE_OLDEST"
 const OVERFLOW_REPLACE_WEAKEST: String = "REPLACE_WEAKEST"
 
+const VENOM_STACK_EFFECT_ID: String = "venom_stack"
+const BURNING_EFFECT_ID: String = "burning"
+
 var effects: Array[StatusEffect] = []
 var next_stack_instance_id: int = 1
 
@@ -33,28 +36,33 @@ func apply_effect(target_unit: Variant, effect_data: Dictionary) -> StatusEffect
 	var control_type: String = str(effect_data.get("control_type", ""))
 	var was_control_type_active: bool = _has_active_control_type(control_type) if is_control_effect else false
 	var applied_effect: StatusEffect = null
-	match stack_policy:
-		StatusEffect.STACK_POLICY_IGNORE_IF_ACTIVE:
-			applied_effect = _apply_ignore_if_active(effect_data)
-		StatusEffect.STACK_POLICY_EXTEND_DURATION:
-			applied_effect = _apply_extend_duration(effect_data)
-		StatusEffect.STACK_POLICY_STACK_REFRESH_DURATION, \
-		StatusEffect.STACK_POLICY_STACK_INDEPENDENT_DURATION, \
-		StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_REFRESH, \
-		StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_INDEPENDENT, \
-		StatusEffect.STACK_POLICY_PERMANENT_STACK:
-			applied_effect = _apply_stack_effect(effect_data)
-		StatusEffect.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH, \
-		StatusEffect.STACK_POLICY_UNIQUE_PER_SOURCE_INDEPENDENT:
-			applied_effect = _apply_refresh_only(effect_data)
-		StatusEffect.STACK_POLICY_STRONGEST_WINS:
-			applied_effect = _apply_strongest_wins(effect_data)
-		StatusEffect.STACK_POLICY_REFRESH_LONGER_DURATION:
-			applied_effect = _apply_refresh_longer_duration(effect_data)
-		StatusEffect.STACK_POLICY_REPLACE_BY_LAST:
-			applied_effect = _apply_replace_by_last(effect_data)
-		_:
-			applied_effect = _apply_refresh_only(effect_data)
+	if _is_venom_stack_data(effect_data):
+		applied_effect = _apply_venom_stack_effect(effect_data)
+	elif _is_burning_data(effect_data):
+		applied_effect = _apply_burning_effect(effect_data)
+	else:
+		match stack_policy:
+			StatusEffect.STACK_POLICY_IGNORE_IF_ACTIVE:
+				applied_effect = _apply_ignore_if_active(effect_data)
+			StatusEffect.STACK_POLICY_EXTEND_DURATION:
+				applied_effect = _apply_extend_duration(effect_data)
+			StatusEffect.STACK_POLICY_STACK_REFRESH_DURATION, \
+			StatusEffect.STACK_POLICY_STACK_INDEPENDENT_DURATION, \
+			StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_REFRESH, \
+			StatusEffect.STACK_POLICY_STACK_PER_SOURCE_CAP_INDEPENDENT, \
+			StatusEffect.STACK_POLICY_PERMANENT_STACK:
+				applied_effect = _apply_stack_effect(effect_data)
+			StatusEffect.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH, \
+			StatusEffect.STACK_POLICY_UNIQUE_PER_SOURCE_INDEPENDENT:
+				applied_effect = _apply_refresh_only(effect_data)
+			StatusEffect.STACK_POLICY_STRONGEST_WINS:
+				applied_effect = _apply_strongest_wins(effect_data)
+			StatusEffect.STACK_POLICY_REFRESH_LONGER_DURATION:
+				applied_effect = _apply_refresh_longer_duration(effect_data)
+			StatusEffect.STACK_POLICY_REPLACE_BY_LAST:
+				applied_effect = _apply_replace_by_last(effect_data)
+			_:
+				applied_effect = _apply_refresh_only(effect_data)
 
 	if applied_effect != null and applied_effect.effect_type == StatusEffect.EFFECT_CONTROL:
 		_notify_control_state_changed(target_unit)
@@ -155,7 +163,10 @@ func get_effect_count(effect_id: String) -> int:
 	var count: int = 0
 	for effect: StatusEffect in effects:
 		if effect != null and not effect.is_expired and effect.effect_id == effect_id:
-			count += 1
+			if effect_id == VENOM_STACK_EFFECT_ID:
+				count += maxi(0, int(effect.stack_count))
+			else:
+				count += 1
 
 	return count
 
@@ -208,6 +219,30 @@ func _apply_stack_effect(effect_data: Dictionary) -> StatusEffect:
 	if _policy_refreshes_group_duration(str(effect_data.get("stack_policy", ""))):
 		_refresh_group_durations(group_key, effect_data)
 	return effect
+
+
+func _apply_venom_stack_effect(effect_data: Dictionary) -> StatusEffect:
+	var group_key: String = str(effect_data.get("stack_group_key", VENOM_STACK_EFFECT_ID))
+	var existing_effect: StatusEffect = _find_first_effect_by_group(group_key)
+	if existing_effect == null:
+		existing_effect = _find_effect_by_id(VENOM_STACK_EFFECT_ID)
+	if existing_effect != null:
+		existing_effect.add_venom_stacks(effect_data)
+		return existing_effect
+
+	return _create_effect(effect_data)
+
+
+func _apply_burning_effect(effect_data: Dictionary) -> StatusEffect:
+	var group_key: String = str(effect_data.get("stack_group_key", BURNING_EFFECT_ID))
+	var existing_effect: StatusEffect = _find_first_effect_by_group(group_key)
+	if existing_effect == null:
+		existing_effect = _find_effect_by_id(BURNING_EFFECT_ID)
+	if existing_effect != null:
+		existing_effect.add_burning_damage(effect_data)
+		return existing_effect
+
+	return _create_effect(effect_data)
 
 
 func _apply_strongest_wins(effect_data: Dictionary) -> StatusEffect:
@@ -291,6 +326,15 @@ func _normalize_effect_data(effect_data: Dictionary) -> void:
 	var effect_id: String = str(effect_data.get("effect_id", ""))
 	var stack_policy: String = _normalize_stack_policy(str(effect_data.get("stack_policy", StatusEffect.STACK_POLICY_REFRESH_ONLY)))
 	effect_data["stack_policy"] = stack_policy
+	if _is_venom_stack_data(effect_data):
+		effect_data["stack_key"] = VENOM_STACK_EFFECT_ID
+		effect_data["source_mode"] = SOURCE_MODE_GLOBAL
+		effect_data["stack_decay_after_duration"] = bool(effect_data.get("stack_decay_after_duration", true))
+		effect_data["stack_decay_per_tick"] = maxi(1, int(effect_data.get("stack_decay_per_tick", 5)))
+	elif _is_burning_data(effect_data):
+		effect_data["stack_key"] = BURNING_EFFECT_ID
+		effect_data["source_mode"] = SOURCE_MODE_GLOBAL
+		effect_data["tick_interval"] = maxf(0.01, float(effect_data.get("tick_interval", 1.0)))
 
 	var source_key: String = str(effect_data.get("source_key", ""))
 	if source_key.strip_edges() == "":
@@ -531,3 +575,13 @@ func _has_active_control_type(control_type: String) -> bool:
 		if effect != null and not effect.is_expired and effect.effect_type == StatusEffect.EFFECT_CONTROL and effect.control_type == control_type:
 			return true
 	return false
+
+
+func _is_venom_stack_data(effect_data: Dictionary) -> bool:
+	return str(effect_data.get("effect_id", "")) == VENOM_STACK_EFFECT_ID \
+		and str(effect_data.get("effect_type", "")) == StatusEffect.EFFECT_DAMAGE_OVER_TIME
+
+
+func _is_burning_data(effect_data: Dictionary) -> bool:
+	return str(effect_data.get("effect_id", "")) == BURNING_EFFECT_ID \
+		and str(effect_data.get("effect_type", "")) == StatusEffect.EFFECT_DAMAGE_OVER_TIME

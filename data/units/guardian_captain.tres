@@ -12,6 +12,7 @@ unit_name = "Guardian Captain"
 unit_name_cn = "守护队长"
 description_cn = "防御指挥型前排，为友军提供限时防御增益。"
 unit_type = "guardian_captain"
+catalog_id = 9
 role = "tank"
 bond_tags = Array[String](["iron_wall"])
 rarity = "FINE"

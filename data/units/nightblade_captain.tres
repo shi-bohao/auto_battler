@@ -12,6 +12,7 @@ unit_name = "Nightblade Captain"
 unit_name_cn = "夜刃统领"
 description_cn = "暴击收割流中后期核心，强化刺客和弓手的暴击能力，并在击杀窗口中提供回蓝与暴伤。"
 unit_type = "nightblade_captain"
+catalog_id = 7
 role = "damage"
 bond_tags = Array[String](["hunter"])
 rarity = "EPIC"

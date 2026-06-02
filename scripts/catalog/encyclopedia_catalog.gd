@@ -271,6 +271,7 @@ func _create_unit_entry(unit_data: Resource, resource_path: String, category: St
 		"id": unit_id,
 		"name": display_name,
 		"sort_name": display_name.to_lower(),
+		"catalog_id": _get_catalog_id(unit_data),
 		"category": category,
 		"kind": "unit",
 		"resource": unit_data,
@@ -288,6 +289,7 @@ func _create_relic_entry(relic_data: Resource, resource_path: String) -> Diction
 		"id": relic_id,
 		"name": display_name,
 		"sort_name": display_name.to_lower(),
+		"catalog_id": _get_catalog_id(relic_data),
 		"category": CATEGORY_RELICS,
 		"kind": "relic",
 		"resource": relic_data,
@@ -302,6 +304,7 @@ func _create_hero_entry(hero_data: Resource) -> Dictionary:
 		"id": hero_id,
 		"name": display_name,
 		"sort_name": display_name.to_lower(),
+		"catalog_id": _get_catalog_id(hero_data),
 		"category": CATEGORY_HEROES,
 		"kind": "hero",
 		"resource": hero_data,
@@ -316,6 +319,14 @@ func _sort_all_categories() -> void:
 
 
 func _sort_entries_by_name(a: Dictionary, b: Dictionary) -> bool:
+	var a_catalog_id: int = int(a.get("catalog_id", 0))
+	var b_catalog_id: int = int(b.get("catalog_id", 0))
+	if a_catalog_id > 0 and b_catalog_id > 0 and a_catalog_id != b_catalog_id:
+		return a_catalog_id < b_catalog_id
+	if a_catalog_id > 0 and b_catalog_id <= 0:
+		return true
+	if a_catalog_id <= 0 and b_catalog_id > 0:
+		return false
 	return str(a.get("sort_name", "")) < str(b.get("sort_name", ""))
 
 
@@ -410,3 +421,14 @@ func _get_string(resource: Resource, property_name: String) -> String:
 		return ""
 
 	return str(value).strip_edges()
+
+
+func _get_catalog_id(resource: Resource) -> int:
+	if resource == null:
+		return 0
+
+	var value: Variant = resource.get("catalog_id")
+	if value == null:
+		return 0
+
+	return maxi(0, int(value))

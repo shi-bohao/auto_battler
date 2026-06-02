@@ -14,6 +14,7 @@
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `relic_id` | `String` | 遗物唯一 ID，用于去重和逻辑匹配 |
+| `catalog_id` | `int` | 遗物分类内稳定排序 ID，仅用于图鉴、内容总览、奖励池和素材切图顺序 |
 | `relic_name` | `String` | 英文名称 / 显示回退名称 |
 | `relic_name_cn` | `String` | 中文显示名称；非空时 UI 优先显示该字段 |
 | `description` | `String` | 英文描述 |
@@ -271,7 +272,7 @@ Restart 时调用：
 
 规则：
 
-- 每个遗物资源在 `scripts/relic/relic_reward_pool.gd` 中 preload，并加入奖励池列表。
+- 每个遗物资源在 `scripts/relic/relic_reward_pool.gd` 中 preload，并加入奖励池列表；展示和奖励池稳定顺序按 `catalog_id` 排序。
 - 奖励池会跳过已经拥有的 `relic_id`。
 - 奖励项包含 `id`、`name`、`description`、`rarity` 和 `relic_data`。
 - 普通战胜利后有机会正常出现遗物奖励。
@@ -315,7 +316,7 @@ Restart 时调用：
 1. 在本文档补充设计。
 2. 新建 `res://data/relics/<relic_id>.tres`。
 3. 使用 `res://scripts/relic_data.gd` 作为脚本。
-4. 填写 `relic_id`、`relic_name`、`relic_name_cn`、`description`、`rarity`、`trigger_type`、`value`。
+4. 填写 `relic_id`、`catalog_id`、`relic_name`、`relic_name_cn`、`description`、`rarity`、`trigger_type`、`value`。
 5. 在 `scripts/relic/relic_reward_pool.gd` 中添加 preload，并加入奖励池。
 6. 在 `scripts/relic/relic_trigger_dispatcher.gd` 中根据 `trigger_type` 接入触发条件。
 7. 在 `scripts/relic/relic_effect_resolver.gd` 中实现具体效果；常驻光环优先接入 `apply_always_on_relics_to_unit()`，战斗开始一次性效果接入 `apply_battle_start_relic()`。

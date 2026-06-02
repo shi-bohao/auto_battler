@@ -12,6 +12,7 @@ unit_name = "Necromancer"
 unit_name_cn = "亡灵法师"
 description_cn = "召唤构筑核心，通过主动技能唤起骷髅协助作战。"
 unit_type = "necromancer"
+catalog_id = 1
 role = "support"
 bond_tags = Array[String](["summon"])
 rarity = "RARE"

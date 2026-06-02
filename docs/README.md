@@ -1,6 +1,6 @@
 # 项目文档目录
 
-更新时间：2026-05-31
+更新时间：2026-06-01
 
 本文档说明 `docs/` 目录下各文档的用途、维护优先级和过期文档处理方式。判断当前项目真实状态时，优先级为：实际代码与资源 > `content_reference.md` > `project_status.md` > 专题设计文档 > 历史设计记录。
 
@@ -26,6 +26,7 @@
 | `lineup_snapshot_design.md` | Boss 胜利阵容快照保存、结构和还原入口 |
 | `mirror_challenge_design.md` | 镜像挑战入口、快照选择和 Boss 替换规则 |
 | `maggot_enemy_design.md` | 蛆虫族敌人设计；当前实现使用剧毒 `venom_stack`，腐痕 `putrid_mark` 不是持续伤害 |
+| `slime_enemy_design.md` | 史莱姆系列敌人设计；覆盖普通、冰霜、火焰、毒液与巨型分裂史莱姆 |
 | `ui_layering_design.md` | UI 大层级、语义 `z_index` 常量和新增 UI 分层规则 |
 | `ui_and_stats_design.md` | 单位详情、遗物显示、奖励详情、出售区域、战斗统计和 UI 性能规则 |
 | `shop_ui_design.md` | 商店栏位、购买状态、详情提示和购买单位后的预览复用策略 |
@@ -68,4 +69,4 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\content_reference.log --script res://scripts/tools/generate_content_reference.gd
 ```
 
-`generate_content_reference.gd` 会扫描 `data/units`、`data/heroes`、`data/enemies`、`data/summons` 和 `data/relics`，并重写 `docs/content_reference.md`。
+`generate_content_reference.gd` 会扫描 `data/units`、`data/heroes`、`data/enemies`、`data/summons` 和 `data/relics`，按各分类资源中的 `catalog_id` 稳定排序，并重写 `docs/content_reference.md`。

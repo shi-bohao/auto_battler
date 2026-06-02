@@ -164,6 +164,7 @@ res://assets/game/units/heroes/
 
 ```text
 hero_id
+catalog_id
 hero_name
 hero_unit_data
 description
@@ -178,6 +179,7 @@ recommended_cells
 | 字段 | 说明 |
 |---|---|
 | `hero_id` | 英雄唯一 ID |
+| `catalog_id` | 英雄分类内稳定排序 ID，仅用于英雄选择、图鉴和内容总览排序 |
 | `hero_name` | UI 显示名称 |
 | `hero_unit_data` | 英雄对应的 UnitData 或类似资源 |
 | `description` | 英雄说明 |

@@ -7,6 +7,7 @@
 script = ExtResource("1_mirage")
 icon_texture = ExtResource("2_icon")
 relic_id = "mirage_cloak"
+catalog_id = 17
 relic_name = "Mirage Cloak"
 relic_name_cn = "幻影披风"
 description = "At battle start, player backline units gain +10% dodge chance and +10% status resistance for this battle."

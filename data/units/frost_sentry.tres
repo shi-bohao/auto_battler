@@ -12,6 +12,7 @@ unit_name = "Frost Sentry"
 unit_name_cn = "霜箭哨手"
 description_cn = "后排软控射手，普攻和主动技能都能降低敌人移动速度。"
 unit_type = "frost_sentry"
+catalog_id = 29
 role = "damage"
 bond_tags = Array[String](["hunter", "arcane"])
 rarity = "FINE"

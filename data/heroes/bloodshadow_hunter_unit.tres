@@ -14,6 +14,7 @@ unit_name = "Bloodshadow Hunter"
 unit_name_cn = "血影猎手"
 description_cn = "暴击 / 刺杀 / 收割构筑英雄。"
 unit_type = "hero_bloodshadow_hunter"
+catalog_id = 3
 role = "damage"
 bond_tags = Array[String](["hunter"])
 rarity = "MYTHIC"

@@ -7,6 +7,7 @@
 script = ExtResource("1_gravebone")
 icon_texture = ExtResource("2_icon")
 relic_id = "gravebone_charm"
+catalog_id = 41
 relic_name = "Gravebone Charm"
 relic_name_cn = "骸骨坠饰"
 description = "When a non-summoned player unit dies, summon 1 Skeleton. This relic can keep up to 3 Skeletons active at once."

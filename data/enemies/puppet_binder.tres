@@ -9,6 +9,7 @@ unit_name = "Puppet Binder"
 unit_name_cn = "傀儡缚师"
 description_cn = "精英标记型敌人，标记低生命目标；目标死亡后为敌方召唤傀儡。"
 unit_type = "enemy_puppet_binder"
+catalog_id = 4
 role = "support"
 price = 0
 max_hp = 210

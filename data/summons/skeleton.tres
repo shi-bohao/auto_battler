@@ -8,6 +8,7 @@ unit_name = "Skeleton"
 unit_name_cn = "骷髅"
 description_cn = "脆弱的近战召唤物，默认存活到本场战斗结束。"
 unit_type = "summoned_skeleton"
+catalog_id = 4
 role = "damage"
 rarity = "COMMON"
 price = 0

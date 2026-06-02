@@ -8,6 +8,7 @@ unit_name = "Bone Dragon"
 unit_name_cn = "骨龙"
 description_cn = "远程范围输出型召唤物，攻击可造成溅射伤害。"
 unit_type = "summoned_bone_dragon"
+catalog_id = 3
 role = "damage"
 rarity = "COMMON"
 price = 0

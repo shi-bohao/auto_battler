@@ -8,6 +8,7 @@ unit_name = "Puppet"
 unit_name_cn = "傀儡"
 description_cn = "由被标记目标死亡后生成的近战召唤物，拥有较高生命。"
 unit_type = "summoned_puppet"
+catalog_id = 1
 role = "tank"
 rarity = "COMMON"
 price = 0

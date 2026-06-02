@@ -103,7 +103,7 @@ func get_available_relic_reward_options(
 	get_relic_rarity_func: Callable
 ) -> Array[Dictionary]:
 	var rewards: Array[Dictionary] = []
-	for relic_data in _relic_data_list:
+	for relic_data in _get_sorted_relic_data_list():
 		_append_relic_reward_if_available(
 			rewards,
 			relic_data,
@@ -168,3 +168,35 @@ func _call_string(function: Callable, value: Resource) -> String:
 		return ""
 
 	return str(function.call(value))
+
+
+func _get_sorted_relic_data_list() -> Array[Resource]:
+	var relics: Array[Resource] = []
+	for relic_data: Resource in _relic_data_list:
+		if relic_data != null:
+			relics.append(relic_data)
+	relics.sort_custom(Callable(self, "_sort_relics_by_catalog_id"))
+	return relics
+
+
+func _sort_relics_by_catalog_id(a: Resource, b: Resource) -> bool:
+	var a_catalog_id: int = _get_catalog_id(a)
+	var b_catalog_id: int = _get_catalog_id(b)
+	if a_catalog_id > 0 and b_catalog_id > 0 and a_catalog_id != b_catalog_id:
+		return a_catalog_id < b_catalog_id
+	if a_catalog_id > 0 and b_catalog_id <= 0:
+		return true
+	if a_catalog_id <= 0 and b_catalog_id > 0:
+		return false
+	return str(a.resource_path) < str(b.resource_path)
+
+
+func _get_catalog_id(relic_data: Resource) -> int:
+	if relic_data == null:
+		return 0
+
+	var value: Variant = relic_data.get("catalog_id")
+	if value == null:
+		return 0
+
+	return maxi(0, int(value))

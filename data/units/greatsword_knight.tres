@@ -12,6 +12,7 @@ unit_name = "Greatsword Knight"
 unit_name_cn = "巨剑骑士"
 description_cn = "近战半肉范围劈砍单位，普攻和主动技能都能打击成片敌人。"
 unit_type = "greatsword_knight"
+catalog_id = 10
 role = "tank"
 bond_tags = Array[String](["iron_wall", "hunter"])
 rarity = "RARE"

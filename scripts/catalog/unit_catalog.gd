@@ -48,6 +48,7 @@ func setup(
 	_register_unit(configured_necromancer_data)
 	_register_unit(configured_puppet_warlock_data)
 	_register_units_from_dir(UNIT_DATA_DIR)
+	_sort_unit_order_by_catalog_id()
 
 
 func get_unit_pool() -> Array[Resource]:
@@ -180,3 +181,32 @@ func _normalize_exported_resource_file_name(file_name: String, extension: String
 	if file_name.ends_with(extension + ".remap"):
 		return file_name.trim_suffix(".remap")
 	return ""
+
+
+func _sort_unit_order_by_catalog_id() -> void:
+	unit_order.sort_custom(Callable(self, "_sort_unit_ids_by_catalog_id"))
+
+
+func _sort_unit_ids_by_catalog_id(a: String, b: String) -> bool:
+	var a_data: Resource = unit_data_by_id.get(a, null) as Resource
+	var b_data: Resource = unit_data_by_id.get(b, null) as Resource
+	var a_catalog_id: int = _get_catalog_id(a_data)
+	var b_catalog_id: int = _get_catalog_id(b_data)
+	if a_catalog_id > 0 and b_catalog_id > 0 and a_catalog_id != b_catalog_id:
+		return a_catalog_id < b_catalog_id
+	if a_catalog_id > 0 and b_catalog_id <= 0:
+		return true
+	if a_catalog_id <= 0 and b_catalog_id > 0:
+		return false
+	return a < b
+
+
+func _get_catalog_id(unit_data: Resource) -> int:
+	if unit_data == null:
+		return 0
+
+	var value: Variant = unit_data.get("catalog_id")
+	if value == null:
+		return 0
+
+	return maxi(0, int(value))

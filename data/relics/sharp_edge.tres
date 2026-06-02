@@ -7,6 +7,7 @@
 script = ExtResource("1_sharp")
 icon_texture = ExtResource("2_icon")
 relic_id = "sharp_edge"
+catalog_id = 40
 relic_name = "Sharp Edge"
 relic_name_cn = "锐刃"
 description = "Aura: all player units gain +10% crit chance."

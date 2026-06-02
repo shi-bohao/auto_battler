@@ -12,6 +12,7 @@ unit_name = "Plague Caster"
 unit_name_cn = "瘟疫术士"
 description_cn = "持续伤害输出，使用毒素削弱敌人。"
 unit_type = "plague_caster"
+catalog_id = 22
 role = "damage"
 bond_tags = Array[String](["venom"])
 rarity = "FINE"

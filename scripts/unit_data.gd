@@ -5,6 +5,7 @@ extends Resource
 @export var unit_name_cn: String = ""
 @export var description_cn: String = ""
 @export var unit_type: String = "unit"
+@export var catalog_id: int = 0
 @export_enum("tank", "damage", "support") var role: String = "damage"
 @export var bond_tags: Array[String] = []
 @export var star: int = 1

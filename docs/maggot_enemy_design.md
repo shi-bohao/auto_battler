@@ -162,10 +162,10 @@ mana_regen_per_second = 9.0
 
 | 项目 | v1 | v2 |
 |------|----|----|
-| 持续伤害类型 | 新建 rot（STRONGEST_WINS） | 复用 venom_stack（STACK_INDEPENDENT_DURATION） |
-| 死亡自爆 DoT | rot 5/s × 3s | venom_stack 1层 5/s × 3s |
-| 喷吐 DoT | rot 6+ATK×0.25 ≈ 9.5/s × 5s | venom_stack 2层 = 10/s × 5s |
-| 腐潮 DoT | rot 8/s × 4s | venom_stack 2层 = 10/s × 4s |
+| 持续伤害类型 | 新建 rot（STRONGEST_WINS） | 复用 venom_stack（单状态记录层数，刷新持续时间，过期后每秒衰减 5 层） |
+| 死亡自爆 DoT | rot 5/s × 3s | venom_stack +1层，刷新为 3s，每层 5/s |
+| 喷吐 DoT | rot 6+ATK×0.25 ≈ 9.5/s × 5s | venom_stack +2层，刷新为 5s，每层 5/s |
+| 腐潮 DoT | rot 8/s × 4s | venom_stack +2层，刷新为 4s，每层 5/s |
 | 增伤机制 | 检测 rot 或 venom 存在 → +25% | 独立 debuff putrid_mark，被标记者承伤 +25% |
 | 新增持续伤害实现 | 新建 rot 状态/逻辑 | 不新增 DoT；持续伤害全部复用已有 `venom_stack` |
 | 新增标记实现 | 无独立承伤标记 | 不新增独立状态文件，复用 `StatusEffectFactory` 在技能中施加 `putrid_mark` |

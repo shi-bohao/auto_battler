@@ -36,6 +36,9 @@ const STACK_POLICY_STRONGEST_WINS: String = "STRONGEST_WINS"
 const SOURCE_MODE_GLOBAL: String = "GLOBAL"
 const SOURCE_MODE_PER_SOURCE: String = "PER_SOURCE"
 
+const VENOM_STACK_EFFECT_ID: String = "venom_stack"
+const BURNING_EFFECT_ID: String = "burning"
+
 
 func apply_status_effect(
 	target: Variant,
@@ -66,11 +69,10 @@ func apply_status_effect(
 		options
 	)
 	effect_data = _apply_bond_modifiers(effect_data)
+	if _is_venom_stack_data(effect_data) and bool(effect_data.get("bond_venom_extra_stack", false)):
+		effect_data["stack_count"] = maxi(1, int(effect_data.get("stack_count", 1))) + 1
+		effect_data["bond_venom_extra_stack"] = false
 	var applied_effect: StatusEffect = target.apply_status_effect(effect_data)
-	if bool(effect_data.get("bond_venom_extra_stack", false)):
-		var extra_effect_data: Dictionary = effect_data.duplicate(true)
-		extra_effect_data["bond_venom_extra_stack"] = false
-		target.apply_status_effect(extra_effect_data)
 
 	return applied_effect
 
@@ -107,6 +109,30 @@ func apply_status_effect_with_tick_values(
 	return target.apply_status_effect(effect_data)
 
 
+func apply_burning(
+	target: Variant,
+	source: Variant,
+	duration: float,
+	damage_per_second: float,
+	options: Dictionary = {}
+) -> StatusEffect:
+	var merged_options: Dictionary = options.duplicate(true)
+	merged_options["stack_policy"] = str(merged_options.get("stack_policy", STACK_POLICY_REFRESH_ONLY))
+	merged_options["polarity"] = str(merged_options.get("polarity", POLARITY_NEGATIVE))
+	merged_options["category"] = str(merged_options.get("category", CATEGORY_DOT))
+	return apply_status_effect(
+		target,
+		BURNING_EFFECT_ID,
+		EFFECT_TYPE_DAMAGE_OVER_TIME,
+		source,
+		duration,
+		1.0,
+		damage_per_second,
+		"",
+		merged_options
+	)
+
+
 func create_status_effect_data(
 	target: Variant,
 	effect_id: String,
@@ -138,6 +164,11 @@ func create_status_effect_data(
 
 func _is_valid_alive_target(target: Variant) -> bool:
 	return target != null and is_instance_valid(target) and target.is_alive
+
+
+func _is_venom_stack_data(effect_data: Dictionary) -> bool:
+	return str(effect_data.get("effect_id", "")) == VENOM_STACK_EFFECT_ID \
+		and str(effect_data.get("effect_type", "")) == EFFECT_TYPE_DAMAGE_OVER_TIME
 
 
 func _apply_bond_modifiers(effect_data: Dictionary) -> Dictionary:

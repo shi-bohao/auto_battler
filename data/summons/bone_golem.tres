@@ -8,6 +8,7 @@ unit_name = "Bone Golem"
 unit_name_cn = "骨巨人"
 description_cn = "近战肉盾型召唤物，拥有高生命和防御。"
 unit_type = "summoned_bone_golem"
+catalog_id = 2
 role = "tank"
 rarity = "COMMON"
 price = 0

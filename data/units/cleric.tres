@@ -12,6 +12,7 @@ unit_name = "Cleric"
 unit_name_cn = "神官"
 description_cn = "范围治疗辅助单位，周期性治疗身边友军，并能释放圣域抬高团队血线。"
 unit_type = "cleric"
+catalog_id = 23
 role = "support"
 bond_tags = Array[String](["divine"])
 rarity = "RARE"

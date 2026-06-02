@@ -12,6 +12,7 @@ unit_name = "Frost Prism Mage"
 unit_name_cn = "冰棱术士"
 description_cn = "法术控制单位，能冻结敌人并放大后续技能伤害。"
 unit_type = "frost_prism_mage"
+catalog_id = 3
 role = "damage"
 bond_tags = Array[String](["arcane"])
 rarity = "EPIC"

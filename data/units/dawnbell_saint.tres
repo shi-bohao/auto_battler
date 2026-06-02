@@ -12,6 +12,7 @@ unit_name = "Dawnbell Saint"
 unit_name_cn = "晨钟圣徒"
 description_cn = "治疗护盾流传奇辅助核心，将溢出治疗转化为护盾，并在战斗中阻止友方死亡。"
 unit_type = "dawnbell_saint"
+catalog_id = 15
 role = "support"
 bond_tags = Array[String](["divine"])
 rarity = "LEGENDARY"

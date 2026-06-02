@@ -7,6 +7,7 @@
 script = ExtResource("1_prism")
 icon_texture = ExtResource("2_icon")
 relic_id = "arcane_prism"
+catalog_id = 15
 relic_name = "Arcane Prism"
 relic_name_cn = "奥术棱镜"
 description = "Aura: all player units gain +15% skill power."

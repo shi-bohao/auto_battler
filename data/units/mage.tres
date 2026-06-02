@@ -12,6 +12,7 @@ unit_name = "Mage"
 unit_name_cn = "法师"
 description_cn = "技能爆发输出，使用火球打击低血量目标。"
 unit_type = "mage"
+catalog_id = 18
 role = "damage"
 bond_tags = Array[String](["arcane"])
 rarity = "COMMON"

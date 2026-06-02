@@ -45,6 +45,10 @@ const STACK_POLICY_STACK_PER_SOURCE_CAP_INDEPENDENT: String = "STACK_PER_SOURCE_
 const STACK_POLICY_PERMANENT_STACK: String = "PERMANENT_STACK"
 const STACK_POLICY_STRONGEST_WINS: String = "STRONGEST_WINS"
 
+const VENOM_STACK_EFFECT_ID: String = "venom_stack"
+const BURNING_EFFECT_ID: String = "burning"
+const DEFAULT_VENOM_STACK_DECAY_PER_TICK: int = 5
+
 var effect_id: String = ""
 var effect_type: String = ""
 var source_unit: Variant = null
@@ -65,6 +69,10 @@ var stat_name: String = ""
 var is_expired: bool = false
 var tick_values: Array[int] = []
 var next_tick_index: int = 0
+var stack_count: int = 1
+var stack_decay_per_tick: int = 0
+var stack_decay_after_duration: bool = false
+var is_stack_decaying: bool = false
 
 # Control fields
 var control_type: String = ""
@@ -103,6 +111,7 @@ func setup(effect_data: Dictionary) -> void:
 	tick_timer = 0.0
 	value = float(effect_data.get("value", 0.0))
 	stat_name = str(effect_data.get("stat_name", ""))
+	_read_stack_fields(effect_data)
 	_read_control_fields(effect_data)
 	duration = _get_adjusted_duration(maxf(0.0, float(effect_data.get("duration", 0.0))))
 	remaining_time = duration
@@ -140,6 +149,7 @@ func refresh(effect_data: Dictionary) -> void:
 	duration_mode = _resolve_duration_mode(effect_data, duration_mode)
 	value = float(effect_data.get("value", value))
 	stat_name = str(effect_data.get("stat_name", stat_name))
+	_read_stack_fields(effect_data)
 	_read_control_fields(effect_data)
 	duration = _get_adjusted_duration(maxf(0.0, float(effect_data.get("duration", duration))))
 	remaining_time = duration
@@ -157,6 +167,10 @@ func refresh(effect_data: Dictionary) -> void:
 
 func refresh_duration(effect_data: Dictionary) -> void:
 	if is_expired:
+		return
+
+	if _is_venom_stack_effect():
+		add_venom_stacks(effect_data)
 		return
 
 	duration_mode = _resolve_duration_mode(effect_data, duration_mode)
@@ -210,9 +224,18 @@ func update(delta: float) -> void:
 	if not _uses_timed_duration():
 		return
 
+	if is_stack_decaying:
+		return
+
 	remaining_time -= delta
 	if remaining_time <= 0.0:
-		expire()
+		if _should_decay_stacks_after_duration():
+			remaining_time = 0.0
+			is_stack_decaying = true
+			if _is_valid_unit(target_unit):
+				target_unit.update_info_display()
+		else:
+			expire()
 
 
 func expire(should_update_display: bool = true, stat_context: Dictionary = {}) -> void:
@@ -235,10 +258,61 @@ func get_debug_text() -> String:
 	if effect_type == EFFECT_CONTROL:
 		var control_name: String = control_ui_name if control_ui_name.strip_edges() != "" else control_type
 		return effect_id + " " + control_name + " (" + remaining_text + "s)"
+	if _is_venom_stack_effect():
+		var decay_text: String = " decaying" if is_stack_decaying else ""
+		return effect_id + " x" + str(stack_count) + " " + effect_type + " " + value_text + decay_text + " (" + remaining_text + "s)"
+	if _is_burning_effect():
+		return effect_id + " " + effect_type + " " + value_text + "/s (" + remaining_text + "s)"
 	if stat_name.strip_edges() == "":
 		return effect_id + " " + effect_type + " " + value_text + " (" + remaining_text + "s)"
 
 	return effect_id + " " + effect_type + " " + stat_name + " " + value_text + " (" + remaining_text + "s)"
+
+
+func add_venom_stacks(effect_data: Dictionary) -> void:
+	if is_expired:
+		return
+
+	var added_stacks: int = maxi(1, int(effect_data.get("stack_count", 1)))
+	stack_count += added_stacks
+	source_unit = effect_data.get("source_unit", source_unit)
+	source_key = str(effect_data.get("source_key", source_key))
+	value = float(effect_data.get("value", value))
+	stat_name = str(effect_data.get("stat_name", stat_name))
+	_read_stack_fields(effect_data, false)
+	duration_mode = _resolve_duration_mode(effect_data, duration_mode)
+	duration = _get_adjusted_duration(maxf(0.0, float(effect_data.get("duration", duration))))
+	remaining_time = duration
+	tick_interval = maxf(0.0, float(effect_data.get("tick_interval", tick_interval)))
+	if tick_interval <= 0.0:
+		tick_timer = 0.0
+	else:
+		tick_timer = clampf(tick_timer, 0.0, tick_interval)
+	is_stack_decaying = false
+	if _is_valid_unit(target_unit):
+		target_unit.update_info_display()
+
+
+func add_burning_damage(effect_data: Dictionary) -> void:
+	if is_expired:
+		return
+
+	source_unit = effect_data.get("source_unit", source_unit)
+	source_key = str(effect_data.get("source_key", source_key))
+	value += float(effect_data.get("value", 0.0))
+	stat_name = str(effect_data.get("stat_name", stat_name))
+	duration_mode = _resolve_duration_mode(effect_data, duration_mode)
+	if _uses_timed_duration():
+		var new_duration: float = _get_adjusted_duration(maxf(0.0, float(effect_data.get("duration", 0.0))))
+		remaining_time = maxf(remaining_time, new_duration)
+		duration = maxf(duration, remaining_time)
+	tick_interval = maxf(0.0, float(effect_data.get("tick_interval", tick_interval)))
+	if tick_interval <= 0.0:
+		tick_timer = 0.0
+	else:
+		tick_timer = clampf(tick_timer, 0.0, tick_interval)
+	if _is_valid_unit(target_unit):
+		target_unit.update_info_display()
 
 
 func _update_tick_effect(delta: float) -> void:
@@ -256,7 +330,11 @@ func _update_tick_effect(delta: float) -> void:
 
 func _apply_tick() -> void:
 	var tick_value: int = _get_current_tick_value()
+	if _is_venom_stack_effect():
+		tick_value = maxi(0, int(round(value * float(stack_count))))
+
 	if tick_value <= 0:
+		_decay_stacks_after_tick()
 		return
 
 	match effect_type:
@@ -265,8 +343,15 @@ func _apply_tick() -> void:
 		EFFECT_DAMAGE_OVER_TIME:
 			target_unit.take_damage(tick_value, _get_valid_source_or_null(), false)
 
+	_decay_stacks_after_tick()
+
 
 func _get_current_tick_value() -> int:
+	if _is_venom_stack_effect():
+		return maxi(0, int(round(value * float(stack_count))))
+	if _is_burning_effect():
+		return maxi(0, int(round(value)))
+
 	if not tick_values.is_empty():
 		if next_tick_index >= tick_values.size():
 			return 0
@@ -276,6 +361,17 @@ func _get_current_tick_value() -> int:
 		return tick_value
 
 	return maxi(1, int(round(value)))
+
+
+func _decay_stacks_after_tick() -> void:
+	if not is_stack_decaying or stack_decay_per_tick <= 0:
+		return
+
+	stack_count = maxi(0, stack_count - stack_decay_per_tick)
+	if stack_count <= 0:
+		expire()
+	elif _is_valid_unit(target_unit):
+		target_unit.update_info_display()
 
 
 func _get_tick_values(effect_data: Dictionary) -> Array[int]:
@@ -594,6 +690,29 @@ func _read_control_fields(effect_data: Dictionary) -> void:
 	var color_val: Variant = effect_data.get("control_ui_color", Color.WHITE)
 	if color_val is Color:
 		control_ui_color = color_val as Color
+
+
+func _read_stack_fields(effect_data: Dictionary, should_replace_count: bool = true) -> void:
+	if should_replace_count:
+		stack_count = maxi(1, int(effect_data.get("stack_count", stack_count)))
+	if _is_venom_stack_effect():
+		stack_decay_per_tick = maxi(1, int(effect_data.get("stack_decay_per_tick", DEFAULT_VENOM_STACK_DECAY_PER_TICK)))
+		stack_decay_after_duration = bool(effect_data.get("stack_decay_after_duration", true))
+	else:
+		stack_decay_per_tick = maxi(0, int(effect_data.get("stack_decay_per_tick", stack_decay_per_tick)))
+		stack_decay_after_duration = bool(effect_data.get("stack_decay_after_duration", stack_decay_after_duration))
+
+
+func _should_decay_stacks_after_duration() -> bool:
+	return _is_venom_stack_effect() and stack_decay_after_duration and stack_count > 0 and stack_decay_per_tick > 0
+
+
+func _is_venom_stack_effect() -> bool:
+	return effect_id == VENOM_STACK_EFFECT_ID and effect_type == EFFECT_DAMAGE_OVER_TIME
+
+
+func _is_burning_effect() -> bool:
+	return effect_id == BURNING_EFFECT_ID and effect_type == EFFECT_DAMAGE_OVER_TIME
 
 
 func _is_hard_control_type(configured_control_type: String) -> bool:

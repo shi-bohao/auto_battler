@@ -21,7 +21,7 @@ func _run() -> void:
 	var lines: Array[String] = []
 	lines.append("# 当前单位与遗物信息总览")
 	lines.append("")
-	lines.append("更新时间：2026-05-28")
+	lines.append("更新时间：2026-06-01")
 	lines.append("")
 	lines.append("> 本文档用于快速核对当前项目已实现的单位、召唤物和遗物数值。单位属性来自 `UnitData` 资源默认值与 `.tres` 配置；技能说明来自 `UnitTextFormatter`；遗物信息来自 `RelicData`。")
 	lines.append("")
@@ -36,6 +36,8 @@ func _run() -> void:
 	_append_unit_section(lines, "敌方单位", ENEMY_UNIT_DIR)
 	_append_unit_section(lines, "召唤物", SUMMON_UNIT_DIR)
 	_append_relic_section(lines)
+	while not lines.is_empty() and lines[lines.size() - 1] == "":
+		lines.remove_at(lines.size() - 1)
 
 	var file: FileAccess = FileAccess.open(OUT_PATH, FileAccess.WRITE)
 	if file == null:
@@ -73,7 +75,7 @@ func _append_unit_section(lines: Array[String], title: String, dir_path: String)
 func _append_hero_section(lines: Array[String]) -> void:
 	var hero_manager: Variant = HERO_MANAGER_SCRIPT.new()
 	var heroes: Array[Resource] = hero_manager.get_available_heroes()
-	heroes.sort_custom(Callable(self, "_sort_heroes_by_name"))
+	heroes.sort_custom(Callable(self, "_sort_heroes_by_catalog_id"))
 	lines.append("## 英雄（特殊玩家单位）")
 	lines.append("")
 	lines.append("| 名称 | ID | 简介 | 羁绊 | 推荐站位 | 基础属性 | 扩展属性 | 技能 |")
@@ -132,7 +134,7 @@ func _load_unit_entries(dir_path: String) -> Array[Dictionary]:
 				})
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	entries.sort_custom(Callable(self, "_sort_entries_by_name"))
+	entries.sort_custom(Callable(self, "_sort_entries_by_catalog_id"))
 	return entries
 
 
@@ -156,15 +158,33 @@ func _load_relic_entries(dir_path: String) -> Array[Dictionary]:
 				})
 		file_name = dir.get_next()
 	dir.list_dir_end()
-	entries.sort_custom(Callable(self, "_sort_entries_by_name"))
+	entries.sort_custom(Callable(self, "_sort_entries_by_catalog_id"))
 	return entries
 
 
-func _sort_entries_by_name(a: Dictionary, b: Dictionary) -> bool:
+func _sort_entries_by_catalog_id(a: Dictionary, b: Dictionary) -> bool:
+	var a_resource: Resource = a.get("resource", null) as Resource
+	var b_resource: Resource = b.get("resource", null) as Resource
+	var a_catalog_id: int = _get_catalog_id(a_resource)
+	var b_catalog_id: int = _get_catalog_id(b_resource)
+	if a_catalog_id > 0 and b_catalog_id > 0 and a_catalog_id != b_catalog_id:
+		return a_catalog_id < b_catalog_id
+	if a_catalog_id > 0 and b_catalog_id <= 0:
+		return true
+	if a_catalog_id <= 0 and b_catalog_id > 0:
+		return false
 	return str(a.get("name", "")).to_lower() < str(b.get("name", "")).to_lower()
 
 
-func _sort_heroes_by_name(a: Resource, b: Resource) -> bool:
+func _sort_heroes_by_catalog_id(a: Resource, b: Resource) -> bool:
+	var a_catalog_id: int = _get_catalog_id(a)
+	var b_catalog_id: int = _get_catalog_id(b)
+	if a_catalog_id > 0 and b_catalog_id > 0 and a_catalog_id != b_catalog_id:
+		return a_catalog_id < b_catalog_id
+	if a_catalog_id > 0 and b_catalog_id <= 0:
+		return true
+	if a_catalog_id <= 0 and b_catalog_id > 0:
+		return false
 	return _get_hero_display_name(a).to_lower() < _get_hero_display_name(b).to_lower()
 
 
@@ -341,6 +361,15 @@ func _get_string(resource: Resource, property_name: String) -> String:
 	return str(value).strip_edges()
 
 
+func _get_catalog_id(resource: Resource) -> int:
+	if resource == null:
+		return 0
+	var value: Variant = resource.get("catalog_id")
+	if value == null:
+		return 0
+	return maxi(0, int(value))
+
+
 func _get_int(resource: Resource, property_name: String, default_value: int) -> int:
 	if resource == null:
 		return default_value
@@ -389,6 +418,8 @@ func _join_parts(parts: Array[String], separator: String) -> String:
 
 func _join_lines(lines: Array[String]) -> String:
 	var output: String = ""
-	for line: String in lines:
-		output += line + "\n"
+	for index: int in range(lines.size()):
+		if index > 0:
+			output += "\n"
+		output += lines[index]
 	return output

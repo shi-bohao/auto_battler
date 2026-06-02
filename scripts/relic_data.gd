@@ -2,6 +2,7 @@ class_name RelicData
 extends Resource
 
 @export var relic_id: String = ""
+@export var catalog_id: int = 0
 @export var relic_name: String = "遗物"
 @export var relic_name_cn: String = ""
 @export var description: String = ""

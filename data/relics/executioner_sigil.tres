@@ -7,6 +7,7 @@
 script = ExtResource("1_executioner")
 icon_texture = ExtResource("2_icon")
 relic_id = "executioner_sigil"
+catalog_id = 11
 relic_name = "Executioner Sigil"
 relic_name_cn = "处刑徽记"
 description = "When a player unit kills an enemy, it gains +12% attack damage for this battle."

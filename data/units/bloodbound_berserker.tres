@@ -12,6 +12,7 @@ unit_name = "Bloodbound Berserker"
 unit_name_cn = "血契狂战"
 description_cn = "吸血与低血量爆发核心，生命越低输出越高。"
 unit_type = "bloodbound_berserker"
+catalog_id = 26
 role = "damage"
 bond_tags = Array[String](["hunter"])
 rarity = "RARE"

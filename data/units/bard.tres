@@ -12,6 +12,7 @@ unit_name = "Bard"
 unit_name_cn = "吟游诗人"
 description_cn = "团队增幅辅助，为友军提供护盾和攻击强化。"
 unit_type = "bard"
+catalog_id = 6
 role = "support"
 bond_tags = Array[String](["divine"])
 rarity = "COMMON"

@@ -95,6 +95,7 @@
 | 3 | 玩家单位施加的剧毒每跳伤害 +8；施加剧毒时额外增加 1 层，同一目标 2 秒冷却 |
 
 剧毒入口统一经过 `StatusEffectFactory.apply_status_effect()`，再由 `BattleManager.modify_status_effect_data_for_bonds()` 转发给 `BondManager.modify_status_effect_data()`。
+当前 `venom_stack` 不再为每层创建独立状态实例，而是在目标身上的单个剧毒状态中记录层数；新剧毒到来时增加层数并刷新持续时间，过期后每秒减少 `5` 层直到清空。3 剧毒的额外层会合并到本次施加的层数中。
 
 ## 战斗接入
 

@@ -12,6 +12,7 @@ unit_name = "Assassin"
 unit_name_cn = "刺客"
 description_cn = "高速收割，优先猎杀低血量目标。"
 unit_type = "assassin"
+catalog_id = 4
 role = "damage"
 bond_tags = Array[String](["hunter"])
 rarity = "FINE"

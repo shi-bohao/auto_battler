@@ -12,6 +12,7 @@ unit_name = "Archer"
 unit_name_cn = "弓手"
 description_cn = "后排远程输出，安全距离下持续造成伤害。"
 unit_type = "archer"
+catalog_id = 11
 role = "damage"
 bond_tags = Array[String](["hunter"])
 rarity = "COMMON"

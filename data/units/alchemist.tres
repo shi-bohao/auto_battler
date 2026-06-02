@@ -12,6 +12,7 @@ unit_name = "Alchemist"
 unit_name_cn = "炼金术士"
 description_cn = "远程持续伤害单位，普攻施加腐蚀，并以酸液领域持续灼烧区域内敌人。"
 unit_type = "alchemist"
+catalog_id = 19
 role = "damage"
 bond_tags = Array[String](["arcane", "venom"])
 rarity = "RARE"

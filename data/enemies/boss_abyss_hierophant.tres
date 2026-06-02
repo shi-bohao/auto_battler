@@ -9,6 +9,7 @@ unit_name = "Boss: Abyss Hierophant"
 unit_name_cn = "Boss：深渊大祭司"
 description_cn = "续航型 Boss，持续治疗并强化敌方魔力节奏。"
 unit_type = "enemy_boss_abyss_hierophant"
+catalog_id = 1
 role = "support"
 price = 0
 max_hp = 720

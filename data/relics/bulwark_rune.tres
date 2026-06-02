@@ -7,6 +7,7 @@
 script = ExtResource("1_bulwark")
 icon_texture = ExtResource("2_icon")
 relic_id = "bulwark_rune"
+catalog_id = 10
 relic_name = "Bulwark Rune"
 relic_name_cn = "壁垒符文"
 description = "At battle start, player frontline units gain +8% damage reduction and +15% status resistance for this battle."

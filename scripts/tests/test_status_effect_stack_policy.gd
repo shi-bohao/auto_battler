@@ -17,6 +17,8 @@ func _run_tests() -> void:
 	_test_unique_per_source_refreshes_same_source_and_stacks_different_sources()
 	_test_independent_stack_duration_expires_layer_by_layer()
 	_test_stack_refresh_duration_resets_existing_layers()
+	_test_venom_stack_uses_merged_count_and_decay()
+	_test_burning_adds_damage_and_keeps_longer_time()
 	_test_permanent_stack_ignores_time_until_clear()
 	_test_remove_status_effect_restores_stat_modifier()
 	_test_update_survives_effects_cleared_during_tick()
@@ -101,6 +103,63 @@ func _test_stack_refresh_duration_resets_existing_layers() -> void:
 
 	target.update_status_effects(0.8)
 	_expect_int(target.defense, 0, "Refreshed layers should expire together after the refreshed timer.")
+
+
+func _test_venom_stack_uses_merged_count_and_decay() -> void:
+	var factory: Variant = STATUS_EFFECT_FACTORY_SCRIPT.new()
+	var source: Unit = _create_unit("Venom Source", 2)
+	var target: Unit = _create_unit("Venom Target", 1)
+	var options: Dictionary = {
+		"stack_policy": STATUS_EFFECT_FACTORY_SCRIPT.STACK_POLICY_STACK_INDEPENDENT_DURATION,
+		"polarity": STATUS_EFFECT_FACTORY_SCRIPT.POLARITY_NEGATIVE,
+		"category": STATUS_EFFECT_FACTORY_SCRIPT.CATEGORY_DOT,
+		"stack_count": 3,
+		"stack_decay_after_duration": true,
+		"stack_decay_per_tick": 5,
+	}
+
+	factory.apply_status_effect(target, "venom_stack", "DAMAGE_OVER_TIME", source, 1.0, 1.0, 5.0, "", options)
+	_expect_int(target.effect_controller.effects.size(), 1, "Venom should create one merged status instance.")
+	_expect_int(target.get_status_effect_count("venom_stack"), 3, "Venom count should report stored stacks.")
+
+	options["stack_count"] = 4
+	factory.apply_status_effect(target, "venom_stack", "DAMAGE_OVER_TIME", source, 1.0, 1.0, 5.0, "", options)
+	_expect_int(target.effect_controller.effects.size(), 1, "New venom should merge into the existing status.")
+	_expect_int(target.get_status_effect_count("venom_stack"), 7, "New venom should add stacks instead of creating new timers.")
+
+	target.update_status_effects(1.0)
+	_expect_int(target.hp, 65, "Merged venom should deal damage from all stacks at once.")
+	_expect_int(target.get_status_effect_count("venom_stack"), 7, "Venom should enter decay instead of clearing when duration ends.")
+
+	target.update_status_effects(1.0)
+	_expect_int(target.hp, 30, "Decaying venom should still deal damage using the current stack count.")
+	_expect_int(target.get_status_effect_count("venom_stack"), 2, "Decaying venom should remove five stacks per tick.")
+
+	target.update_status_effects(1.0)
+	_expect_int(target.effect_controller.effects.size(), 0, "Venom should clear after decay removes all stacks.")
+
+
+func _test_burning_adds_damage_and_keeps_longer_time() -> void:
+	var factory: Variant = STATUS_EFFECT_FACTORY_SCRIPT.new()
+	var source: Unit = _create_unit("Burn Source", 2)
+	var target: Unit = _create_unit("Burn Target", 1)
+
+	factory.apply_burning(target, source, 2.0, 4.0)
+	_expect_int(target.effect_controller.effects.size(), 1, "Burning should create one status instance.")
+	target.update_status_effects(1.0)
+	_expect_int(target.hp, 96, "Burning should deal its configured damage every second.")
+
+	factory.apply_burning(target, source, 3.0, 6.0)
+	_expect_int(target.effect_controller.effects.size(), 1, "New burning should merge into the existing status.")
+	var effect: StatusEffect = target.effect_controller.effects[0]
+	_expect_float(effect.value, 10.0, "Burning damage should add together.")
+	_expect_float(effect.remaining_time, 3.0, "Burning should keep the longer of current remaining time and new duration.")
+
+	target.update_status_effects(1.0)
+	_expect_int(target.hp, 86, "Merged burning should tick for the summed damage.")
+	target.update_status_effects(2.0)
+	_expect_int(target.hp, 66, "Merged burning should keep ticking until the longer duration expires.")
+	_expect_int(target.effect_controller.effects.size(), 0, "Burning should expire normally after its duration.")
 
 
 func _test_permanent_stack_ignores_time_until_clear() -> void:

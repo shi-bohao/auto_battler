@@ -7,6 +7,7 @@
 script = ExtResource("1_vengeance")
 icon_texture = ExtResource("2_icon")
 relic_id = "vengeance_spark"
+catalog_id = 12
 relic_name = "Vengeance Spark"
 relic_name_cn = "复仇火花"
 description = "When a player unit dies, deal 50 relic damage to the nearest enemy."

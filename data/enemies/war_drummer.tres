@@ -9,6 +9,7 @@ unit_name = "War Drummer"
 unit_name_cn = "战鼓手"
 description_cn = "团队增幅敌人，提升敌方攻击并提供护盾。"
 unit_type = "enemy_war_drummer"
+catalog_id = 8
 role = "support"
 price = 0
 max_hp = 120

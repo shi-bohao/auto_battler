@@ -7,6 +7,7 @@
 script = ExtResource("1_banner")
 icon_texture = ExtResource("2_icon")
 relic_id = "battle_banner"
+catalog_id = 21
 relic_name = "Battle Banner"
 relic_name_cn = "战斗旌旗"
 description = "Aura: all player units gain +10% attack damage."

@@ -12,6 +12,7 @@ unit_name = "Vine Binder"
 unit_name_cn = "藤缚卫士"
 description_cn = "控制型辅助，能用藤蔓禁锢敌人，限制其接近后排。"
 unit_type = "vine_binder"
+catalog_id = 25
 role = "support"
 bond_tags = Array[String](["divine", "summon"])
 rarity = "RARE"
