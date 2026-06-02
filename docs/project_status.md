@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-06-01（含史莱姆系列敌人、导出资源修复、玩家单位/遗物素材改为数据资源显式引用、图鉴导出资源扫描兼容）
+更新时间：2026-06-02（含新 BOSS、新精英敌人、史莱姆系列敌人、导出资源修复、玩家单位/遗物素材改为数据资源显式引用、图鉴导出资源扫描兼容）
 
 > 文档导航与新旧关系见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准；羁绊、英雄、镜像挑战、阵容快照等系统分别参考对应专题文档；已完成大型功能的设计与实现入口见 `docs/feature_design_log.md`。路径选择系统的完整设计和数值表见 `docs/path_selection_design.md`。
 
@@ -13,6 +13,36 @@
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
 截至当前版本，早期 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。过期阶段总结和重构计划已从当前文档集中移除，目录和职责以本文档下方说明为准。
+
+## 2026-06-02 新 BOSS 与新精英敌人
+
+本轮新增 5 个 BOSS 与 4 个精英敌人，并接入敌方单位池、推荐站位、技能系统、被动触发、场地效果、召唤物、图鉴/内容总览和测试：
+
+- **新 BOSS**：
+  - **BOSS：树妖领主 / Boss: Treant Overlord**：高生命、恢复与控制型 BOSS。被动 `boss_ancient_vitality` 提供周期恢复、低血强化恢复和首次低血护盾；主动 `boss_root_sweep` 释放大范围扇形根须，造成技能伤害并眩晕。
+  - **BOSS：沼泽吞噬者 / Boss: Swamp Devourer**：吞噬死亡单位、越战越强型 BOSS。被动 `boss_corpse_devour` 根据场上死亡叠加吞噬层并循环提高攻击、防御、最大生命；主动 `boss_mire_engulf` 生成泥沼场地，持续伤害并施加迟缓。
+  - **BOSS：熔岩巨人 / Boss: Lava Colossus**：高 AoE、燃烧和场地压制型 BOSS。被动 `boss_molten_body` 会在受到近战普攻时概率反伤并施加燃烧；主动 `boss_magma_fissure` 生成矩形岩浆裂缝，持续伤害并施加燃烧。
+  - **BOSS：天灾领主 / Boss: Scourge Lord**：亡灵召唤型 BOSS。被动 `boss_raise_the_fallen` 会将阵亡敌对单位概率转化为随机亡灵；主动 `boss_undead_warband` 召唤由骷髅战士、骷髅弓箭手、骷髅法师组成的亡灵小队。
+  - **BOSS：森精灵之王 / Boss: Faelord of the Grove**：范围 AoE、治疗与自然增幅型 BOSS。被动 `boss_grove_resonance` 在释放主动后治疗敌方单位，并为首次低血敌方单位提供护盾；主动 `boss_starleaf_storm` 对玩家单位造成范围伤害，同时治疗范围内敌方单位并按命中数量回魔。
+- **新精英敌人**：
+  - **精英：铁甲巨卫 / Elite: Iron Bulwark**：承伤前排精英，拥有开局护盾、护盾破裂减伤和短暂防御提升；主动 `enemy_bulwark_slam` 周围范围伤害、短暂眩晕并为自身加盾。
+  - **精英：冰棘女巫 / Elite: Frost Thorn Witch**：控制法师精英，普攻叠加寒霜印记，三层触发冻结；主动 `enemy_frost_thorn_burst` 范围冰伤，冻结目标受到更高伤害。
+  - **精英：血旗督军 / Elite: Blood Banner Warlord**：团队辅助精英，存活时提供敌方攻速/回魔光环；主动 `enemy_crimson_banner` 短时间进一步强化全体敌方单位。
+  - **精英：反射甲虫 / Elite: Mirror Carapace Beetle**：反制精英，护盾存在时反射主动技能伤害；主动 `enemy_refraction_shell` 重新获得护盾并强化接下来数次普攻。
+- **召唤物补充**：新增骷髅弓箭手、骷髅法师、骷髅战士，供天灾领主和后续亡灵召唤逻辑使用；原普通骷髅保持 `summoned_skeleton`。
+- **系统接入**：`EnemyCatalog` 新增对应资源、ID 和池配置；`BattleBoard` 补充推荐站位；`ActiveSkillCaster`、`PassiveResolver`、`CombatResolver`、`FieldEffectManager`、`SummonManager`、`UnitCombat` 等接入 BOSS/精英技能、反射、状态场地、吞噬、亡灵召唤和护盾判定。
+- **文档与测试**：`docs/content_reference.md` 已重新生成；当前统计为 30 个玩家单位、4 个英雄、32 个敌方单位、8 个召唤物、43 个遗物。新增 `scripts/tests/test_boss_units.gd`、`scripts/tests/test_elite_enemies.gd`，并保留史莱姆与召唤系统回归测试。
+
+本轮验证命令：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\elite_check.log --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\test_boss_units.log --script res://scripts/tests/test_boss_units.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\test_elite_enemies.log --script res://scripts/tests/test_elite_enemies.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\test_slime_enemies.log --script res://scripts/tests/test_slime_enemies.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\test_summon_system.log --script res://scripts/tests/test_summon_system.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\content_reference_boss_elite_20260602.log --script res://scripts/tools/generate_content_reference.gd
+```
 
 ## 2026-06-01 史莱姆系列敌人
 
@@ -27,7 +57,7 @@
 - **AoE 范围反馈补齐**：龙息溅射、蛆虫死亡爆发和史莱姆死亡爆发会显示瞬时范围提示；史莱姆亡语残留场地会显示持续范围提示。
 - **召唤/分裂兼容**：`SummonManager` 允许 `slime_split` 召唤体死亡时继续触发自身分裂；分裂体仍标记为召唤物并参与胜负判定。
 - **敌人池接入**：`EnemyCatalog` 新增 5 个敌人；普通史莱姆进入普通坦克池，冰霜史莱姆进入普通辅助池，火焰/毒液史莱姆进入普通输出池，巨型史莱姆进入精英坦克池；遭遇生成模板补充史莱姆权重。
-- **文档与测试**：新增 `docs/slime_enemy_design.md` 和 `scripts/tests/test_slime_enemies.gd`；`docs/content_reference.md` 已重新生成，当前统计为 30 个玩家单位、4 个英雄、23 个敌方单位、5 个召唤物、43 个遗物。
+- **文档与测试**：新增 `docs/slime_enemy_design.md` 和 `scripts/tests/test_slime_enemies.gd`；史莱姆接入时 `docs/content_reference.md` 统计为 30 个玩家单位、4 个英雄、23 个敌方单位、5 个召唤物、43 个遗物。当前最终统计见 2026-06-02 新 BOSS 与新精英敌人章节。
 
 本轮验证命令：
 
@@ -112,7 +142,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ... --quit
 
 - 新增根目录 `README.md`，用于 GitHub 首页展示当前项目状态、运行方式、检查命令和未纳入范围。
 - `docs/README.md` 重写为维护索引，明确“实际代码与资源 > `content_reference.md` > `project_status.md` > 专题文档 > 历史设计记录”的优先级。
-- `docs/content_reference.md` 已通过 `scripts/tools/generate_content_reference.gd` 重新生成；截至 2026-06-01 史莱姆系列敌人接入后，当前统计为 30 个玩家单位、4 个英雄、23 个敌方单位、5 个召唤物、43 个遗物。
+- `docs/content_reference.md` 已通过 `scripts/tools/generate_content_reference.gd` 重新生成；截至 2026-06-02 新 BOSS 与新精英敌人接入后，当前统计为 30 个玩家单位、4 个英雄、32 个敌方单位、8 个召唤物、43 个遗物。
 - `docs/future_features.md` 改名为 `docs/feature_design_log.md`，避免把已经完成的金币经济遗物、远程弹道和非圆形 AoE 继续表现为待办。
 - 移除已被覆盖的旧文档：`phase_summary_2026-05-04.md`、`refactor_plan_2026-05-06.md`、`unit_skill_design.md`、`unit_design_with_new_units.md`、`enemy_design.md`。替代入口已记录在 `docs/README.md`。
 
