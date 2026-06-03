@@ -1,0 +1,17 @@
+index,name,source_sheet,source_col,source_row,x0,y0,x1,y1,output
+1,enemy_elite_shadow_reaper,敌人单位17-32透明背景.png,1,1,0,0,314,314,assets/processed/enemy_units/enemy_elite_shadow_reaper.png
+2,enemy_elite_blood_oracle,敌人单位17-32透明背景.png,2,1,314,0,627,314,assets/processed/enemy_units/enemy_elite_blood_oracle.png
+3,enemy_elite_iron_warden,敌人单位17-32透明背景.png,3,1,627,0,940,314,assets/processed/enemy_units/enemy_elite_iron_warden.png
+4,enemy_elite_maggot_amalgam,敌人单位17-32透明背景.png,4,1,940,0,1254,314,assets/processed/enemy_units/enemy_elite_maggot_amalgam.png
+5,enemy_bone_carrier,敌人单位17-32透明背景.png,1,2,0,314,314,627,assets/processed/enemy_units/enemy_bone_carrier.png
+6,enemy_dark_acolyte,敌人单位17-32透明背景.png,2,2,314,314,627,627,assets/processed/enemy_units/enemy_dark_acolyte.png
+7,enemy_common_slime,敌人单位17-32透明背景.png,3,2,627,314,940,627,assets/processed/enemy_units/enemy_common_slime.png
+8,enemy_frost_slime,敌人单位17-32透明背景.png,4,2,940,314,1254,627,assets/processed/enemy_units/enemy_frost_slime.png
+9,enemy_flame_slime,敌人单位17-32透明背景.png,1,3,0,627,314,940,assets/processed/enemy_units/enemy_flame_slime.png
+10,enemy_venom_slime,敌人单位17-32透明背景.png,2,3,314,627,627,940,assets/processed/enemy_units/enemy_venom_slime.png
+11,enemy_giant_slime,敌人单位17-32透明背景.png,3,3,627,627,940,940,assets/processed/enemy_units/enemy_giant_slime.png
+12,enemy_elite_iron_bulwark,敌人单位17-32透明背景.png,4,3,940,627,1254,940,assets/processed/enemy_units/enemy_elite_iron_bulwark.png
+13,enemy_elite_frost_thorn_witch,敌人单位17-32透明背景.png,1,4,0,940,314,1254,assets/processed/enemy_units/enemy_elite_frost_thorn_witch.png
+14,enemy_elite_blood_banner_warlord,敌人单位17-32透明背景.png,2,4,314,940,627,1254,assets/processed/enemy_units/enemy_elite_blood_banner_warlord.png
+15,enemy_elite_mirror_carapace_beetle,敌人单位17-32透明背景.png,3,4,627,940,940,1254,assets/processed/enemy_units/enemy_elite_mirror_carapace_beetle.png
+16,enemy_goblin_grunt,敌人单位17-32透明背景.png,4,4,940,940,1254,1254,assets/processed/enemy_units/enemy_goblin_grunt.png

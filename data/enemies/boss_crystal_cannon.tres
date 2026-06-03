@@ -1,14 +1,14 @@
 [gd_resource type="Resource" load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boss_void_cannon"]
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boss_crystal_cannon"]
 
 [resource]
-script = ExtResource("1_boss_void_cannon")
+script = ExtResource("1_boss_crystal_cannon")
 enemy_tier = "BOSS"
-unit_name = "Boss: Void Cannon"
-unit_name_cn = "Boss：虚空炮台"
+unit_name = "Boss: Crystal Cannon"
+unit_name_cn = "Boss：冰晶炮台"
 description_cn = "远程爆发 Boss，依靠高技能伤害撕开阵线。"
-unit_type = "enemy_boss_void_cannon"
+unit_type = "enemy_boss_crystal_cannon"
 catalog_id = 2
 role = "damage"
 price = 0
@@ -21,8 +21,8 @@ attack_interval = 1.6
 attack_range = 170.0
 search_range = 999.0
 move_speed = 55.0
-passive_id = "enemy_void_charge"
-active_skill_id = "enemy_void_beam"
+passive_id = "enemy_crystal_charge"
+active_skill_id = "enemy_crystal_beam"
 max_mana = 120
 mana_regen_per_second = 12.0
 target_mode = "LOWEST_HP"

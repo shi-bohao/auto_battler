@@ -121,8 +121,8 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 			return "烈焰专注：主动技能伤害提高 10%。"
 		"enemy_reaper_execute":
 			return "收割处决：攻击生命低于 45% 的目标时，普攻伤害提高 35%。"
-		"enemy_void_charge":
-			return "虚空充能：普攻命中时额外恢复 8 魔力。"
+		"enemy_crystal_charge":
+			return "冰晶充能：普攻命中时额外恢复 8 魔力。"
 		"enemy_dark_blessing":
 			return "暗影祝福：治疗效果提高 15%。"
 		"enemy_war_rhythm":
@@ -133,8 +133,8 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 			return "腐爆：死亡时以自身位置为中心造成范围伤害，并对命中目标施加 1 层剧毒和腐痕。"
 		"amalgam_split_birth":
 			return "分裂繁殖：死亡时在附近召唤 4 只巨型蛆虫，召唤物参与胜负判定。"
-		"enemy_abyss_chant":
-			return "深渊吟诵：战斗开始时敌方全队获得 30 护盾，并提高 10% 魔力回复。"
+		"enemy_goblin_chant":
+			return "哥布林祭歌：战斗开始时敌方全队获得 30 护盾，并提高 10% 魔力回复。"
 		"hero_iron_oath_commander":
 			return "铁誓军势：战斗开始时，前排友军获得 15 + 10% 英雄防御的防御；承伤类前排额外获得 20 + 英雄防御 + 10% 自身最大生命的护盾。\n不倒战线：任意前排友军首次低于 40% 生命时，获得等同已损失生命的护盾，每单位每场战斗 1 次。"
 		"hero_arcane_mentor":
@@ -278,16 +278,16 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 			return "火焰箭：对当前目标造成 250% 攻击力的技能伤害。"
 		"enemy_shadow_cleave":
 			return "暗影顺劈：造成 260% 攻击力伤害，击杀后恢复 30 生命。"
-		"enemy_void_beam":
-			return "虚空光束：造成 320% 攻击力伤害，对半血以下目标伤害提高。"
+		"enemy_crystal_beam":
+			return "冰晶光束：造成 320% 攻击力伤害，对半血以下目标伤害提高。"
 		"enemy_dark_heal":
 			return "暗影治疗：治疗低生命友军 30 + 130% 攻击力。"
 		"enemy_drum_shield":
 			return "战鼓护盾：敌方全队获得 15 护盾。"
 		"enemy_oracle_blessing":
 			return "神谕祝福：治疗低生命友军 50 + 150% 攻击力，并提供 20 护盾。"
-		"enemy_mass_benediction":
-			return "群体赐福：敌方全队恢复 25 + 120% 攻击力生命，并获得 50 护盾。"
+		"enemy_goblin_benediction":
+			return "部族赐福：敌方全队恢复 25 + 120% 攻击力生命，并获得 50 护盾。"
 		"hero_commanding_order":
 			return "统帅号令：满魔自动释放。全体玩家单位获得 25 + 英雄防御 + 10% 英雄最大生命的护盾；前排友军额外获得 20 + 10% 英雄防御的防御，持续 5 秒。英雄 Lv.4 起，护盾提升为 40 + 150% 英雄防御 + 20% 英雄最大生命，防御提升为 35 + 20% 英雄防御，持续 6 秒。"
 		"hero_arcane_storm":

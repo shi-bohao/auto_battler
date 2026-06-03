@@ -37,11 +37,11 @@ const PASSIVE_ENEMY_COLOSSUS_CORE: String = "enemy_colossus_core"
 const PASSIVE_ENEMY_STEADY_AIM: String = "enemy_steady_aim"
 const PASSIVE_ENEMY_FLAME_FOCUS: String = "enemy_flame_focus"
 const PASSIVE_ENEMY_REAPER_EXECUTE: String = "enemy_reaper_execute"
-const PASSIVE_ENEMY_VOID_CHARGE: String = "enemy_void_charge"
+const PASSIVE_ENEMY_CRYSTAL_CHARGE: String = "enemy_crystal_charge"
 const PASSIVE_ENEMY_DARK_BLESSING: String = "enemy_dark_blessing"
 const PASSIVE_ENEMY_WAR_RHYTHM: String = "enemy_war_rhythm"
 const PASSIVE_ENEMY_BLOOD_RITUAL: String = "enemy_blood_ritual"
-const PASSIVE_ENEMY_ABYSS_CHANT: String = "enemy_abyss_chant"
+const PASSIVE_ENEMY_GOBLIN_CHANT: String = "enemy_goblin_chant"
 const PASSIVE_MAGGOT_DEATH_BURST: String = "maggot_death_burst"
 const PASSIVE_AMALGAM_SPLIT_BIRTH: String = "amalgam_split_birth"
 const PASSIVE_SUMMONED_BONE_EDGE: String = "summoned_bone_edge"
@@ -166,9 +166,9 @@ const ENEMY_GOBLIN_OPPORTUNIST_DAMAGE_MULTIPLIER: float = 1.15
 const ENEMY_FLAME_FOCUS_SKILL_DAMAGE_MULTIPLIER: float = 1.10
 const ENEMY_DARK_BLESSING_HEAL_MULTIPLIER: float = 1.15
 const ENEMY_WAR_RHYTHM_ATTACK_BONUS: float = 0.06
-const ENEMY_ABYSS_CHANT_SHIELD: int = 30
-const ENEMY_ABYSS_CHANT_MANA_REGEN_BONUS: float = 0.10
-const ENEMY_VOID_CHARGE_MANA: float = 8.0
+const ENEMY_GOBLIN_CHANT_SHIELD: int = 30
+const ENEMY_GOBLIN_CHANT_MANA_REGEN_BONUS: float = 0.10
+const ENEMY_CRYSTAL_CHARGE_MANA: float = 8.0
 const ENEMY_BLOOD_RITUAL_HEAL: int = 25
 const SUMMONED_BONE_EDGE_HP_RATIO: float = 0.50
 const SUMMONED_BONE_EDGE_DAMAGE_MULTIPLIER: float = 1.20
@@ -425,13 +425,13 @@ func apply_battle_start_passives(unit: Variant) -> void:
 		PASSIVE_ENEMY_WAR_RHYTHM:
 			_apply_ally_attack_and_mana_regen_bonus(unit, ENEMY_WAR_RHYTHM_ATTACK_BONUS, 0.0)
 			DEBUG_LOG_SCRIPT.combat(unit.display_name + " war rhythm applied.")
-		PASSIVE_ENEMY_ABYSS_CHANT:
+		PASSIVE_ENEMY_GOBLIN_CHANT:
 			for ally_value: Variant in unit.ally_units:
 				var ally: Variant = ally_value
 				if _is_valid_unit(ally) and ally.is_alive:
-					ally.add_shield(ENEMY_ABYSS_CHANT_SHIELD, unit)
-			_apply_ally_attack_and_mana_regen_bonus(unit, 0.0, ENEMY_ABYSS_CHANT_MANA_REGEN_BONUS)
-			DEBUG_LOG_SCRIPT.combat(unit.display_name + " abyss chant applied.")
+					ally.add_shield(ENEMY_GOBLIN_CHANT_SHIELD, unit)
+			_apply_ally_attack_and_mana_regen_bonus(unit, 0.0, ENEMY_GOBLIN_CHANT_MANA_REGEN_BONUS)
+			DEBUG_LOG_SCRIPT.combat(unit.display_name + " goblin chant applied.")
 		PASSIVE_ENEMY_IRON_BULWARK:
 			_apply_enemy_iron_bulwark_start(unit)
 		PASSIVE_ENEMY_MIRROR_CARAPACE:
@@ -630,8 +630,8 @@ func apply_attack_landed_passives(unit: Variant, target: Variant) -> void:
 		PASSIVE_VENOM_POOL:
 			if _is_valid_unit(target) and target.is_alive:
 				_apply_maggot_venom_stacks(unit, target, 1, VENOM_STACK_DURATION)
-		PASSIVE_ENEMY_VOID_CHARGE:
-			unit.restore_mana(ENEMY_VOID_CHARGE_MANA, unit)
+		PASSIVE_ENEMY_CRYSTAL_CHARGE:
+			unit.restore_mana(ENEMY_CRYSTAL_CHARGE_MANA, unit)
 		PASSIVE_ENEMY_FROST_MARK:
 			if _is_valid_unit(target) and target.is_alive:
 				_apply_enemy_frost_mark(unit, target, 1)

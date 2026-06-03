@@ -1,0 +1,16 @@
+enemy_elite_shadow_reaper
+enemy_elite_blood_oracle
+enemy_elite_iron_warden
+enemy_elite_maggot_amalgam
+enemy_bone_carrier
+enemy_dark_acolyte
+enemy_common_slime
+enemy_frost_slime
+enemy_flame_slime
+enemy_venom_slime
+enemy_giant_slime
+enemy_elite_iron_bulwark
+enemy_elite_frost_thorn_witch
+enemy_elite_blood_banner_warlord
+enemy_elite_mirror_carapace_beetle
+enemy_goblin_grunt

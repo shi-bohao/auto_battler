@@ -1,14 +1,14 @@
 [gd_resource type="Resource" load_steps=2 format=3]
 
-[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boss_abyss_hierophant"]
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boss_goblin_high_priest"]
 
 [resource]
-script = ExtResource("1_boss_abyss_hierophant")
+script = ExtResource("1_boss_goblin_high_priest")
 enemy_tier = "BOSS"
-unit_name = "Boss: Abyss Hierophant"
-unit_name_cn = "Boss：深渊大祭司"
+unit_name = "Boss: Goblin High Priest"
+unit_name_cn = "Boss：哥布林大祭司"
 description_cn = "续航型 Boss，持续治疗并强化敌方魔力节奏。"
-unit_type = "enemy_boss_abyss_hierophant"
+unit_type = "enemy_boss_goblin_high_priest"
 catalog_id = 1
 role = "support"
 price = 0
@@ -21,8 +21,8 @@ attack_interval = 1.2
 attack_range = 140.0
 search_range = 999.0
 move_speed = 65.0
-passive_id = "enemy_abyss_chant"
-active_skill_id = "enemy_mass_benediction"
+passive_id = "enemy_goblin_chant"
+active_skill_id = "enemy_goblin_benediction"
 max_mana = 120
 mana_regen_per_second = 11.0
 target_mode = "NEAREST"

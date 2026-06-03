@@ -1,0 +1,16 @@
+enemy_boss_goblin_high_priest
+enemy_boss_crystal_cannon
+enemy_boss_earthbreaker_colossus
+enemy_boss_treant_overlord
+enemy_puppet_binder
+enemy_boss_swamp_devourer
+enemy_grave_caller
+enemy_boss_lava_colossus
+enemy_giant_maggot
+enemy_boss_scourge_lord
+enemy_crossbow_raider
+enemy_boss_faelord_of_the_grove
+enemy_war_drummer
+enemy_flame_imp
+enemy_shield_guard
+enemy_stoneback_beast

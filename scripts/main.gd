@@ -3038,16 +3038,16 @@ func _get_unit_type_display_name(unit_id: String) -> String:
 			return "烈焰小鬼"
 		"enemy_elite_shadow_reaper":
 			return "精英影刃收割者"
-		"enemy_boss_void_cannon":
-			return "Boss：虚空炮台"
+		"enemy_boss_crystal_cannon":
+			return "Boss：冰晶炮台"
 		"enemy_dark_acolyte":
 			return "黑暗侍僧"
 		"enemy_war_drummer":
 			return "战鼓手"
 		"enemy_elite_blood_oracle":
 			return "精英血谕者"
-		"enemy_boss_abyss_hierophant":
-			return "Boss：深渊大祭司"
+		"enemy_boss_goblin_high_priest":
+			return "Boss：哥布林大祭司"
 		_:
 			return unit_id.capitalize()
 

@@ -49,11 +49,11 @@ const SKILL_ENEMY_EARTHBREAKER_BARRIER: String = "enemy_earthbreaker_barrier"
 const SKILL_ENEMY_POWER_SHOT: String = "enemy_power_shot"
 const SKILL_ENEMY_FIREBOLT: String = "enemy_firebolt"
 const SKILL_ENEMY_SHADOW_CLEAVE: String = "enemy_shadow_cleave"
-const SKILL_ENEMY_VOID_BEAM: String = "enemy_void_beam"
+const SKILL_ENEMY_CRYSTAL_BEAM: String = "enemy_crystal_beam"
 const SKILL_ENEMY_DARK_HEAL: String = "enemy_dark_heal"
 const SKILL_ENEMY_DRUM_SHIELD: String = "enemy_drum_shield"
 const SKILL_ENEMY_ORACLE_BLESSING: String = "enemy_oracle_blessing"
-const SKILL_ENEMY_MASS_BENEDICTION: String = "enemy_mass_benediction"
+const SKILL_ENEMY_GOBLIN_BENEDICTION: String = "enemy_goblin_benediction"
 const SKILL_ENEMY_RAISE_SKELETONS: String = "enemy_raise_skeletons"
 const SKILL_ENEMY_PUPPET_MARK: String = "enemy_puppet_mark"
 const SKILL_BINDING_RITE: String = "binding_rite"
@@ -320,18 +320,18 @@ const ENEMY_DIRTY_STAB_DAMAGE_MULTIPLIER: float = 1.4
 const ENEMY_FIREBOLT_DAMAGE_MULTIPLIER: float = 2.5
 const ENEMY_SHADOW_CLEAVE_DAMAGE_MULTIPLIER: float = 2.6
 const ENEMY_SHADOW_CLEAVE_KILL_HEAL: int = 30
-const ENEMY_VOID_BEAM_DAMAGE_MULTIPLIER: float = 3.2
-const ENEMY_VOID_BEAM_LOW_HP_RATIO: float = 0.50
-const ENEMY_VOID_BEAM_LOW_HP_MULTIPLIER: float = 1.25
+const ENEMY_CRYSTAL_BEAM_DAMAGE_MULTIPLIER: float = 3.2
+const ENEMY_CRYSTAL_BEAM_LOW_HP_RATIO: float = 0.50
+const ENEMY_CRYSTAL_BEAM_LOW_HP_MULTIPLIER: float = 1.25
 const ENEMY_DARK_HEAL_BASE: int = 30
 const ENEMY_DARK_HEAL_ATTACK_RATIO: float = 1.3
 const ENEMY_DRUM_SHIELD_AMOUNT: int = 15
 const ENEMY_ORACLE_HEAL_BASE: int = 50
 const ENEMY_ORACLE_HEAL_ATTACK_RATIO: float = 1.5
 const ENEMY_ORACLE_SHIELD: int = 20
-const ENEMY_MASS_BENEDICTION_HEAL_BASE: int = 25
-const ENEMY_MASS_BENEDICTION_ATTACK_RATIO: float = 1.2
-const ENEMY_MASS_BENEDICTION_SHIELD: int = 50
+const ENEMY_GOBLIN_BENEDICTION_HEAL_BASE: int = 25
+const ENEMY_GOBLIN_BENEDICTION_ATTACK_RATIO: float = 1.2
+const ENEMY_GOBLIN_BENEDICTION_SHIELD: int = 50
 const INSTANT_AOE_VISUAL_DURATION: float = 0.45
 const SWEEPING_SLASH_VISUAL_COLOR: Color = Color(1.0, 0.76, 0.28, 0.24)
 const EXPLOSIVE_BARRAGE_VISUAL_COLOR: Color = Color(1.0, 0.34, 0.14, 0.24)
@@ -562,16 +562,16 @@ func try_cast_active_skill(unit: Variant) -> bool:
 			return _cast_enemy_direct_damage(unit, ENEMY_FIREBOLT_DAMAGE_MULTIPLIER, "Firebolt")
 		SKILL_ENEMY_SHADOW_CLEAVE:
 			return _cast_enemy_shadow_cleave(unit)
-		SKILL_ENEMY_VOID_BEAM:
-			return _cast_enemy_void_beam(unit)
+		SKILL_ENEMY_CRYSTAL_BEAM:
+			return _cast_enemy_crystal_beam(unit)
 		SKILL_ENEMY_DARK_HEAL:
 			return _cast_enemy_dark_heal(unit)
 		SKILL_ENEMY_DRUM_SHIELD:
 			return _cast_enemy_drum_shield(unit)
 		SKILL_ENEMY_ORACLE_BLESSING:
 			return _cast_enemy_oracle_blessing(unit)
-		SKILL_ENEMY_MASS_BENEDICTION:
-			return _cast_enemy_mass_benediction(unit)
+		SKILL_ENEMY_GOBLIN_BENEDICTION:
+			return _cast_enemy_goblin_benediction(unit)
 		SKILL_ENEMY_RAISE_SKELETONS:
 			return _cast_enemy_raise_skeletons(unit)
 		SKILL_ENEMY_PUPPET_MARK:
@@ -1270,19 +1270,19 @@ func _cast_enemy_shadow_cleave(unit: Variant) -> bool:
 	return did_damage
 
 
-func _cast_enemy_void_beam(unit: Variant) -> bool:
+func _cast_enemy_crystal_beam(unit: Variant) -> bool:
 	var target: Variant = unit.current_target
 	if not unit._is_valid_target(target):
 		return false
 
-	var damage_multiplier: float = ENEMY_VOID_BEAM_DAMAGE_MULTIPLIER
+	var damage_multiplier: float = ENEMY_CRYSTAL_BEAM_DAMAGE_MULTIPLIER
 	if target.max_hp > 0:
 		var hp_ratio: float = float(target.hp) / float(target.max_hp)
-		if hp_ratio < ENEMY_VOID_BEAM_LOW_HP_RATIO:
-			damage_multiplier *= ENEMY_VOID_BEAM_LOW_HP_MULTIPLIER
+		if hp_ratio < ENEMY_CRYSTAL_BEAM_LOW_HP_RATIO:
+			damage_multiplier *= ENEMY_CRYSTAL_BEAM_LOW_HP_MULTIPLIER
 
 	var did_damage: bool = _deal_skill_damage_to_current_target(unit, damage_multiplier)
-	unit.unit_feedback.play_skill_feedback(unit, "Void Beam")
+	unit.unit_feedback.play_skill_feedback(unit, "Crystal Beam")
 	return did_damage
 
 
@@ -1321,8 +1321,8 @@ func _cast_enemy_oracle_blessing(unit: Variant) -> bool:
 	return true
 
 
-func _cast_enemy_mass_benediction(unit: Variant) -> bool:
-	var raw_heal_amount: int = maxi(1, int(round(float(ENEMY_MASS_BENEDICTION_HEAL_BASE) + float(unit.attack_damage) * ENEMY_MASS_BENEDICTION_ATTACK_RATIO)))
+func _cast_enemy_goblin_benediction(unit: Variant) -> bool:
+	var raw_heal_amount: int = maxi(1, int(round(float(ENEMY_GOBLIN_BENEDICTION_HEAL_BASE) + float(unit.attack_damage) * ENEMY_GOBLIN_BENEDICTION_ATTACK_RATIO)))
 	var heal_amount: int = maxi(1, int(round(float(raw_heal_amount) * _get_active_skill_heal_multiplier(unit))))
 	for ally_value: Variant in unit.ally_units:
 		var ally: Variant = ally_value
@@ -1331,9 +1331,9 @@ func _cast_enemy_mass_benediction(unit: Variant) -> bool:
 
 	var shield_target: Variant = _find_lowest_hp_ratio_ally(unit)
 	if _is_valid_unit(shield_target):
-		shield_target.add_shield(_scale_active_skill_shield(unit, ENEMY_MASS_BENEDICTION_SHIELD), unit)
+		shield_target.add_shield(_scale_active_skill_shield(unit, ENEMY_GOBLIN_BENEDICTION_SHIELD), unit)
 
-	unit.unit_feedback.play_skill_feedback(unit, "Mass Benediction")
+	unit.unit_feedback.play_skill_feedback(unit, "Goblin Benediction")
 	return true
 
 

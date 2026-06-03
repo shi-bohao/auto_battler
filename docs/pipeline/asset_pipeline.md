@@ -343,6 +343,155 @@ powershell -ExecutionPolicy Bypass -File tools\process_player_unit_icons_diff.ps
 - 如果切分位置不正确，优先检查 `player_unit_grid_scan.csv` 中对应理论边界附近是否存在已标记且空白的候选行 / 列；
 - 如果单位主体仍明显偏心，检查素材是否在原始格子中被裁掉，脚本只能对切分后仍存在的主体做自动居中。
 
+## 敌人单位图标处理
+
+敌人单位图标同样使用"双背景差分"方式处理，并清除素材图中的细网格分隔线。
+
+### 输入文件命名
+
+当前敌人单位素材位于：
+
+```text
+image/
+```
+
+脚本默认读取以下两组文件：
+
+```text
+image/敌人单位1-16黑色背景.png
+image/敌人单位1-16白色背景.png
+
+image/敌人单位17-32黑色背景.png
+image/敌人单位17-32白色背景.png
+```
+
+要求：
+
+- 每组黑底图和白底图尺寸必须一致；
+- 每组黑底图和白底图的单位位置必须一致；
+- 每张图按 4 x 4 网格切分；
+- 单位命名顺序使用 `data/enemies/*.tres` 中的 `catalog_id` 排序；`docs/content_reference.md` 的"敌方单位"表格由该字段生成，可作为切图顺序核对表；
+- `training_dummy` (catalog_id = 0) 不参与切图，不包含在合图中；
+- 素材中的细网格线会在整图和单图输出中一起移除。
+
+### 处理流程
+
+脚本路径：
+
+```text
+tools/art/remove_diff_background.py
+tools/art/slice_icon_sheet.py
+```
+
+当前敌人单位图标处理流程如下：
+
+1. 读取同一素材的黑底图和白底图。
+2. `remove_diff_background.py` 根据两张图的像素差异反推透明度，生成整张透明背景图。
+3. `slice_icon_sheet.py` 按 4 x 4 理论网格计算预期分割线位置。
+4. 在每条理论分割线前后 16 像素范围内逐行 / 逐列扫描，检测低饱和度线状像素比例。
+5. 将扫描记录写入 `grid_scan.csv`。
+6. 完整扫描结束后，统一抹除被标记的分割线及其相邻 1 像素行 / 列。
+7. 保存整张去背景、去分割线后的透明图到 `image/`。
+8. 切分单图时，从理论边界前后 24 像素范围内选择切割线。
+9. 切割线选择优先级为：已标记分割线且空白、已标记分割线相邻行 / 列且空白、任意空白行 / 列、非透明像素最少的位置。
+10. 将切分结果填充到统一尺寸画布。
+11. 根据主体 alpha 包围盒居中，输出单个单位 PNG。
+
+### 输出位置
+
+单个敌人单位透明 PNG 输出到：
+
+```text
+assets/processed/enemy_units/
+```
+
+输出文件名使用单位 ID，例如：
+
+```text
+assets/processed/enemy_units/enemy_common_slime.png
+assets/processed/enemy_units/enemy_boss_goblin_high_priest.png
+```
+
+脚本同时生成映射清单：
+
+```text
+assets/processed/enemy_units/icon_manifest.csv
+```
+
+以及分割线扫描记录：
+
+```text
+assets/processed/enemy_units/grid_scan.csv
+```
+
+整张去背景、去网格线后的透明图保存回 `image/`：
+
+```text
+image/敌人单位1-16透明背景.png
+image/敌人单位17-32透明背景.png
+```
+
+### 命名清单文件
+
+切图顺序由以下两个命名清单文件控制：
+
+```text
+tools/art/enemy_names_1_16.txt
+tools/art/enemy_names_17_32.txt
+```
+
+每行一个 `unit_type`（即 enemy_id），顺序对应合图中的格子顺序（1-16 和 17-32）。
+
+### 调用方式
+
+第一步：去除背景
+
+```bash
+uv run --with pillow python tools/art/remove_diff_background.py \
+  --dark image/敌人单位1-16黑色背景.png \
+  --light image/敌人单位1-16白色背景.png \
+  --output image/敌人单位1-16透明背景.png
+
+uv run --with pillow python tools/art/remove_diff_background.py \
+  --dark image/敌人单位17-32黑色背景.png \
+  --light image/敌人单位17-32白色背景.png \
+  --output image/敌人单位17-32透明背景.png
+```
+
+第二步：切分单图
+
+```bash
+uv run --with pillow python tools/art/slice_icon_sheet.py \
+  --input image/敌人单位1-16透明背景.png \
+  --output-dir assets/processed/enemy_units \
+  --cols 4 --rows 4 \
+  --names-file tools/art/enemy_names_1_16.txt \
+  --cleaned-output image/敌人单位1-16透明背景_去线.png
+
+uv run --with pillow python tools/art/slice_icon_sheet.py \
+  --input image/敌人单位17-32透明背景.png \
+  --output-dir assets/processed/enemy_units \
+  --cols 4 --rows 4 \
+  --names-file tools/art/enemy_names_17_32.txt \
+  --cleaned-output image/敌人单位17-32透明背景_去线.png
+```
+
+### 游戏接入
+
+敌人单位采用与玩家单位一致的动态加载兜底方式：
+
+- `UnitArtHelper.get_enemy_unit_art_texture(unit_data)` 从 `assets/processed/enemy_units/{unit_type}.png` 动态加载；
+- `unit_data_applier.gd` 在应用单位数据时，如果 `.tres` 未配置 `board_sprite` / `portrait_texture` / `icon_texture`，先尝试加载玩家单位贴图，失败后再尝试加载敌人单位贴图；
+- 运行时代理只作为兜底，如需显式引用，可在 `data/enemies/*.tres` 中直接配置贴图字段。
+
+### 后续维护建议
+
+- 新增敌人单位后，先在对应 `.tres` 资源中追加新的 `catalog_id`，再重新生成 `docs/content_reference.md`；
+- 如果敌人单位数量超过 32，继续追加下一组合图素材，并扩展命名清单文件；
+- 如果网格线仍有残留，优先调整 `slice_icon_sheet.py` 中的整行 / 整列线状像素检测阈值；
+- 映射顺序必须严格与 `content_reference.md` 中的敌方单位表格一致，更新文档后需同步修改命名清单文件；
+- `.png.import` 文件必须提交到版本库，新增或替换图片后务必运行 `--headless --import`。
+
 ## 游戏内接入与导出注意事项
 
 当前项目采用和英雄素材一致的显式资源引用方式：

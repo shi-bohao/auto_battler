@@ -454,7 +454,7 @@ func _get_player_recommended_cells(unit_id: String, role: String) -> Array[Vecto
 			return [Vector2i(1, 3), Vector2i(0, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 2), Vector2i(0, 4), Vector2i(2, 3)]
 		"plague_caster":
 			return [Vector2i(1, 3), Vector2i(0, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(2, 3), Vector2i(0, 2), Vector2i(0, 4)]
-		"enemy_flame_imp", "enemy_boss_void_cannon":
+		"enemy_flame_imp", "enemy_boss_crystal_cannon":
 			return [Vector2i(0, 3), Vector2i(1, 3), Vector2i(0, 2), Vector2i(0, 4), Vector2i(1, 2), Vector2i(1, 4)]
 		"priest":
 			return [Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 4), Vector2i(1, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(2, 3)]
@@ -468,7 +468,7 @@ func _get_player_recommended_cells(unit_id: String, role: String) -> Array[Vecto
 			return [Vector2i(1, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 3), Vector2i(0, 2), Vector2i(0, 4), Vector2i(2, 3)]
 		"wind_chanter":
 			return [Vector2i(1, 3), Vector2i(0, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 2), Vector2i(0, 4), Vector2i(2, 3)]
-		"enemy_war_drummer", "enemy_elite_blood_banner_warlord", "enemy_boss_abyss_hierophant", "enemy_boss_scourge_lord", "enemy_boss_faelord_of_the_grove":
+		"enemy_war_drummer", "enemy_elite_blood_banner_warlord", "enemy_boss_goblin_high_priest", "enemy_boss_scourge_lord", "enemy_boss_faelord_of_the_grove":
 			return [Vector2i(1, 3), Vector2i(0, 3), Vector2i(1, 2), Vector2i(1, 4), Vector2i(0, 2), Vector2i(0, 4)]
 		_:
 			return _get_default_player_cells_for_role(role)
@@ -528,7 +528,7 @@ func _get_player_fallback_columns(unit_id: String, role: String) -> Array[int]:
 		or unit_id == "alchemist" \
 		or unit_id == "enemy_crossbow_raider" \
 		or unit_id == "enemy_flame_imp" \
-		or unit_id == "enemy_boss_void_cannon":
+		or unit_id == "enemy_boss_crystal_cannon":
 		return [0, 1, 2]
 
 	return [3, 4]

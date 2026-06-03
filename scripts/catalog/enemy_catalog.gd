@@ -21,12 +21,12 @@ const ENEMY_ID_CROSSBOW_RAIDER: String = "enemy_crossbow_raider"
 const ENEMY_ID_FLAME_IMP: String = "enemy_flame_imp"
 const ENEMY_ID_ELITE_SHADOW_REAPER: String = "enemy_elite_shadow_reaper"
 const ENEMY_ID_ELITE_FROST_THORN_WITCH: String = "enemy_elite_frost_thorn_witch"
-const ENEMY_ID_BOSS_VOID_CANNON: String = "enemy_boss_void_cannon"
+const ENEMY_ID_BOSS_CRYSTAL_CANNON: String = "enemy_boss_crystal_cannon"
 const ENEMY_ID_DARK_ACOLYTE: String = "enemy_dark_acolyte"
 const ENEMY_ID_WAR_DRUMMER: String = "enemy_war_drummer"
 const ENEMY_ID_ELITE_BLOOD_ORACLE: String = "enemy_elite_blood_oracle"
 const ENEMY_ID_ELITE_BLOOD_BANNER_WARLORD: String = "enemy_elite_blood_banner_warlord"
-const ENEMY_ID_BOSS_ABYSS_HIEROPHANT: String = "enemy_boss_abyss_hierophant"
+const ENEMY_ID_BOSS_GOBLIN_HIGH_PRIEST: String = "enemy_boss_goblin_high_priest"
 const ENEMY_ID_BOSS_SCOURGE_LORD: String = "enemy_boss_scourge_lord"
 const ENEMY_ID_BOSS_FAELORD_OF_THE_GROVE: String = "enemy_boss_faelord_of_the_grove"
 const ENEMY_ID_GRAVE_CALLER: String = "enemy_grave_caller"
@@ -47,10 +47,10 @@ const ELITE_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_IRON_WARDEN, ENEMY_I
 const BOSS_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_EARTHBREAKER_COLOSSUS, ENEMY_ID_BOSS_TREANT_OVERLORD, ENEMY_ID_BOSS_SWAMP_DEVOURER, ENEMY_ID_BOSS_LAVA_COLOSSUS]
 const NORMAL_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_CROSSBOW_RAIDER, ENEMY_ID_FLAME_IMP, ENEMY_ID_GIANT_MAGGOT, ENEMY_ID_FLAME_SLIME, ENEMY_ID_VENOM_SLIME, ENEMY_ID_GOBLIN_GRUNT]
 const ELITE_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_SHADOW_REAPER]
-const BOSS_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_VOID_CANNON]
+const BOSS_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_CRYSTAL_CANNON]
 const NORMAL_SUPPORT_ENEMY_IDS: Array[String] = [ENEMY_ID_DARK_ACOLYTE, ENEMY_ID_WAR_DRUMMER, ENEMY_ID_GRAVE_CALLER, ENEMY_ID_FROST_SLIME]
 const ELITE_SUPPORT_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_BLOOD_ORACLE, ENEMY_ID_PUPPET_BINDER, ENEMY_ID_ELITE_FROST_THORN_WITCH, ENEMY_ID_ELITE_BLOOD_BANNER_WARLORD]
-const BOSS_SUPPORT_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_ABYSS_HIEROPHANT, ENEMY_ID_BOSS_SCOURGE_LORD, ENEMY_ID_BOSS_FAELORD_OF_THE_GROVE]
+const BOSS_SUPPORT_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_GOBLIN_HIGH_PRIEST, ENEMY_ID_BOSS_SCOURGE_LORD, ENEMY_ID_BOSS_FAELORD_OF_THE_GROVE]
 
 const SHIELD_GUARD_DATA: Resource = preload("res://data/enemies/shield_guard.tres")
 const STONEBACK_BEAST_DATA: Resource = preload("res://data/enemies/stoneback_beast.tres")
@@ -64,12 +64,12 @@ const CROSSBOW_RAIDER_DATA: Resource = preload("res://data/enemies/crossbow_raid
 const FLAME_IMP_DATA: Resource = preload("res://data/enemies/flame_imp.tres")
 const ELITE_SHADOW_REAPER_DATA: Resource = preload("res://data/enemies/elite_shadow_reaper.tres")
 const ELITE_FROST_THORN_WITCH_DATA: Resource = preload("res://data/enemies/elite_frost_thorn_witch.tres")
-const BOSS_VOID_CANNON_DATA: Resource = preload("res://data/enemies/boss_void_cannon.tres")
+const BOSS_CRYSTAL_CANNON_DATA: Resource = preload("res://data/enemies/boss_crystal_cannon.tres")
 const DARK_ACOLYTE_DATA: Resource = preload("res://data/enemies/dark_acolyte.tres")
 const WAR_DRUMMER_DATA: Resource = preload("res://data/enemies/war_drummer.tres")
 const ELITE_BLOOD_ORACLE_DATA: Resource = preload("res://data/enemies/elite_blood_oracle.tres")
 const ELITE_BLOOD_BANNER_WARLORD_DATA: Resource = preload("res://data/enemies/elite_blood_banner_warlord.tres")
-const BOSS_ABYSS_HIEROPHANT_DATA: Resource = preload("res://data/enemies/boss_abyss_hierophant.tres")
+const BOSS_GOBLIN_HIGH_PRIEST_DATA: Resource = preload("res://data/enemies/boss_goblin_high_priest.tres")
 const BOSS_SCOURGE_LORD_DATA: Resource = preload("res://data/enemies/boss_scourge_lord.tres")
 const BOSS_FAELORD_OF_THE_GROVE_DATA: Resource = preload("res://data/enemies/boss_faelord_of_the_grove.tres")
 const GRAVE_CALLER_DATA: Resource = preload("res://data/enemies/grave_caller.tres")
@@ -112,8 +112,8 @@ func get_unit_data_by_id(unit_id: String) -> Resource:
 			return ELITE_SHADOW_REAPER_DATA
 		ENEMY_ID_ELITE_FROST_THORN_WITCH:
 			return ELITE_FROST_THORN_WITCH_DATA
-		ENEMY_ID_BOSS_VOID_CANNON:
-			return BOSS_VOID_CANNON_DATA
+		ENEMY_ID_BOSS_CRYSTAL_CANNON:
+			return BOSS_CRYSTAL_CANNON_DATA
 		ENEMY_ID_DARK_ACOLYTE:
 			return DARK_ACOLYTE_DATA
 		ENEMY_ID_WAR_DRUMMER:
@@ -122,8 +122,8 @@ func get_unit_data_by_id(unit_id: String) -> Resource:
 			return ELITE_BLOOD_ORACLE_DATA
 		ENEMY_ID_ELITE_BLOOD_BANNER_WARLORD:
 			return ELITE_BLOOD_BANNER_WARLORD_DATA
-		ENEMY_ID_BOSS_ABYSS_HIEROPHANT:
-			return BOSS_ABYSS_HIEROPHANT_DATA
+		ENEMY_ID_BOSS_GOBLIN_HIGH_PRIEST:
+			return BOSS_GOBLIN_HIGH_PRIEST_DATA
 		ENEMY_ID_BOSS_SCOURGE_LORD:
 			return BOSS_SCOURGE_LORD_DATA
 		ENEMY_ID_BOSS_FAELORD_OF_THE_GROVE:
