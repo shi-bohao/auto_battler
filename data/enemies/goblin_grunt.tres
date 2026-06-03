@@ -1,0 +1,31 @@
+[gd_resource type="Resource" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_goblin_grunt"]
+
+[resource]
+script = ExtResource("1_goblin_grunt")
+enemy_tier = "NORMAL"
+unit_name = "Goblin Grunt"
+unit_name_cn = "哥布林杂兵"
+description_cn = "行动敏捷的基础近战杂兵，生命较低，但会优先撕咬虚弱目标。"
+unit_type = "enemy_goblin_grunt"
+catalog_id = 28
+role = "damage"
+price = 0
+max_hp = 85
+attack_damage = 17
+crit_chance = 0.05
+crit_damage_multiplier = 1.5
+defense = 3
+attack_interval = 1.05
+attack_range = 55.0
+search_range = 999.0
+move_speed = 105.0
+passive_id = "enemy_goblin_opportunist"
+active_skill_id = "enemy_dirty_stab"
+max_mana = 65
+mana_regen_per_second = 11.0
+target_mode = "LOWEST_HP"
+retarget_interval = 0.35
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "melee"

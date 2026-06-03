@@ -75,6 +75,7 @@ const PASSIVE_ENEMY_IRON_BULWARK: String = "enemy_iron_bulwark"
 const PASSIVE_ENEMY_FROST_MARK: String = "enemy_frost_mark"
 const PASSIVE_ENEMY_BLOOD_BANNER_AURA: String = "enemy_blood_banner_aura"
 const PASSIVE_ENEMY_MIRROR_CARAPACE: String = "enemy_mirror_carapace"
+const PASSIVE_ENEMY_GOBLIN_OPPORTUNIST: String = "enemy_goblin_opportunist"
 
 const ARMOR_DAMAGE_MULTIPLIER: float = 0.85
 const ARMOR_DAMAGE_MULTIPLIER_STAR_3: float = 0.75
@@ -160,6 +161,8 @@ const ENEMY_STEADY_AIM_DISTANCE_RATIO: float = 0.6
 const ENEMY_STEADY_AIM_DAMAGE_MULTIPLIER: float = 1.10
 const ENEMY_REAPER_EXECUTE_HP_RATIO: float = 0.45
 const ENEMY_REAPER_EXECUTE_DAMAGE_MULTIPLIER: float = 1.35
+const ENEMY_GOBLIN_OPPORTUNIST_HP_RATIO: float = 0.50
+const ENEMY_GOBLIN_OPPORTUNIST_DAMAGE_MULTIPLIER: float = 1.15
 const ENEMY_FLAME_FOCUS_SKILL_DAMAGE_MULTIPLIER: float = 1.10
 const ENEMY_DARK_BLESSING_HEAL_MULTIPLIER: float = 1.15
 const ENEMY_WAR_RHYTHM_ATTACK_BONUS: float = 0.06
@@ -552,6 +555,11 @@ func get_basic_attack_damage(unit: Variant, target: Variant, base_damage: int) -
 				var enemy_hp_ratio: float = float(target.hp) / float(target.max_hp)
 				if enemy_hp_ratio <= ENEMY_REAPER_EXECUTE_HP_RATIO:
 					damage_multiplier = ENEMY_REAPER_EXECUTE_DAMAGE_MULTIPLIER
+		PASSIVE_ENEMY_GOBLIN_OPPORTUNIST:
+			if target.max_hp > 0:
+				var goblin_target_hp_ratio: float = float(target.hp) / float(target.max_hp)
+				if goblin_target_hp_ratio <= ENEMY_GOBLIN_OPPORTUNIST_HP_RATIO:
+					damage_multiplier = ENEMY_GOBLIN_OPPORTUNIST_DAMAGE_MULTIPLIER
 		PASSIVE_SUMMONED_BONE_EDGE:
 			if target.max_hp > 0:
 				var bone_edge_hp_ratio: float = float(target.hp) / float(target.max_hp)

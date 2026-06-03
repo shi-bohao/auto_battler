@@ -40,11 +40,12 @@ const ENEMY_ID_FROST_SLIME: String = "enemy_frost_slime"
 const ENEMY_ID_FLAME_SLIME: String = "enemy_flame_slime"
 const ENEMY_ID_VENOM_SLIME: String = "enemy_venom_slime"
 const ENEMY_ID_GIANT_SLIME: String = "enemy_giant_slime"
+const ENEMY_ID_GOBLIN_GRUNT: String = "enemy_goblin_grunt"
 
 const NORMAL_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_SHIELD_GUARD, ENEMY_ID_STONEBACK_BEAST, ENEMY_ID_BONE_CARRIER, ENEMY_ID_COMMON_SLIME]
 const ELITE_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_IRON_WARDEN, ENEMY_ID_ELITE_MAGGOT_AMALGAM, ENEMY_ID_GIANT_SLIME, ENEMY_ID_ELITE_IRON_BULWARK, ENEMY_ID_ELITE_MIRROR_CARAPACE_BEETLE]
 const BOSS_TANK_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_EARTHBREAKER_COLOSSUS, ENEMY_ID_BOSS_TREANT_OVERLORD, ENEMY_ID_BOSS_SWAMP_DEVOURER, ENEMY_ID_BOSS_LAVA_COLOSSUS]
-const NORMAL_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_CROSSBOW_RAIDER, ENEMY_ID_FLAME_IMP, ENEMY_ID_GIANT_MAGGOT, ENEMY_ID_FLAME_SLIME, ENEMY_ID_VENOM_SLIME]
+const NORMAL_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_CROSSBOW_RAIDER, ENEMY_ID_FLAME_IMP, ENEMY_ID_GIANT_MAGGOT, ENEMY_ID_FLAME_SLIME, ENEMY_ID_VENOM_SLIME, ENEMY_ID_GOBLIN_GRUNT]
 const ELITE_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_ELITE_SHADOW_REAPER]
 const BOSS_DAMAGE_ENEMY_IDS: Array[String] = [ENEMY_ID_BOSS_VOID_CANNON]
 const NORMAL_SUPPORT_ENEMY_IDS: Array[String] = [ENEMY_ID_DARK_ACOLYTE, ENEMY_ID_WAR_DRUMMER, ENEMY_ID_GRAVE_CALLER, ENEMY_ID_FROST_SLIME]
@@ -82,6 +83,7 @@ const FROST_SLIME_DATA: Resource = preload("res://data/enemies/frost_slime.tres"
 const FLAME_SLIME_DATA: Resource = preload("res://data/enemies/flame_slime.tres")
 const VENOM_SLIME_DATA: Resource = preload("res://data/enemies/venom_slime.tres")
 const GIANT_SLIME_DATA: Resource = preload("res://data/enemies/giant_slime.tres")
+const GOBLIN_GRUNT_DATA: Resource = preload("res://data/enemies/goblin_grunt.tres")
 
 
 func get_unit_data_by_id(unit_id: String) -> Resource:
@@ -148,6 +150,8 @@ func get_unit_data_by_id(unit_id: String) -> Resource:
 			return VENOM_SLIME_DATA
 		ENEMY_ID_GIANT_SLIME:
 			return GIANT_SLIME_DATA
+		ENEMY_ID_GOBLIN_GRUNT:
+			return GOBLIN_GRUNT_DATA
 		_:
 			push_warning("Unknown encounter unit id: " + unit_id)
 			return null

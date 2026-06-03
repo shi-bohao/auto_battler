@@ -181,6 +181,8 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 			return "血旗号令：存活时持续强化敌方单位，使其攻击间隔降低、魔力回复提高；3 星额外提高攻击力。"
 		"enemy_mirror_carapace":
 			return "镜面甲壳：战斗开始时获得护盾；护盾存在时受到主动技能伤害会按比例反射给施法者。"
+		"enemy_goblin_opportunist":
+			return "投机撕咬：普通攻击生命低于 50% 的目标时，伤害提高 15%。"
 		_ :
 			return _format_unknown_skill(passive_id)
 
@@ -270,6 +272,8 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 			return "裂地屏障：自身获得 100 + 12% 最大生命护盾，并造成 180% 攻击力伤害。"
 		"enemy_power_shot":
 			return "强力射击：对当前目标造成 180% 攻击力的技能伤害。"
+		"enemy_dirty_stab":
+			return "脏刺：对当前目标造成 140% 攻击力的技能伤害。"
 		"enemy_firebolt":
 			return "火焰箭：对当前目标造成 250% 攻击力的技能伤害。"
 		"enemy_shadow_cleave":

@@ -80,6 +80,7 @@ const SKILL_ENEMY_BULWARK_SLAM: String = "enemy_bulwark_slam"
 const SKILL_ENEMY_FROST_THORN_BURST: String = "enemy_frost_thorn_burst"
 const SKILL_ENEMY_CRIMSON_BANNER: String = "enemy_crimson_banner"
 const SKILL_ENEMY_REFRACTION_SHELL: String = "enemy_refraction_shell"
+const SKILL_ENEMY_DIRTY_STAB: String = "enemy_dirty_stab"
 
 const REGROWTH_DURATION: float = 5.0
 const REGROWTH_HEAL_BASE: float = 18.0
@@ -315,6 +316,7 @@ const ENEMY_EARTHBREAKER_BASE_SHIELD: int = 100
 const ENEMY_EARTHBREAKER_MAX_HP_RATIO: float = 0.12
 const ENEMY_EARTHBREAKER_DAMAGE_MULTIPLIER: float = 1.8
 const ENEMY_POWER_SHOT_DAMAGE_MULTIPLIER: float = 1.8
+const ENEMY_DIRTY_STAB_DAMAGE_MULTIPLIER: float = 1.4
 const ENEMY_FIREBOLT_DAMAGE_MULTIPLIER: float = 2.5
 const ENEMY_SHADOW_CLEAVE_DAMAGE_MULTIPLIER: float = 2.6
 const ENEMY_SHADOW_CLEAVE_KILL_HEAL: int = 30
@@ -554,6 +556,8 @@ func try_cast_active_skill(unit: Variant) -> bool:
 			return _cast_enemy_earthbreaker_barrier(unit)
 		SKILL_ENEMY_POWER_SHOT:
 			return _cast_enemy_direct_damage(unit, ENEMY_POWER_SHOT_DAMAGE_MULTIPLIER, "Power Shot")
+		SKILL_ENEMY_DIRTY_STAB:
+			return _cast_enemy_direct_damage(unit, ENEMY_DIRTY_STAB_DAMAGE_MULTIPLIER, "Dirty Stab")
 		SKILL_ENEMY_FIREBOLT:
 			return _cast_enemy_direct_damage(unit, ENEMY_FIREBOLT_DAMAGE_MULTIPLIER, "Firebolt")
 		SKILL_ENEMY_SHADOW_CLEAVE:

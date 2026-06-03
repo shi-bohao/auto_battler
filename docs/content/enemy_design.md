@@ -38,6 +38,7 @@
 | 盾卫 / Shield Guard | `enemy_shield_guard` | tank | `enemy_shield_wall` | `enemy_guard_stance` |
 | 石背巨兽 / Stoneback Beast | `enemy_stoneback_beast` | tank | `enemy_stone_skin` | `enemy_harden` |
 | 弩手掠袭者 / Crossbow Raider | `enemy_crossbow_raider` | damage | `enemy_steady_aim` | `enemy_power_shot` |
+| 哥布林杂兵 / Goblin Grunt | `enemy_goblin_grunt` | damage | `enemy_goblin_opportunist` | `enemy_dirty_stab` |
 | 烈焰小鬼 / Flame Imp | `enemy_flame_imp` | damage | `enemy_flame_focus` | `enemy_firebolt` |
 | 黑暗侍僧 / Dark Acolyte | `enemy_dark_acolyte` | support | `enemy_dark_blessing` | `enemy_dark_heal` |
 | 战鼓手 / War Drummer | `enemy_war_drummer` | support | `enemy_war_rhythm` | `enemy_drum_shield` |
@@ -49,6 +50,7 @@
 - **盾卫**：基础前排，护盾减伤，教学玩家穿透护盾或集火。
 - **石背巨兽**：高生命高防御低移速，50% 血以下防御大幅提升，考验持续输出能力。
 - **弩手掠袭者**：基础远程 DPS，射程 150，使用真实弹道。
+- **哥布林杂兵**：基础近战杂兵，低生命高移速，普攻低生命目标时伤害提高，主动技能为单体脏刺。
 - **烈焰小鬼**：玻璃大炮法师，生命低但爆发高，优先击杀教学。
 - **黑暗侍僧**：基础敌方治疗，无防御，优先击杀降低敌方续航。
 - **战鼓手**：全队攻击/护盾增益，高优先级目标。
