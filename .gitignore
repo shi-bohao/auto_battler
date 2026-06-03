@@ -6,6 +6,11 @@
 # Local check logs
 *.log
 
+# Python tool caches and local art processing previews
+__pycache__/
+*.pyc
+tools/art_test_output/
+
 # Godot-generated import byproducts for processed asset manifests
 assets/processed/**/*.csv.import
 assets/processed/**/*.translation
