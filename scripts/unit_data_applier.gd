@@ -1,9 +1,6 @@
 class_name UnitDataApplier
 extends RefCounted
 
-const UNIT_ART_HELPER_SCRIPT: Script = preload("res://scripts/unit_art_helper.gd")
-
-
 func apply_unit_data(unit: Variant, unit_data: Resource) -> void:
 	if unit == null or not is_instance_valid(unit):
 		return
@@ -188,15 +185,6 @@ func apply_unit_data(unit: Variant, unit_data: Resource) -> void:
 	var configured_icon_texture: Variant = unit_data.get("icon_texture")
 	if configured_icon_texture is Texture2D:
 		unit.icon_texture = configured_icon_texture
-
-	var generated_unit_art: Texture2D = UNIT_ART_HELPER_SCRIPT.get_player_unit_art_texture(unit_data)
-	if generated_unit_art != null:
-		if unit.board_sprite == null:
-			unit.board_sprite = generated_unit_art
-		if unit.portrait_texture == null:
-			unit.portrait_texture = generated_unit_art
-		if unit.icon_texture == null:
-			unit.icon_texture = generated_unit_art
 
 	var configured_art_scale: Variant = unit_data.get("art_scale")
 	if configured_art_scale != null:

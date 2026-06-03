@@ -376,7 +376,7 @@ func _get_unit_detail_texture(unit_data: Resource) -> Texture2D:
 	if configured_texture != null:
 		return UNIT_ART_HELPER.get_texture_sized(configured_texture, _get_unit_texture_cache_key(unit_data, configured_texture), DETAIL_IMAGE_SIZE)
 
-	return UNIT_ART_HELPER.get_player_unit_art_texture_sized(unit_data, DETAIL_IMAGE_SIZE)
+	return null
 
 
 func _get_configured_unit_texture(unit_data: Resource) -> Texture2D:

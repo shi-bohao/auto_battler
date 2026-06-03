@@ -495,18 +495,20 @@ uv run --with pillow python tools/art/slice_icon_sheet.py \
 
 ## 游戏内接入与导出注意事项
 
-当前项目采用和英雄素材一致的显式资源引用方式：
+当前项目采用统一的显式资源引用方式：
 
 - 玩家单位：`data/units/*.tres` 中的 `board_sprite`、`portrait_texture`、`icon_texture` 直接引用 `assets/processed/player_units/*.png`。
+- 敌人单位：`data/enemies/*.tres` 中的 `board_sprite`、`portrait_texture`、`icon_texture` 直接引用 `assets/processed/enemy_units/*.png`。
+- 英雄：`HeroData` 提供 `portrait_texture: Texture2D` 字段，`data/heroes/*.tres` 直接引用对应贴图。
 - 遗物：`RelicData` 提供 `icon_texture: Texture2D` 字段，`data/relics/*.tres` 直接引用 `assets/processed/relics/*.png`。
-- 运行时 helper 只作为兜底：`UnitArtHelper` 和 `RelicIconHelper` 优先读取数据资源中配置的贴图；动态路径加载仅用于缺字段或旧资源兼容。
+- `UnitArtHelper` 仅保留通用的 `get_texture_sized` 工具方法，用于运行时调整贴图尺寸并缓存，不再负责动态路径加载。
 - 分类内排序使用 `catalog_id`：玩家单位、敌人、召唤物和英雄运行时单位由 `UnitData.catalog_id` 保存；遗物由 `RelicData.catalog_id` 保存；英雄定义由 `HeroData.catalog_id` 保存。该字段只用于稳定显示、文档和素材顺序，不替代 `unit_type`、`relic_id`、`hero_id` 等逻辑 ID。
 
 导出相关规则：
 
 - 不要在 `assets/processed/` 根目录放 `.gdignore`，否则玩家单位和遗物图标不会被 Godot 导入/导出。
 - 当前只保留 `assets/processed/ui/.gdignore`，用于忽略旧 UI 处理输出。
-- `assets/processed/player_units/*.png.import` 和 `assets/processed/relics/*.png.import` 必须提交到版本库。它们记录 Godot 纹理导入目标，缺失时干净环境或导出包可能无法加载对应贴图。
+- `assets/processed/player_units/*.png.import`、`assets/processed/enemy_units/*.png.import` 和 `assets/processed/relics/*.png.import` 必须提交到版本库。它们记录 Godot 纹理导入目标，缺失时干净环境或导出包可能无法加载对应贴图。
 - 修改或新增处理后 PNG 后，先执行一次资源导入，再导出正式包：
 
 ```powershell
