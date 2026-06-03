@@ -190,8 +190,6 @@ func apply_unit_data(unit: Variant, unit_data: Resource) -> void:
 		unit.icon_texture = configured_icon_texture
 
 	var generated_unit_art: Texture2D = UNIT_ART_HELPER_SCRIPT.get_player_unit_art_texture(unit_data)
-	if generated_unit_art == null:
-		generated_unit_art = UNIT_ART_HELPER_SCRIPT.get_enemy_unit_art_texture(unit_data)
 	if generated_unit_art != null:
 		if unit.board_sprite == null:
 			unit.board_sprite = generated_unit_art

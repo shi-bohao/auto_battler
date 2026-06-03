@@ -2,7 +2,6 @@ class_name UnitArtHelper
 extends RefCounted
 
 const PLAYER_UNIT_ART_DIR: String = "res://assets/processed/player_units"
-const ENEMY_UNIT_ART_DIR: String = "res://assets/processed/enemy_units"
 
 static var _texture_cache: Dictionary = {}
 
@@ -69,47 +68,6 @@ static func get_texture_sized(source_texture: Texture2D, cache_key_base: String 
 
 static func has_player_unit_art(unit_data_or_id: Variant) -> bool:
 	return get_player_unit_art_texture(unit_data_or_id) != null
-
-
-static func get_enemy_unit_art_texture(unit_data_or_id: Variant) -> Texture2D:
-	var configured_texture: Texture2D = _get_configured_unit_texture(unit_data_or_id)
-	if configured_texture != null:
-		return configured_texture
-
-	var unit_id: String = _resolve_unit_id(unit_data_or_id)
-	if unit_id == "":
-		return null
-
-	var art_path: String = ENEMY_UNIT_ART_DIR + "/" + unit_id + ".png"
-	if _texture_cache.has(art_path):
-		return _texture_cache[art_path] as Texture2D
-
-	var texture: Texture2D = _load_texture(art_path)
-	_texture_cache[art_path] = texture
-	return texture
-
-
-static func get_enemy_unit_art_texture_sized(unit_data_or_id: Variant, size: Vector2i = Vector2i(96, 96)) -> Texture2D:
-	var unit_id: String = _resolve_unit_id(unit_data_or_id)
-	if unit_id == "":
-		return null
-
-	var art_path: String = ENEMY_UNIT_ART_DIR + "/" + unit_id + ".png"
-	var cache_key: String = art_path + "#" + str(size.x) + "x" + str(size.y)
-	if _texture_cache.has(cache_key):
-		return _texture_cache[cache_key] as Texture2D
-
-	var source_texture: Texture2D = get_enemy_unit_art_texture(unit_data_or_id)
-	if source_texture == null:
-		return null
-
-	var texture: Texture2D = get_texture_sized(source_texture, art_path, size)
-	_texture_cache[cache_key] = texture
-	return texture
-
-
-static func has_enemy_unit_art(unit_data_or_id: Variant) -> bool:
-	return get_enemy_unit_art_texture(unit_data_or_id) != null
 
 
 static func _resolve_unit_id(unit_data_or_id: Variant) -> String:

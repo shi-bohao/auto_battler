@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_boss_earthbreaker_colossus"]
+[ext_resource type="Texture2D" path="res://assets/processed/enemy_units/enemy_boss_earthbreaker_colossus.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_boss_earthbreaker_colossus")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 enemy_tier = "BOSS"
 unit_name = "Boss: Earthbreaker Colossus"
 unit_name_cn = "Boss：裂地巨像"

@@ -478,11 +478,12 @@ uv run --with pillow python tools/art/slice_icon_sheet.py \
 
 ### 游戏接入
 
-敌人单位采用与玩家单位一致的动态加载兜底方式：
+敌人单位采用与玩家单位、英雄一致的**显式资源引用**方式：
 
-- `UnitArtHelper.get_enemy_unit_art_texture(unit_data)` 从 `assets/processed/enemy_units/{unit_type}.png` 动态加载；
-- `unit_data_applier.gd` 在应用单位数据时，如果 `.tres` 未配置 `board_sprite` / `portrait_texture` / `icon_texture`，先尝试加载玩家单位贴图，失败后再尝试加载敌人单位贴图；
-- 运行时代理只作为兜底，如需显式引用，可在 `data/enemies/*.tres` 中直接配置贴图字段。
+- 每个 `data/enemies/*.tres` 通过 `[ext_resource]` 直接引用 `assets/processed/enemy_units/{unit_type}.png`；
+- `[resource]` 区块中显式配置 `board_sprite`、`portrait_texture`、`icon_texture` 三个字段；
+- `unit_data_applier.gd` 在应用数据时直接读取 `.tres` 中已配置的贴图，无需额外动态加载；
+- `UnitArtHelper` 仅作为兜底兼容旧资源，新接入的敌人单位必须在 `.tres` 中显式引用贴图，以确保导出包能正确包含对应纹理资源。
 
 ### 后续维护建议
 

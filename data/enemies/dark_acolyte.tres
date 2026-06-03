@@ -1,9 +1,13 @@
-[gd_resource type="Resource" load_steps=2 format=3]
+[gd_resource type="Resource" load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_dark_acolyte"]
+[ext_resource type="Texture2D" path="res://assets/processed/enemy_units/enemy_dark_acolyte.png" id="2_art"]
 
 [resource]
 script = ExtResource("1_dark_acolyte")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
 enemy_tier = "NORMAL"
 unit_name = "Dark Acolyte"
 unit_name_cn = "黑暗侍僧"
