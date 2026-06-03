@@ -8,9 +8,6 @@
 
 - [规范总览](#规范总览)
 - [通用处理流程](#通用处理流程)
-  - [双背景差分法原理](#双背景差分法原理)
-  - [处理步骤](#处理步骤)
-  - [Python 脚本工具链](#python-脚本工具链)
 - [各素材类型配置](#各素材类型配置)
   - [背景图](#背景图)
   - [遗物图标](#遗物图标)
@@ -33,8 +30,8 @@
 
 **核心原则：**
 
-1. **双背景差分法**：所有需要去除背景的图标素材，优先使用同一构图的暗底图 + 白底图逐像素对比反推透明度，比单背景颜色阈值法更可靠。
-2. **显式资源引用**：处理后的 PNG 必须在对应 `.tres` 中通过 `[ext_resource]` 显式引用，代码中不再使用动态路径加载，以确保导出包能正确包含纹理。
+1. **双背景差分法**：所有需要去除背景的图标素材，优先使用同一构图的暗底图 + 白底图逐像素对比反推透明度。
+2. **显式资源引用**：处理后的 PNG 必须在对应 `.tres` 中通过 `[ext_resource]` 显式引用，代码中不再使用动态路径加载。
 3. **命名顺序由 `catalog_id` 驱动**：合图中的格子顺序与 `docs/content_reference.md` 中对应表格的 `catalog_id` 排序严格一致。
 4. **`.png.import` 必须提交**：所有 `assets/processed/` 下的 `.png.import` 文件必须加入版本库。
 
@@ -42,11 +39,9 @@
 
 ## 通用处理流程
 
-所有需要去除背景并切分的图标素材（遗物、玩家单位、敌人单位），统一使用以下流程。
-
 ### 双背景差分法原理
 
-传统按颜色阈值去背景容易误删主体暗色区域（黑色金属、阴影、深色描边）。双背景差分法使用同一素材的暗底版本和白底版本逐像素对比：
+传统按颜色阈值去背景容易误删主体暗色区域。双背景差分法使用同一素材的暗底版本和白底版本逐像素对比：
 
 1. 读取暗底图和白底图；
 2. 根据两张图在同一像素上的颜色差异反推透明度；
@@ -62,7 +57,7 @@
 
 **步骤 2：去除网格线（可选）**
 
-部分合图素材（玩家单位、敌人单位）带有细网格分隔线。`slice_icon_sheet.py` 会在预期网格边界附近检测整行 / 整列的低饱和度线状像素比例，将判定为分割线的行 / 列及其相邻 1 像素透明化。
+部分合图素材带有细网格分隔线。`slice_icon_sheet.py` 会在预期网格边界附近检测整行 / 整列的低饱和度线状像素比例，将判定为分割线的行 / 列及其相邻 1 像素透明化。
 
 **步骤 3：切分单图**
 
@@ -102,18 +97,20 @@ uv run --with pillow python tools/art/slice_icon_sheet.py \
   --cleaned-output image/{去线后整图}.png
 ```
 
-**命名清单文件格式：**
+### 命名清单文件
 
-每行一个 ID，顺序对应合图中的格子顺序（从左到右、从上到下）：
+切分前需准备 UTF-8 文本文件，每行一个输出 ID（不带扩展名），顺序对应合图中的格子顺序（从左到右、从上到下）。
+
+**ID 顺序来源**：`docs/content_reference.md` 中对应素材类型的表格，按 `catalog_id` 排序。例如"遗物"表格中 `catalog_id = 1` 对应合图左上角第一个格子，`catalog_id = 2` 对应第二个格子，以此类推。
+
+命名清单示例（`tools/art/enemy_names_1_16.txt`）：
 
 ```text
-id_1
-id_2
+enemy_boss_goblin_high_priest
+enemy_boss_crystal_cannon
+enemy_boss_earthbreaker_colossus
 ...
-id_16
 ```
-
-切图顺序必须与 `docs/content_reference.md` 中对应表格的 `catalog_id` 排序严格一致。
 
 ---
 
@@ -179,19 +176,26 @@ image/遗物33-43.png             image/遗物33-43白色背景.png
 
 **输出文件名**：使用遗物 ID，如 `crown_of_three.png`、`golden_charm.png`。
 
-**脚本调用**（使用 PowerShell 脚本）：
+**命名清单**：需创建 `tools/art/relic_names_1_16.txt`、`tools/art/relic_names_17_32.txt`、`tools/art/relic_names_33_43.txt`，ID 顺序从 `docs/content_reference.md` 的"遗物"表格按 `catalog_id` 获取。
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\process_relic_icons_diff.ps1
-```
+**脚本调用**：
 
-可选参数：
+```bash
+# 1-16
+uv run --with pillow python tools/art/remove_diff_background.py \
+  --dark image/遗物1-16.png \
+  --light image/遗物1-16白色背景.png \
+  --output image/遗物1-16透明背景.png
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\process_relic_icons_diff.ps1 `
-  -ImageDir image `
-  -OutputDir assets/processed/relics `
-  -ContentDoc docs/content_reference.md
+uv run --with pillow python tools/art/slice_icon_sheet.py \
+  --input image/遗物1-16透明背景.png \
+  --output-dir assets/processed/relics \
+  --cols 4 --rows 4 \
+  --names-file tools/art/relic_names_1_16.txt \
+  --cleaned-output image/遗物1-16透明背景_去线.png
+
+# 17-32（同上，替换文件名和清单）
+# 33-43（同上，替换文件名和清单）
 ```
 
 脚本同时生成 `assets/processed/relics/relic_icon_manifest.csv`（记录遗物序号、relic_id、来源图、原始格子编号）。
@@ -201,7 +205,7 @@ powershell -ExecutionPolicy Bypass -File tools\process_relic_icons_diff.ps1 `
 **后续维护建议**：
 
 - 新增遗物后先在 `.tres` 中追加 `catalog_id`，再重新生成 `content_reference.md` 并重跑脚本；
-- 超过 43 个时继续追加下一张合图并扩展脚本中的 `$sheetPairs`；
+- 超过 43 个时继续追加下一张合图并创建新的命名清单；
 - 边缘残留优先检查两张输入图是否对齐，而非调高阈值。
 
 ---
@@ -221,35 +225,36 @@ image/玩家单位17-30黑色背景.png     image/玩家单位17-30白色背景.
 
 **输出文件名**：使用单位 ID，如 `necromancer.png`、`warrior.png`。
 
-**脚本调用**（使用 PowerShell 脚本）：
+**命名清单**：需创建 `tools/art/player_unit_names_1_16.txt`、`tools/art/player_unit_names_17_30.txt`，ID 顺序从 `docs/content_reference.md` 的"玩家单位"表格按 `catalog_id` 获取。
 
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\process_player_unit_icons_diff.ps1
+**脚本调用**：
+
+```bash
+# 1-16
+uv run --with pillow python tools/art/remove_diff_background.py \
+  --dark image/玩家单位1-16黑色背景.png \
+  --light image/玩家单位1-16白色背景.png \
+  --output image/玩家单位1-16透明背景.png
+
+uv run --with pillow python tools/art/slice_icon_sheet.py \
+  --input image/玩家单位1-16透明背景.png \
+  --output-dir assets/processed/player_units \
+  --cols 4 --rows 4 \
+  --names-file tools/art/player_unit_names_1_16.txt \
+  --cleaned-output image/玩家单位1-16透明背景_去线.png
+
+# 17-30（同上，替换文件名和清单）
 ```
 
-可选参数：
-
-```powershell
-powershell -ExecutionPolicy Bypass -File tools\process_player_unit_icons_diff.ps1 `
-  -ImageDir image `
-  -OutputDir assets/processed/player_units `
-  -ContentDoc docs/content_reference.md
-```
-
-脚本同时生成：
-
-```text
-assets/processed/player_units/player_unit_icon_manifest.csv
-assets/processed/player_units/player_unit_grid_scan.csv
-```
+脚本同时生成 `player_unit_icon_manifest.csv` 和 `player_unit_grid_scan.csv`。
 
 **游戏接入**：每个 `data/units/*.tres` 显式引用 `assets/processed/player_units/{unit_type}.png`，配置 `board_sprite` / `portrait_texture` / `icon_texture`。
 
 **后续维护建议**：
 
-- 超过 30 个时追加下一组合图并扩展 `$sheetPairs`；
+- 超过 30 个时追加下一组合图并创建新的命名清单；
 - 网格线残留优先调整线状像素检测阈值；
-- 切分位置不正确优先检查 `grid_scan.csv` 中对应边界附近的候选行 / 列；
+- 切分位置不正确优先检查 `grid_scan.csv`；
 - 主体偏心检查素材是否在原始格子中被裁掉。
 
 ---
@@ -276,27 +281,17 @@ tools/art/enemy_names_1_16.txt
 tools/art/enemy_names_17_32.txt
 ```
 
-每行一个 `unit_type`，顺序对应合图格子顺序。
+ID 顺序从 `docs/content_reference.md` 的"敌方单位"表格按 `catalog_id` 获取。
 
-**脚本调用**（使用 Python 脚本）：
-
-**第一步：去除背景**
+**脚本调用**：
 
 ```bash
+# 1-16
 uv run --with pillow python tools/art/remove_diff_background.py \
   --dark image/敌人单位1-16黑色背景.png \
   --light image/敌人单位1-16白色背景.png \
   --output image/敌人单位1-16透明背景.png
 
-uv run --with pillow python tools/art/remove_diff_background.py \
-  --dark image/敌人单位17-32黑色背景.png \
-  --light image/敌人单位17-32白色背景.png \
-  --output image/敌人单位17-32透明背景.png
-```
-
-**第二步：切分单图**
-
-```bash
 uv run --with pillow python tools/art/slice_icon_sheet.py \
   --input image/敌人单位1-16透明背景.png \
   --output-dir assets/processed/enemy_units \
@@ -304,12 +299,7 @@ uv run --with pillow python tools/art/slice_icon_sheet.py \
   --names-file tools/art/enemy_names_1_16.txt \
   --cleaned-output image/敌人单位1-16透明背景_去线.png
 
-uv run --with pillow python tools/art/slice_icon_sheet.py \
-  --input image/敌人单位17-32透明背景.png \
-  --output-dir assets/processed/enemy_units \
-  --cols 4 --rows 4 \
-  --names-file tools/art/enemy_names_17_32.txt \
-  --cleaned-output image/敌人单位17-32透明背景_去线.png
+# 17-32（同上，替换文件名和清单）
 ```
 
 脚本同时生成 `icon_manifest.csv` 和 `grid_scan.csv`。
@@ -318,7 +308,7 @@ uv run --with pillow python tools/art/slice_icon_sheet.py \
 
 **后续维护建议**：
 
-- 超过 32 个时追加下一组合图并扩展命名清单文件；
+- 超过 32 个时追加下一组合图并创建新的命名清单；
 - 映射顺序必须严格与 `content_reference.md` 一致；
 - `.png.import` 必须提交到版本库。
 
@@ -334,10 +324,11 @@ uv run --with pillow python tools/art/slice_icon_sheet.py \
 
 1. 准备召唤物合图（参照玩家单位 / 敌人单位的双背景差分规范）；
 2. 使用 `remove_diff_background.py` + `slice_icon_sheet.py` 处理；
-3. 输出到 `assets/processed/summon_units/`（或复用现有目录）；
-4. 在 `data/summons/*.tres` 中显式引用对应 PNG；
-5. 运行 `--headless --import` 生成 `.png.import`；
-6. 提交 `.png.import` 到版本库。
+3. 创建命名清单文件，ID 顺序从 `docs/content_reference.md` 的"召唤物"表格按 `catalog_id` 获取；
+4. 输出到 `assets/processed/summon_units/`（或复用现有目录）；
+5. 在 `data/summons/*.tres` 中显式引用对应 PNG；
+6. 运行 `--headless --import` 生成 `.png.import`；
+7. 提交 `.png.import` 到版本库。
 
 ---
 
