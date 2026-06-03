@@ -1542,17 +1542,17 @@ func _on_merchant_item_purchased(item: Dictionary) -> void:
 			relic_manager.add_relic(relic_data)
 			_refresh_relic_bar()
 			var relic_name: String = _get_relic_name_cn(relic_data)
-			popup_text = "[center]购买成功[/center]\n\n获得遗物：" + relic_name
+			popup_text = "购买成功\n\n获得遗物：" + relic_name
 	elif item_type == "buff":
 		var buff_data: Dictionary = item.get("buff_data", {})
 		_apply_merchant_buff(buff_data)
 		var buff_name: String = buff_data.get("name_cn", "全局强化")
 		var buff_desc: String = buff_data.get("description_cn", "")
-		popup_text = "[center]购买成功[/center]\n\n获得全局强化：" + buff_name + "\n" + buff_desc
+		popup_text = "购买成功\n\n获得全局强化：" + buff_name + "\n" + buff_desc
 	elif item_type == "unit":
 		var unit_name: String = _add_merchant_high_rarity_unit()
 		if unit_name != "":
-			popup_text = "[center]购买成功[/center]\n\n获得单位：" + unit_name
+			popup_text = "购买成功\n\n获得单位：" + unit_name
 	elif item_type == "population":
 		pass
 	_update_gold_label()
@@ -1627,7 +1627,7 @@ func _on_training_timer_expired() -> void:
 	training_manager.end_training()
 	battle_manager.force_end_battle()
 	var drops: Array[Dictionary] = training_manager.get_drops_collected()
-	var summary_lines: Array[String] = ["[center]训练结束！[/center]", ""]
+	var summary_lines: Array[String] = ["训练结束！", ""]
 	for drop: Dictionary in drops:
 		summary_lines.append("· " + drop.get("display", ""))
 	summary_lines.append("")
@@ -1658,10 +1658,10 @@ func _enter_treasure_state() -> void:
 		var relic_name: String = _get_relic_name_cn(_pending_treasure_relic)
 		var relic_desc: String = _get_relic_description_cn(_pending_treasure_relic)
 		var relic_rarity: String = _get_relic_rarity_str(_pending_treasure_relic)
-		var text: String = "[center]宝箱[/center]\n\n获得遗物：[b]" + relic_name + "[/b]  [" + relic_rarity + "]\n" + relic_desc
+		var text: String = "宝箱\n\n获得遗物：" + relic_name + "  [" + relic_rarity + "]\n" + relic_desc
 		_show_popup(text, Callable(self, "_on_treasure_confirmed"))
 	else:
-		_show_popup("[center]宝箱[/center]\n\n宝箱为空，获得 10 金币", Callable(self, "_on_treasure_confirmed"))
+		_show_popup("宝箱\n\n宝箱为空，获得 10 金币", Callable(self, "_on_treasure_confirmed"))
 
 
 func _on_treasure_confirmed() -> void:
@@ -1703,8 +1703,13 @@ func _show_popup(text: String, callback: Callable = Callable()) -> void:
 	event_result_label.offset_right = 860.0
 	event_result_label.offset_top = 40.0
 	event_result_label.offset_bottom = 480.0
+	event_result_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	event_result_label.text = text
 	event_result_label.visible = true
+	var popup_width: float = event_panel.offset_right - event_panel.offset_left
+	var button_width: float = event_continue_button.offset_right - event_continue_button.offset_left
+	event_continue_button.offset_left = (popup_width - button_width) / 2.0
+	event_continue_button.offset_right = event_continue_button.offset_left + button_width
 	event_continue_button.offset_top = 460.0
 	event_continue_button.offset_bottom = 500.0
 	event_continue_button.visible = true
@@ -1727,6 +1732,8 @@ func _on_popup_confirmed() -> void:
 	event_result_label.offset_bottom = 340.0
 	event_result_label.text = ""
 	event_result_label.visible = false
+	event_continue_button.offset_left = 280.0
+	event_continue_button.offset_right = 480.0
 	event_continue_button.offset_top = 400.0
 	event_continue_button.offset_bottom = 440.0
 	event_continue_button.visible = false
