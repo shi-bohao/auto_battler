@@ -349,6 +349,7 @@ const DAWNBELL_REDEMPTION_HP_RATIO: float = 0.50
 const DAWNBELL_REDEMPTION_HP_RATIO_STAR_3: float = 1.0
 const DAWNBELL_REDEMPTION_SHIELD: int = 100
 const DAWNBELL_REDEMPTION_SHIELD_STAR_3: int = 250
+const DEATH_PREVENTION_TRIGGERED_META: String = "death_prevention_triggered"
 const NIGHTBLADE_CRIT_EFFECT: String = "nightblade_order_crit"
 const NIGHTBLADE_CRIT_BONUS: float = 0.15
 const NIGHTBLADE_CRIT_BONUS_STAR_3: float = 0.25
@@ -374,11 +375,15 @@ const PRISM_REFRACTION_MULTIPLIER_STAR_3: float = 1.50
 
 var status_effect_factory: Variant = StatusEffectFactory.new()
 var aoe_resolver: Variant = AoeResolver.new()
+var death_prevention_enabled: bool = false
 
 
 func apply_battle_start_passives(unit: Variant) -> void:
 	if not _is_valid_unit(unit):
 		return
+
+	if unit.has_meta(DEATH_PREVENTION_TRIGGERED_META):
+		unit.remove_meta(DEATH_PREVENTION_TRIGGERED_META)
 
 	match unit.passive_id:
 		PASSIVE_BATTLE_SONG:
@@ -520,6 +525,7 @@ func apply_incoming_life_damage_passives(unit: Variant, life_damage: int) -> int
 	resolved_damage = _apply_undying_invincibility(unit, resolved_damage)
 	if _try_apply_dawnbell_redemption(unit, resolved_damage):
 		return 0
+	resolved_damage = _try_apply_death_prevention(unit, resolved_damage)
 	_apply_iron_unbroken_line(unit, resolved_damage)
 	return resolved_damage
 
@@ -2105,6 +2111,26 @@ func _apply_undying_invincibility(unit: Variant, resolved_damage: int) -> int:
 		return 0
 
 	return resolved_damage
+
+
+func _try_apply_death_prevention(unit: Variant, resolved_damage: int) -> int:
+	if not death_prevention_enabled:
+		return resolved_damage
+	if not _is_valid_unit(unit) or resolved_damage <= 0:
+		return resolved_damage
+	if unit.team_id != 1:
+		return resolved_damage
+	if unit.hp <= 0:
+		return resolved_damage
+	if resolved_damage < unit.hp:
+		return resolved_damage
+	if bool(unit.get_meta(DEATH_PREVENTION_TRIGGERED_META, false)):
+		return resolved_damage
+
+	unit.set_meta(DEATH_PREVENTION_TRIGGERED_META, true)
+	if unit.unit_feedback != null:
+		unit.unit_feedback.play_skill_feedback(unit, "永恒誓约")
+	return maxi(0, unit.hp - 1)
 
 
 func _get_boneweaver_summon_damage_bonus(unit: Variant) -> float:

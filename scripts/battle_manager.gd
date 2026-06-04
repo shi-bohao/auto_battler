@@ -116,10 +116,13 @@ func start_battle() -> void:
 	if stats_manager != null and stats_manager.has_method("start_battle_timer"):
 		stats_manager.start_battle_timer()
 
+	var has_death_prevention: bool = roster_manager.has_death_prevention if roster_manager != null else false
 	for unit in all_units:
 		if is_instance_valid(unit):
 			unit.set_battle_time_scale(battle_speed_multiplier)
 			unit.start_battle()
+			if has_death_prevention and unit.team_id == 1 and unit.unit_skill != null and unit.unit_skill.passive_resolver != null:
+				unit.unit_skill.passive_resolver.death_prevention_enabled = true
 
 	var battle_start_units: Array[Unit] = []
 	battle_start_units.append_array(all_units)
@@ -366,6 +369,8 @@ func spawn_summoned_unit(source_unit: Unit, summon_unit_data: Resource, spawn_po
 		summoned_unit.start_battle()
 		if is_overtime_active:
 			_apply_overtime_to_unit(summoned_unit)
+		if team_id == 1 and roster_manager != null and roster_manager.has_death_prevention and summoned_unit.unit_skill != null and summoned_unit.unit_skill.passive_resolver != null:
+			summoned_unit.unit_skill.passive_resolver.death_prevention_enabled = true
 	var initial_shield: int = int(context.get("initial_shield", 0))
 	if initial_shield > 0:
 		summoned_unit.add_shield(initial_shield, source_unit)
