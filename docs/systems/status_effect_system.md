@@ -182,7 +182,7 @@ skill_damage_taken_multiplier = max(所有 freeze)，默认 1.0
 
 ## 三、控制效果测试单位（已实现）
 
-5 个玩家单位的单位资源与主动技能已接入，每个聚焦一种控制效果。其中 `frost_arrow` 和 `tangled_growth` 被动已实现，`concussive_armor`、`shatter_focus`、`banner_guard` 仅有常量占位，被动处理逻辑待补充：
+5 个玩家单位的单位资源与主动技能已接入，每个聚焦一种控制效果。全部被动已实现：
 
 | 控制 | 单位 | ID | 稀有度 | 定位 | 主动技能 |
 | --- | --- | --- | --- | --- | --- |
@@ -196,7 +196,9 @@ skill_damage_taken_multiplier = max(所有 freeze)，默认 1.0
 被动技能实现位置：
 - `frost_arrow` → `scripts/combat/passive_resolver.gd`（`_apply_frost_arrow`）
 - `tangled_growth` → `scripts/combat/active_skill_caster.gd`（`_apply_tangled_growth`，由 `_cast_vine_snare` 调用）
-- `concussive_armor`、`shatter_focus`、`banner_guard` → 当前代码中仅有常量定义（`PASSIVE_CONCUSSIVE_ARMOR` 等），尚未实现对应的被动处理函数
+- `concussive_armor` → `scripts/combat/passive_resolver.gd`（`apply_incoming_life_damage_passives`、`get_basic_attack_damage`）
+- `shatter_focus` → `scripts/combat/combat_resolver.gd`（`resolve_skill_damage`）+ `scripts/combat/passive_resolver.gd`（`apply_kill_passives`）
+- `banner_guard` → `scripts/combat/passive_resolver.gd`（`apply_incoming_life_damage_passives`）+ `scripts/unit_combat.gd`（`_get_final_shield_amount`、`take_damage`）
 
 这 5 个单位的数据资源位于 `data/units/*.tres`，已接入 `UnitCatalog`、商店刷新池和内容总览。
 

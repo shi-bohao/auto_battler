@@ -131,6 +131,15 @@ const FROST_ARROW_DURATION: float = 2.0
 const FROST_ARROW_SPEED: float = 0.70
 const FROST_ARROW_SPEED_2STAR: float = 0.65
 const FROST_ARROW_DURATION_3STAR: float = 3.0
+const CONCUSSIVE_ARMOR_SHIELDED_DAMAGE_MULTIPLIER: float = 0.90
+const CONCUSSIVE_ARMOR_SHIELDED_DAMAGE_MULTIPLIER_STAR_3: float = 0.85
+const CONCUSSIVE_ARMOR_STUNNED_DAMAGE_MULTIPLIER: float = 1.20
+const SHATTER_FOCUS_SKILL_DAMAGE_MULTIPLIER: float = 1.20
+const SHATTER_FOCUS_KILL_MANA_RESTORE_STAR_3: float = 30.0
+const BANNER_GUARD_TAUNTED_DAMAGE_MULTIPLIER: float = 0.88
+const BANNER_GUARD_SHIELD_POWER_PER_TAUNT: int = 4
+const BANNER_GUARD_MAX_TAUNT_COUNT: int = 4
+const BANNER_GUARD_TAUNT_ATTACK_MANA_RESTORE_STAR_3: float = 3.0
 const CORROSIVE_FLASK_DURATION_STAR_3: float = 4.0
 const CORROSIVE_FLASK_DAMAGE: float = 4.0
 const CORROSIVE_FLASK_DAMAGE_STAR_3: float = 7.0
@@ -518,6 +527,18 @@ func apply_incoming_life_damage_passives(unit: Variant, life_damage: int) -> int
 			resolved_damage = maxi(0, int(round(float(life_damage) * warrior_guard_multiplier)))
 		PASSIVE_SUMMONED_GOLEM_BODY:
 			resolved_damage = maxi(0, int(round(float(life_damage) * GOLEM_BODY_DAMAGE_MULTIPLIER)))
+		PASSIVE_CONCUSSIVE_ARMOR:
+			var had_shield: bool = bool(unit.get_meta("incoming_damage_had_shield", false))
+			if had_shield:
+				var multiplier: float = CONCUSSIVE_ARMOR_SHIELDED_DAMAGE_MULTIPLIER_STAR_3 if _is_star_3(unit) else CONCUSSIVE_ARMOR_SHIELDED_DAMAGE_MULTIPLIER
+				resolved_damage = maxi(0, int(round(float(life_damage) * multiplier)))
+			else:
+				resolved_damage = life_damage
+		PASSIVE_BANNER_GUARD:
+			if _has_enemy_taunted_by(unit):
+				resolved_damage = maxi(0, int(round(float(life_damage) * BANNER_GUARD_TAUNTED_DAMAGE_MULTIPLIER)))
+			else:
+				resolved_damage = life_damage
 		_:
 			resolved_damage = life_damage
 
@@ -583,6 +604,9 @@ func get_basic_attack_damage(unit: Variant, target: Variant, base_damage: int) -
 
 	if _has_nightblade_order_bonus(unit, target):
 		damage_multiplier *= _get_nightblade_order_damage_multiplier(unit)
+
+	if unit.passive_id == PASSIVE_CONCUSSIVE_ARMOR and _is_valid_unit(target) and target.control_state != null and target.control_state.is_stunned:
+		damage_multiplier *= CONCUSSIVE_ARMOR_STUNNED_DAMAGE_MULTIPLIER
 
 	return maxi(1, int(round(float(base_damage) * damage_multiplier)))
 
@@ -653,6 +677,10 @@ func apply_kill_passives(attacker: Variant, target: Variant) -> void:
 		return
 
 	if attacker.team_id == 1 and target.team_id == 2:
+		if attacker.passive_id == PASSIVE_SHATTER_FOCUS and _is_star_3(attacker):
+			var was_frozen: bool = bool(target.get_meta("was_frozen_on_death", false))
+			if was_frozen:
+				attacker.restore_mana(SHATTER_FOCUS_KILL_MANA_RESTORE_STAR_3, attacker)
 		_apply_bloodshadow_harvest(attacker, target)
 		return
 
@@ -2131,6 +2159,31 @@ func _try_apply_death_prevention(unit: Variant, resolved_damage: int) -> int:
 	if unit.unit_feedback != null:
 		unit.unit_feedback.play_skill_feedback(unit, "永恒誓约")
 	return maxi(0, unit.hp - 1)
+
+
+func _has_enemy_taunted_by(unit: Variant) -> bool:
+	if not _is_valid_unit(unit):
+		return false
+	for enemy_value: Variant in unit.enemy_units:
+		var enemy: Variant = enemy_value
+		if not _is_valid_unit(enemy):
+			continue
+		if enemy.control_state != null and enemy.control_state.forced_target == unit:
+			return true
+	return false
+
+
+func _get_banner_guard_taunt_count(unit: Variant) -> int:
+	if not _is_valid_unit(unit) or unit.passive_id != PASSIVE_BANNER_GUARD:
+		return 0
+	var count: int = 0
+	for enemy_value: Variant in unit.enemy_units:
+		var enemy: Variant = enemy_value
+		if not _is_valid_unit(enemy):
+			continue
+		if enemy.control_state != null and enemy.control_state.forced_target == unit:
+			count += 1
+	return mini(count, BANNER_GUARD_MAX_TAUNT_COUNT)
 
 
 func _get_boneweaver_summon_damage_bonus(unit: Variant) -> float:

@@ -41,6 +41,11 @@ func take_damage(unit: Variant, amount: int, attacker: Variant, can_crit: bool =
 		unit.shield -= shield_damage
 		remaining_damage -= shield_damage
 
+	if _is_valid_unit(unit) and _is_valid_unit(attacker):
+		if unit.passive_id == "banner_guard" and int(unit.star) >= 3:
+			if attacker.control_state != null and attacker.control_state.forced_target == unit:
+				unit.restore_mana(3.0, unit)
+
 	var life_damage: int = unit.unit_skill.apply_incoming_life_damage_passives(unit, remaining_damage)
 	if unit.has_meta("incoming_damage_had_shield"):
 		unit.remove_meta("incoming_damage_had_shield")
@@ -188,6 +193,15 @@ func _get_final_shield_amount(unit: Variant, amount: int, source: Variant = null
 		multiplier *= 1.0 + maxf(0.0, float(stat_source.shield_power))
 	if unit.has_meta(HERO_SHIELD_RECEIVED_MULTIPLIER_META):
 		multiplier *= maxf(0.0, float(unit.get_meta(HERO_SHIELD_RECEIVED_MULTIPLIER_META)))
+	if _is_valid_unit(unit) and unit.passive_id == "banner_guard":
+		var taunt_count: int = 0
+		for enemy_value: Variant in unit.enemy_units:
+			var enemy: Variant = enemy_value
+			if _is_valid_unit(enemy) and enemy.control_state != null:
+				if enemy.control_state.forced_target == unit:
+					taunt_count += 1
+		var bonus_shield_power: float = float(mini(taunt_count, 4)) * 0.04
+		multiplier *= 1.0 + bonus_shield_power
 
 	return maxi(1, int(round(float(amount) * multiplier)))
 
@@ -299,6 +313,8 @@ func _handle_death(unit: Variant, attacker: Variant) -> void:
 	unit.is_targetable = false
 	unit.unit_state = UNIT_STATE_DEAD
 	unit.current_target = null
+	if unit.control_state != null:
+		unit.set_meta("was_frozen_on_death", unit.control_state.is_frozen)
 	if unit.has_method("clear_status_effects"):
 		unit.clear_status_effects(false, false)
 

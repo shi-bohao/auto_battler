@@ -111,10 +111,13 @@ func resolve_basic_attack_hit(attacker: Variant, target: Variant, payload: Varia
 func resolve_skill_damage(caster: Variant, target: Variant, amount: int, _context: Dictionary = {}) -> int:
 	if not _is_valid_unit(target) or not target.is_alive:
 		return 0
+	var resolved_amount: int = amount
+	if _is_valid_unit(caster) and caster.passive_id == "shatter_focus" and target.control_state != null and target.control_state.is_frozen:
+		resolved_amount = maxi(1, int(round(float(resolved_amount) * 1.20)))
 	if target.control_state != null and not is_equal_approx(target.control_state.skill_damage_taken_multiplier, 1.0):
-		amount = maxi(1, int(round(float(amount) * target.control_state.skill_damage_taken_multiplier)))
+		resolved_amount = maxi(1, int(round(float(resolved_amount) * target.control_state.skill_damage_taken_multiplier)))
 	var had_shield: bool = int(target.shield) > 0
-	var actual_damage: int = target.take_damage(amount, caster)
+	var actual_damage: int = target.take_damage(resolved_amount, caster)
 	_try_reflect_skill_damage(caster, target, actual_damage, had_shield)
 	return actual_damage
 
