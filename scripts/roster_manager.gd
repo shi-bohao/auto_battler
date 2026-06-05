@@ -137,6 +137,10 @@ func apply_permanent_flat_bonus(stat: String, amount: float) -> void:
 	global_stat_bonuses[key] = float(global_stat_bonuses.get(key, 0.0)) + amount
 
 
+func apply_attack_speed_bonus(percent: float) -> void:
+	global_stat_bonuses["attack_speed_percent"] = float(global_stat_bonuses.get("attack_speed_percent", 0.0)) + percent
+
+
 func get_global_stat_bonuses() -> Dictionary:
 	return global_stat_bonuses
 

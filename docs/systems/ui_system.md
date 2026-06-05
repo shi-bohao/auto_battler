@@ -275,9 +275,11 @@ UI CanvasLayer
 
 | 类型 | 来源 | 稀有度 |
 | --- | --- | --- |
-| 属性奖励 | `_build_reward_pool()` | 默认 `COMMON` |
-| 单位奖励 | `_build_reward_pool()` | 读取奖励项配置 |
+| 属性奖励 | `RewardManager._build_stat_rewards()` | COMMON/FINE/RARE/EPIC/LEGENDARY，对应数值 5/10/15/20/25 |
+| 单位奖励 | `RewardManager._build_unit_rewards()` | 读取单位 `rarity`，只展示本局可获取单位 |
 | 遗物奖励 | `RelicManager.get_available_relic_reward_options()` | 读取遗物资源 `rarity` |
+
+奖励稀有度抽取规则由 `RewardManager` 维护，受当前波次、遭遇类型和 `RunModifierManager.luck` 影响。UI 只负责展示已抽出的奖励项，不在面板层重新计算概率。
 
 ---
 

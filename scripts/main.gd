@@ -65,6 +65,7 @@ var last_result_text: String = ""
 var last_player_won: bool = false
 var relic_manager: RelicManager = RelicManager.new()
 var reward_manager: RewardManager = RewardManager.new()
+var run_modifier_manager: RunModifierManager = RunModifierManager.new()
 var stats_manager: Variant = STATS_MANAGER_SCRIPT.new()
 var roster_manager: Variant = ROSTER_MANAGER_SCRIPT.new()
 var battle_manager: Variant = BATTLE_MANAGER_SCRIPT.new()
@@ -227,7 +228,7 @@ func _ready() -> void:
 	encounter_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data)
 	encounter_manager.use_random_encounters = use_random_encounters
 	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager)
-	reward_manager.setup(relic_manager, roster_manager)
+	reward_manager.setup(relic_manager, roster_manager, run_modifier_manager)
 	relic_manager.set_gold_callback(Callable(self, "_on_relic_gold_added"))
 	relic_manager.set_gold_query_callback(Callable(economy_manager, "get_gold"))
 	if not economy_manager.gold_changed.is_connected(_on_gold_changed):
@@ -2032,6 +2033,7 @@ func _restart_run(selected_game_mode: String = "") -> void:
 	run_controller.start_run(next_game_mode)
 	dynamic_stat_refresh_pending = false
 	economy_manager.reset()
+	run_modifier_manager.reset()
 	last_result_text = ""
 	last_player_won = false
 	pending_post_hero_upgrade_result_text = ""
@@ -2045,7 +2047,7 @@ func _restart_run(selected_game_mode: String = "") -> void:
 	encounter_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data)
 	encounter_manager.use_random_encounters = use_random_encounters
 	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager)
-	reward_manager.setup(relic_manager, roster_manager)
+	reward_manager.setup(relic_manager, roster_manager, run_modifier_manager)
 	relic_manager.clear_relics()
 	hero_manager.reset_hero()
 	bond_manager.clear()
@@ -3517,7 +3519,7 @@ func _get_stats_table_width() -> float:
 
 
 func _show_reward_panel() -> void:
-	reward_panel_controller.show_reward_panel(_get_current_encounter_type())
+	reward_panel_controller.show_reward_panel(_get_current_encounter_type(), run_controller.current_round)
 
 
 func _hide_reward_panel() -> void:

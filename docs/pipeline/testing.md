@@ -6,7 +6,7 @@
 
 ## 测试脚本清单
 
-当前 `scripts/tests/` 下共 **23 个测试脚本**：
+当前 `scripts/tests/` 下共 **29 个 `.gd` 测试脚本**：
 
 ### 系统测试
 
@@ -23,6 +23,10 @@
 | `test_hero_battle_spawn.gd` | 英雄战斗生成、站位、属性 |
 | `test_hero_position_reservation.gd` | 英雄准备阶段站位调整 |
 | `test_hero_exclusive_unit_pool.gd` | 英雄专属单位池、开局阵容、可用单位过滤 |
+| `test_reward_rarity_roll.gd` | 奖励稀有度概率、波次成长、遭遇加成、幸运值修正 |
+| `test_reward_stat_rewards.gd` | 五类属性奖励、五档稀有度数值、幸运奖励应用 |
+| `test_reward_dynamic_unit_pool.gd` | 奖励单位池动态生成、随机单位、满阵容过滤 |
+| `test_reward_hero_exclusive_integration.gd` | 真实 `RosterManager`/`RewardManager` 下的英雄专属单位奖励过滤 |
 | `test_lineup_snapshot_manager.gd` | 快照保存/加载/还原 |
 | `test_mirror_challenge_manager.gd` | 镜像选择规则、阵容镜像 |
 | `test_battle_time_manager.gd` | 战斗时间缩放、加时赛 |
@@ -88,6 +92,12 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_hero_manager.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_hero_battle_spawn.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_hero_exclusive_unit_pool.gd
+
+# 奖励测试
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_rarity_roll.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_stat_rewards.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_dynamic_unit_pool.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_hero_exclusive_integration.gd
 ```
 
 ### 刷新内容参考文档

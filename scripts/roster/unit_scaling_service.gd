@@ -573,6 +573,13 @@ func _apply_global_stat_bonuses(configured_data: Resource, global_bonuses: Dicti
 		var value: float = float(global_bonuses[key])
 		if is_zero_approx(value):
 			continue
+		if key_str == "attack_speed_percent":
+			var current_interval: Variant = configured_data.get("attack_interval")
+			if current_interval == null:
+				continue
+			var adjusted_interval: float = float(current_interval) / (1.0 + value)
+			_apply_permanent_stat_bonus(configured_data, "attack_interval", adjusted_interval - float(current_interval))
+			continue
 		if key_str.ends_with("_percent"):
 			var stat_name: String = key_str.substr(0, key_str.length() - 8)
 			var current: Variant = configured_data.get(stat_name)

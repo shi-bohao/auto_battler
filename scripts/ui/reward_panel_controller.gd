@@ -54,11 +54,11 @@ func setup(
 	hide_reward_panel()
 
 
-func show_reward_panel(encounter_type: String) -> void:
+func show_reward_panel(encounter_type: String, current_round: int = 1) -> void:
 	if reward_manager == null:
 		return
 
-	reward_options = reward_manager.roll_reward_options(3, encounter_type)
+	reward_options = reward_manager.roll_reward_options(3, encounter_type, current_round)
 	selection_mode = "reward"
 	is_selection_enabled = true
 	if reward_panel != null:
