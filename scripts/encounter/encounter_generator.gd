@@ -32,11 +32,11 @@ var wave_rule: Variant = WAVE_RULE_SCRIPT.new()
 var enemy_position_service: Variant = ENEMY_POSITION_SERVICE_SCRIPT.new()
 
 
-func create_random_encounter(current_round: int, forced_type: String = "") -> Dictionary:
+func create_random_encounter(current_round: int, forced_type: String = "", forced_boss_id: String = "") -> Dictionary:
 	var encounter_type: String = forced_type if forced_type != "" else wave_rule.get_encounter_type_for_round(current_round)
 	match encounter_type:
 		ENCOUNTER_TYPE_BOSS:
-			return _create_random_boss_encounter(current_round)
+			return _create_random_boss_encounter(current_round, forced_boss_id)
 		ENCOUNTER_TYPE_ELITE:
 			return _create_random_elite_encounter(current_round)
 		_:
@@ -83,9 +83,11 @@ func _create_random_elite_encounter(current_round: int) -> Dictionary:
 	return _create_random_encounter_data(current_round, str(name_map.get(elite_template_id, "精英突击队")), ENCOUNTER_TYPE_ELITE, units, multipliers)
 
 
-func _create_random_boss_encounter(current_round: int) -> Dictionary:
+func _create_random_boss_encounter(current_round: int, forced_boss_id: String = "") -> Dictionary:
 	var units: Array[Dictionary] = []
-	var boss_unit_id: String = _pick_string(enemy_catalog.get_boss_enemy_ids())
+	var boss_unit_id: String = forced_boss_id
+	if boss_unit_id.strip_edges() == "" or enemy_catalog.get_unit_data_by_id(boss_unit_id) == null:
+		boss_unit_id = _pick_string(enemy_catalog.get_boss_enemy_ids())
 	var boss_star: int = wave_rule.get_boss_star(current_round)
 	var guard_star: int = wave_rule.get_boss_guard_star(current_round)
 	units.append(_create_random_enemy_entry(

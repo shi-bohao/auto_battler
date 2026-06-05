@@ -34,6 +34,8 @@ const TRANSITION_PANEL_CONTROLLER_SCRIPT: Script = preload("res://scripts/ui/tra
 const PIXEL_UI_THEME: Script = preload("res://scripts/ui/pixel_ui_theme.gd")
 const UI_LAYER: Script = preload("res://scripts/ui/ui_layer.gd")
 const BACKGROUND_CATALOG: Script = preload("res://scripts/ui/background_catalog.gd")
+const CHAPTER_SCENE_MANAGER_SCRIPT: Script = preload("res://scripts/game/chapter_scene_manager.gd")
+const MAIN_MENU_WANDERER_SCRIPT: Script = preload("res://scripts/ui/main_menu_unit_wanderer.gd")
 const INITIAL_MAX_ACTIVE_UNITS: int = 10
 const MAX_TOTAL_UNITS: int = 25
 const MAX_RELIC_BAR_ITEMS: int = 8
@@ -95,6 +97,10 @@ var training_manager: Variant = TRAINING_MANAGER_SCRIPT.new()
 var event_manager: Variant = EVENT_MANAGER_SCRIPT.new()
 var event_panel_controller: Variant = EVENT_PANEL_CONTROLLER_SCRIPT.new()
 var transition_panel_controller: Variant = TRANSITION_PANEL_CONTROLLER_SCRIPT.new()
+var chapter_scene_manager: Variant = CHAPTER_SCENE_MANAGER_SCRIPT.new()
+var main_menu_wanderer_container: Node2D = null
+var main_menu_wanderers: Array = []
+var main_menu_wanderer_data_pool: Array[Resource] = []
 var mirror_enemy_relic_manager: RelicManager = null
 var gold_relic_logs: Array[String] = []
 var mirror_info_button: Button = null
@@ -272,7 +278,23 @@ func _ready() -> void:
 	bond_manager.setup(roster_manager.unit_catalog, hero_manager)
 	_create_mirror_info_ui()
 	_position_encounter_info_panel()
+	_init_main_menu_wanderer_data_pool()
 	_enter_main_menu()
+
+
+func _init_main_menu_wanderer_data_pool() -> void:
+	main_menu_wanderer_data_pool = [warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data]
+	var enemy_dir: DirAccess = DirAccess.open("res://data/enemies/")
+	if enemy_dir != null:
+		enemy_dir.list_dir_begin()
+		var file_name: String = enemy_dir.get_next()
+		while file_name != "":
+			if file_name.ends_with(".tres") and not file_name.contains("training_dummy"):
+				var enemy_data: Resource = load("res://data/enemies/" + file_name) as Resource
+				if enemy_data != null and enemy_data.get("board_sprite") != null:
+					main_menu_wanderer_data_pool.append(enemy_data)
+			file_name = enemy_dir.get_next()
+		enemy_dir.list_dir_end()
 
 
 func _process(delta: float) -> void:
@@ -283,7 +305,9 @@ func _process(delta: float) -> void:
 		if training_manager.tick(battle_delta):
 			_on_training_timer_expired()
 			return
-	elif run_controller.state != GameState.MAIN_MENU:
+	elif run_controller.state == GameState.MAIN_MENU:
+		_update_main_menu_wanderers(delta)
+	else:
 		battle_manager.update(battle_delta)
 		_update_sell_zone_highlight()
 	_refresh_unit_detail_panel_if_open()
@@ -384,6 +408,7 @@ func _enter_main_menu() -> void:
 	mirror_challenge_manager.clear_challenge()
 	encounter_manager.clear_mirror_boss_encounters()
 	mirror_enemy_relic_manager = null
+	chapter_scene_manager.reset()
 	economy_manager.reset()
 	event_manager.reset()
 	_battle_stats_text = ""
@@ -424,6 +449,7 @@ func _enter_main_menu() -> void:
 
 	menu_panel_controller.hide_game_end_dialog()
 	menu_panel_controller.show_main_menu()
+	_spawn_main_menu_wanderers()
 
 
 func _on_main_menu_start_pressed() -> void:
@@ -920,7 +946,8 @@ func _on_grid_toggle_button_pressed() -> void:
 
 
 func _on_background_option_selected(index: int) -> void:
-	_select_background(index)
+	var background_index: int = background_switch_button.get_item_id(index)
+	_select_background(background_index)
 
 
 func _on_main_menu_background_selected(index: int) -> void:
@@ -985,34 +1012,62 @@ func _update_background_switch_button() -> void:
 	if background_switch_button == null:
 		return
 
-	var total_count: int = 1
 	var current_index: int = 0
 	var current_name: String = "背景 1"
 	if battle_board != null and is_instance_valid(battle_board):
-		if battle_board.has_method("get_background_count"):
-			total_count = int(battle_board.get_background_count())
 		if battle_board.has_method("get_current_background_index"):
 			current_index = int(battle_board.get_current_background_index())
 		if battle_board.has_method("get_current_background_name"):
 			current_name = str(battle_board.get_current_background_name())
 
-	if background_switch_button.item_count != total_count:
-		_populate_background_selector()
+	var allowed_indices: Array[int] = _get_allowed_background_indices()
+	_populate_background_selector(allowed_indices)
+
+	var select_index: int = 0
+	for item_idx: int in range(background_switch_button.item_count):
+		if background_switch_button.get_item_id(item_idx) == current_index:
+			select_index = item_idx
+			break
 	if background_switch_button.item_count > 0:
-		background_switch_button.select(clampi(current_index, 0, background_switch_button.item_count - 1))
+		background_switch_button.select(clampi(select_index, 0, background_switch_button.item_count - 1))
 	background_switch_button.tooltip_text = "选择对战背景：" + current_name
 
 
-func _populate_background_selector() -> void:
-	if background_switch_button == null:
-		return
+func _get_allowed_background_indices() -> Array[int]:
+	if run_controller == null or run_controller.is_mirror_challenge():
+		return _get_all_background_indices()
+	if run_controller.state == GameState.MAIN_MENU:
+		return _get_all_background_indices()
 
-	background_switch_button.clear()
+	var scene_id: String = chapter_scene_manager.get_scene_id_for_round(run_controller.current_round)
+	if scene_id == "":
+		return _get_all_background_indices()
+
+	var indices: Array[int] = BACKGROUND_CATALOG.get_background_indices_for_scene(scene_id)
+	if indices.is_empty():
+		return _get_all_background_indices()
+	return indices
+
+
+func _get_all_background_indices() -> Array[int]:
 	var total_count: int = 1
 	if battle_board != null and is_instance_valid(battle_board) and battle_board.has_method("get_background_count"):
 		total_count = int(battle_board.get_background_count())
+	var indices: Array[int] = []
+	for i: int in range(total_count):
+		indices.append(i)
+	return indices
 
-	for index: int in range(total_count):
+
+func _populate_background_selector(allowed_indices: Array[int] = []) -> void:
+	if background_switch_button == null:
+		return
+
+	if allowed_indices.is_empty():
+		allowed_indices = _get_all_background_indices()
+
+	background_switch_button.clear()
+	for index: int in allowed_indices:
 		var item_name: String = "背景 " + str(index + 1)
 		if battle_board != null and is_instance_valid(battle_board) and battle_board.has_method("get_background_name"):
 			item_name = str(battle_board.get_background_name(index))
@@ -1497,6 +1552,9 @@ func _on_path_selected(candidate: Dictionary) -> void:
 			_show_transition(Callable(self, "_enter_prepare_state"))
 		"BOSS":
 			encounter_manager.forced_encounter_type = "BOSS"
+			var boss_id: String = chapter_scene_manager.get_boss_id_for_round(run_controller.current_round)
+			if boss_id != "":
+				encounter_manager.forced_boss_id = boss_id
 			_show_transition(Callable(self, "_enter_prepare_state"))
 		"MERCHANT":
 			_show_transition(Callable(self, "_enter_merchant_state"))
@@ -1863,6 +1921,8 @@ func _show_transition(on_complete: Callable = Callable()) -> void:
 	var node_display: String
 	var node_desc: String
 
+	_ensure_chapter_scene_for_current_round()
+
 	# For combat nodes, always check the actual encounter — pending can be stale (e.g. forced Boss)
 	if pending == "NORMAL" or pending == "ELITE" or pending == "BOSS" or pending == "":
 		var encounter: Dictionary = encounter_manager.get_encounter(current_round)
@@ -1898,7 +1958,43 @@ func _show_transition(on_complete: Callable = Callable()) -> void:
 				node_display = "普通战斗"
 				node_desc = "与敌人战斗，获得金币和奖励。"
 
+	if chapter_scene_manager.is_chapter_start_round(current_round):
+		var chapter_info: Dictionary = chapter_scene_manager.build_chapter_start_text(current_round)
+		if not chapter_info.is_empty():
+			var chapter_title: String = str(chapter_info.get("title", ""))
+			var chapter_subtitle: String = str(chapter_info.get("subtitle", ""))
+			if chapter_title != "":
+				node_display = chapter_title
+			if chapter_subtitle != "":
+				if node_desc != "":
+					node_desc = chapter_subtitle + "\n" + node_desc
+				else:
+					node_desc = chapter_subtitle
+
 	transition_panel_controller.show_transition(current_round, pending, node_display, node_desc, on_complete)
+
+
+func _ensure_chapter_scene_for_current_round() -> void:
+	if run_controller.is_mirror_challenge():
+		return
+	var scene: Dictionary = chapter_scene_manager.ensure_scene_for_round(run_controller.current_round)
+	if scene.is_empty():
+		return
+	_apply_chapter_background(scene)
+
+
+func _apply_chapter_background(scene: Dictionary) -> void:
+	var scene_id: String = str(scene.get("scene_id", ""))
+	if scene_id == "":
+		return
+
+	var current_bg_scene_id: String = BACKGROUND_CATALOG.get_scene_id(selected_background_index)
+	if current_bg_scene_id == scene_id:
+		_update_background_switch_button()
+		return
+
+	var new_index: int = BACKGROUND_CATALOG.get_random_background_index_for_scene(scene_id)
+	_select_background(new_index)
 
 
 func _enter_event_state() -> void:
@@ -2019,6 +2115,7 @@ func _get_failure_game_over_text(result_text: String = "") -> String:
 
 
 func _restart_run(selected_game_mode: String = "") -> void:
+	_cleanup_main_menu_wanderers()
 	menu_panel_controller.hide_main_menu()
 	_hide_game_end_dialog()
 	_hide_gameplay_menu()
@@ -2034,6 +2131,7 @@ func _restart_run(selected_game_mode: String = "") -> void:
 	dynamic_stat_refresh_pending = false
 	economy_manager.reset()
 	run_modifier_manager.reset()
+	chapter_scene_manager.reset()
 	last_result_text = ""
 	last_player_won = false
 	pending_post_hero_upgrade_result_text = ""
@@ -2057,6 +2155,81 @@ func _restart_run(selected_game_mode: String = "") -> void:
 	_hide_mirror_info_panel()
 	_refresh_relic_bar()
 	_enter_hero_selection_state()
+
+
+func _spawn_main_menu_wanderers() -> void:
+	_cleanup_main_menu_wanderers()
+	if battle_board == null or not is_instance_valid(battle_board):
+		return
+	if main_menu_wanderer_container == null:
+		main_menu_wanderer_container = Node2D.new()
+		main_menu_wanderer_container.name = "MainMenuWandererContainer"
+	var menu_panel: Panel = menu_panel_controller.main_menu_panel if menu_panel_controller != null else null
+	if menu_panel == null:
+		return
+	if main_menu_wanderer_container.get_parent() != menu_panel:
+		menu_panel.add_child(main_menu_wanderer_container)
+		var background_node: Node = menu_panel.get_node_or_null("Background")
+		var bg_index: int = -1
+		if background_node != null:
+			bg_index = background_node.get_index()
+		if bg_index >= 0 and main_menu_wanderer_container.get_index() != bg_index + 1:
+			menu_panel.move_child(main_menu_wanderer_container, bg_index + 1)
+
+	var bounds: Rect2 = _get_main_menu_wander_bounds()
+	var count: int = mini(randi_range(3, 6), main_menu_wanderer_data_pool.size())
+	var used_unit_types: Dictionary = {}
+	for i: int in range(count):
+		var data: Resource = _get_random_wanderer_data(used_unit_types)
+		if data == null:
+			continue
+		var unit_type: String = str(data.get("unit_type"))
+		if unit_type != "":
+			used_unit_types[unit_type] = true
+		var texture: Texture2D = data.get("board_sprite") as Texture2D
+		if texture == null:
+			continue
+		var start_pos: Vector2 = Vector2(
+			randf_range(bounds.position.x + 30.0, bounds.end.x - 30.0),
+			randf_range(bounds.position.y + 30.0, bounds.end.y - 30.0)
+		)
+		var wanderer: MainMenuUnitWanderer = MAIN_MENU_WANDERER_SCRIPT.new()
+		wanderer.setup(texture, start_pos, bounds)
+		main_menu_wanderer_container.add_child(wanderer)
+		main_menu_wanderers.append(wanderer)
+
+
+func _cleanup_main_menu_wanderers() -> void:
+	for wanderer: Variant in main_menu_wanderers:
+		if wanderer != null and is_instance_valid(wanderer):
+			wanderer.queue_free()
+	main_menu_wanderers.clear()
+
+
+func _update_main_menu_wanderers(delta: float) -> void:
+	for wanderer: Variant in main_menu_wanderers:
+		if wanderer != null and is_instance_valid(wanderer) and wanderer.has_method("update"):
+			wanderer.update(delta)
+
+
+func _get_main_menu_wander_bounds() -> Rect2:
+	if battle_board != null and is_instance_valid(battle_board):
+		var origin: Vector2 = battle_board.board_origin
+		var size: float = battle_board.cell_size
+		return Rect2(origin, Vector2(15.0 * size, 7.0 * size))
+	return Rect2(Vector2(200.0, 200.0), Vector2(800.0, 400.0))
+
+
+func _get_random_wanderer_data(used_unit_types: Dictionary = {}) -> Resource:
+	var available: Array[Resource] = []
+	for data: Resource in main_menu_wanderer_data_pool:
+		var unit_type: String = str(data.get("unit_type"))
+		if unit_type != "" and used_unit_types.has(unit_type):
+			continue
+		available.append(data)
+	if available.is_empty():
+		return null
+	return available[randi_range(0, available.size() - 1)]
 
 
 func _prepare_mirror_challenge_for_run() -> void:

@@ -22,6 +22,7 @@ var encounter_generator: Variant = ENCOUNTER_GENERATOR_SCRIPT.new()
 var enemy_scaling_service: Variant = ENEMY_SCALING_SERVICE_SCRIPT.new()
 var mirror_unit_scaling_service: Variant = UNIT_SCALING_SERVICE_SCRIPT.new()
 var forced_encounter_type: String = ""
+var forced_boss_id: String = ""
 
 
 func setup(
@@ -171,8 +172,10 @@ func _get_or_create_random_encounter(current_round: int) -> Dictionary:
 
 func _create_random_encounter(current_round: int) -> Dictionary:
 	var override: String = forced_encounter_type
+	var boss_id: String = forced_boss_id
 	forced_encounter_type = ""
-	return encounter_generator.create_random_encounter(current_round, override)
+	forced_boss_id = ""
+	return encounter_generator.create_random_encounter(current_round, override, boss_id)
 
 
 func _build_default_encounters() -> void:
