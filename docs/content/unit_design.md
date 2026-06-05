@@ -183,11 +183,11 @@ Active skills cast automatically when mana reaches `max_mana`. Mana resets to `0
 | `priest` | 牧师 | COMMON | support | 圣疗 | 治疗辅助，持续抬血 |
 | `bard` | 吟游诗人 | COMMON | support | 圣疗 | 团队增幅，护盾+攻击增益 |
 | `forest_druid` | 森林德鲁伊 | FINE | support | 圣疗 | 持续治疗（HoT）辅助 |
-| `plague_caster` | 瘟疫术士 | FINE | damage | 剧毒 | 毒刃持续伤害输出 |
+| `plague_caster` | 瘟疫术士 | FINE | damage | 剧毒 | 普攻施毒+剧毒扩散 |
 | `guardian_captain` | 守护队长 | FINE | tank | 铁壁 | 防御指挥，限时防御增益 |
 | `wind_chanter` | 风语者 | FINE | support | 奥术 | 节奏辅助，攻速+魔力回复 |
 | `greatsword_knight` | 巨剑骑士 | RARE | tank | 铁壁+猎手 | 半肉范围劈砍 |
-| `alchemist` | 炼金术士 | RARE | damage | 奥术+剧毒 | 腐蚀普攻+酸液场地 |
+| `alchemist` | 炼金术士 | RARE | damage | 奥术+剧毒 | 范围施毒+剧毒场地 |
 | `bomb_thrower` | 爆弹投手 | RARE | damage | 猎手+奥术 | 周期性爆炸普攻+范围齐射 |
 | `cleric` | 神官 | RARE | support | 圣疗 | 光环治疗+圣域范围治疗 |
 | `necromancer` | 亡灵法师 | RARE | support | 召唤 | 召唤构筑核心，唤骷髅 |

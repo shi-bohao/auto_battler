@@ -104,9 +104,9 @@ const NATURE_TOUCH_ATTACKS: int = 3
 const NATURE_TOUCH_DURATION: float = 3.0
 const NATURE_TOUCH_HEAL: float = 12.0
 const NATURE_TOUCH_HEAL_STAR_3: float = 20.0
-const POISON_BLADE_DURATION: float = 4.0
-const POISON_BLADE_DAMAGE: float = 8.0
-const POISON_BLADE_DAMAGE_STAR_3: float = 14.0
+const POISON_BLADE_VENOM_STACKS: int = 2
+const POISON_BLADE_VENOM_STACKS_STAR_3: int = 3
+const POISON_BLADE_VENOM_DURATION: float = 6.0
 const DEFENSIVE_COMMAND_DEFENSE: float = 16.0
 const DEFENSIVE_COMMAND_DEFENSE_STAR_3: float = 30.0
 const WIND_RHYTHM_MANA_REGEN_MULTIPLIER: float = 1.12
@@ -148,9 +148,10 @@ const GRAVE_ARMOR_COOLDOWN: float = 2.0
 const GRAVE_ARMOR_ALLY_SHIELD_STAR_3: int = 9
 const BONE_FAMILIARITY_ATTACK_BONUS: float = 0.10
 const BONE_FAMILIARITY_ATTACK_BONUS_STAR_3: float = 0.18
-const CORROSIVE_FLASK_DURATION_STAR_3: float = 4.0
-const CORROSIVE_FLASK_DAMAGE: float = 4.0
-const CORROSIVE_FLASK_DAMAGE_STAR_3: float = 7.0
+const CORROSIVE_FLASK_VENOM_RADIUS: float = 55.0
+const CORROSIVE_FLASK_VENOM_RADIUS_STAR_3: float = 70.0
+const CORROSIVE_FLASK_VENOM_STACKS: int = 1
+const CORROSIVE_FLASK_VENOM_STACKS_STAR_3: int = 2
 const STATUS_EFFECT_TICK_INTERVAL: float = 1.0
 const BATTLE_LONG_EFFECT_DURATION: float = 9999.0
 const EFFECT_NATURE_TOUCH: String = "nature_touch_hot"
@@ -638,12 +639,8 @@ func apply_attack_landed_passives(unit: Variant, target: Variant) -> void:
 				unit.unit_feedback.play_skill_feedback(unit, "Nature Touch")
 		PASSIVE_POISON_BLADE:
 			if _is_valid_unit(target) and target.is_alive:
-				var poison_damage: float = POISON_BLADE_DAMAGE_STAR_3 if _is_star_3(unit) else POISON_BLADE_DAMAGE
-				_apply_status_effect(target, EFFECT_POISON_BLADE, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, unit, POISON_BLADE_DURATION, STATUS_EFFECT_TICK_INTERVAL, poison_damage, "", {
-					"stack_policy": StatusEffectFactory.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH,
-					"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
-					"category": StatusEffectFactory.CATEGORY_DOT,
-				})
+				var stacks: int = POISON_BLADE_VENOM_STACKS_STAR_3 if _is_star_3(unit) else POISON_BLADE_VENOM_STACKS
+				_apply_maggot_venom_stacks(unit, target, stacks, POISON_BLADE_VENOM_DURATION)
 		PASSIVE_CLEAVING_EDGE:
 			_apply_cleaving_edge(unit, target)
 		PASSIVE_SUMMONED_DRAGON_BREATH:
@@ -651,13 +648,14 @@ func apply_attack_landed_passives(unit: Variant, target: Variant) -> void:
 				_apply_dragon_breath_splash(unit, target)
 		PASSIVE_CORROSIVE_FLASK:
 			if _is_valid_unit(target) and target.is_alive:
-				var corrosive_duration: float = CORROSIVE_FLASK_DURATION_STAR_3 if _is_star_3(unit) else CORROSIVE_FLASK_DURATION
-				var corrosive_damage: float = CORROSIVE_FLASK_DAMAGE_STAR_3 if _is_star_3(unit) else CORROSIVE_FLASK_DAMAGE
-				_apply_status_effect(target, EFFECT_CORROSIVE_FLASK, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, unit, corrosive_duration, STATUS_EFFECT_TICK_INTERVAL, corrosive_damage, "", {
-					"stack_policy": StatusEffectFactory.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH,
-					"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
-					"category": StatusEffectFactory.CATEGORY_DOT,
-				})
+				var radius: float = CORROSIVE_FLASK_VENOM_RADIUS_STAR_3 if _is_star_3(unit) else CORROSIVE_FLASK_VENOM_RADIUS
+				var stacks: int = CORROSIVE_FLASK_VENOM_STACKS_STAR_3 if _is_star_3(unit) else CORROSIVE_FLASK_VENOM_STACKS
+				var nearby: Array = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, radius)
+				for enemy: Variant in nearby:
+					if _is_valid_unit(enemy) and enemy.is_alive:
+						_apply_maggot_venom_stacks(unit, enemy, stacks, VENOM_STACK_DURATION)
+				if nearby.size() > 0:
+					_create_visual_field(unit, target.global_position, radius, INSTANT_AOE_VISUAL_DURATION, VENOM_SLIME_VISUAL_COLOR)
 		PASSIVE_FROST_ARROW:
 			if _is_valid_unit(target) and target.is_alive:
 				_apply_frost_arrow(unit, target)

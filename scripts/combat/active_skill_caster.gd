@@ -95,6 +95,10 @@ const TOXIC_CLOUD_DAMAGE_BASE: float = 15.0
 const TOXIC_CLOUD_ATTACK_RATIO: float = 0.45
 const TOXIC_CLOUD_DAMAGE_BASE_STAR_3: float = 24.0
 const TOXIC_CLOUD_ATTACK_RATIO_STAR_3: float = 0.6
+const TOXIC_CLOUD_SPREAD_RATIO: float = 0.25
+const TOXIC_CLOUD_SPREAD_RATIO_STAR_3: float = 0.50
+const TOXIC_CLOUD_SPREAD_RADIUS: float = 110.0
+const TOXIC_CLOUD_SPREAD_RADIUS_STAR_3: float = 140.0
 const SKILL_PINNING_FROST: String = "pinning_frost"
 const SKILL_VINE_SNARE: String = "vine_snare"
 const SKILL_HAMMER_STUN: String = "hammer_stun"
@@ -282,6 +286,8 @@ const ACID_FIELD_DAMAGE_BASE: float = 10.0
 const ACID_FIELD_ATTACK_RATIO: float = 0.35
 const ACID_FIELD_DAMAGE_BASE_STAR_3: float = 16.0
 const ACID_FIELD_ATTACK_RATIO_STAR_3: float = 0.45
+const ACID_FIELD_VENOM_STACKS_PER_TICK: int = 2
+const ACID_FIELD_VENOM_STACKS_PER_TICK_STAR_3: int = 3
 
 const GUARD_BARRIER_BASE_SHIELD: int = 30
 const GUARD_BARRIER_BASE_SHIELD_STAR_3: int = 50
@@ -360,10 +366,12 @@ const PINNING_FROST_PASSIVE_DURATION_3STAR: float = 3.0
 const PINNING_FROST_AOE_RADIUS: float = 80.0
 const PINNING_FROST_AOE_DURATION: float = 2.0
 const VINE_SNARE_DAMAGE_MULTIPLIER: float = 1.20
-const VINE_SNARE_ROOT_DURATION: float = 2.5
-const VINE_SNARE_ROOT_DURATION_2STAR: float = 3.0
+const VINE_SNARE_ROOT_DURATION: float = 3.0
+const VINE_SNARE_ROOT_DURATION_STAR_3: float = 5.0
 const VINE_SNARE_AOE_RADIUS: float = 70.0
 const VINE_SNARE_AOE_DURATION: float = 1.5
+const VINE_SNARE_VENOM_STACKS: int = 6
+const VINE_SNARE_VENOM_STACKS_STAR_3: int = 10
 const TANGLED_GROWTH_SHIELD_BASE: int = 18
 const TANGLED_GROWTH_SHIELD_ATK_RATIO: float = 0.60
 const TANGLED_GROWTH_SHIELD_BASE_2STAR: int = 24
@@ -782,16 +790,20 @@ func _cast_toxic_cloud(unit: Variant) -> bool:
 	if not unit._is_valid_target(target):
 		return false
 
-	var duration: float = TOXIC_CLOUD_DURATION_STAR_3 if _is_star_3(unit) else TOXIC_CLOUD_DURATION
-	var damage_base: float = TOXIC_CLOUD_DAMAGE_BASE_STAR_3 if _is_star_3(unit) else TOXIC_CLOUD_DAMAGE_BASE
-	var attack_ratio: float = TOXIC_CLOUD_ATTACK_RATIO_STAR_3 if _is_star_3(unit) else TOXIC_CLOUD_ATTACK_RATIO
-	var damage_amount: float = damage_base + float(unit.attack_damage) * attack_ratio
-	damage_amount *= _get_active_skill_damage_multiplier(unit)
-	_apply_status_effect(target, EFFECT_TOXIC_CLOUD, StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME, unit, duration, STATUS_EFFECT_TICK_INTERVAL, damage_amount, "", {
-		"stack_policy": StatusEffectFactory.STACK_POLICY_UNIQUE_PER_SOURCE_REFRESH,
-		"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
-		"category": StatusEffectFactory.CATEGORY_DOT,
-	})
+	var current_stacks: int = _get_venom_stack_count(target)
+	if current_stacks <= 0:
+		return false
+
+	var spread_ratio: float = TOXIC_CLOUD_SPREAD_RATIO_STAR_3 if _is_star_3(unit) else TOXIC_CLOUD_SPREAD_RATIO
+	var spread_radius: float = TOXIC_CLOUD_SPREAD_RADIUS_STAR_3 if _is_star_3(unit) else TOXIC_CLOUD_SPREAD_RADIUS
+	var spread_stacks: int = maxi(1, int(ceil(float(current_stacks) * spread_ratio)))
+
+	var nearby_enemies: Array = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, spread_radius)
+	for enemy: Variant in nearby_enemies:
+		if enemy != target and _is_valid_unit(enemy) and enemy.is_alive:
+			_apply_venom_stacks_with_duration(unit, enemy, spread_stacks, VENOM_STACK_DURATION)
+
+	_create_visual_field(unit, target.global_position, spread_radius, INSTANT_AOE_VISUAL_DURATION, VENOM_SLIME_VISUAL_COLOR)
 	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Toxic Cloud", unit))
 	return true
 
@@ -946,10 +958,23 @@ func _cast_acid_field(unit: Variant) -> bool:
 
 	var radius: float = ACID_FIELD_RADIUS_STAR_3 if _is_star_3(unit) else ACID_FIELD_RADIUS
 	var duration: float = ACID_FIELD_DURATION_STAR_3 if _is_star_3(unit) else ACID_FIELD_DURATION
-	var damage_base: float = ACID_FIELD_DAMAGE_BASE_STAR_3 if _is_star_3(unit) else ACID_FIELD_DAMAGE_BASE
-	var attack_ratio: float = ACID_FIELD_ATTACK_RATIO_STAR_3 if _is_star_3(unit) else ACID_FIELD_ATTACK_RATIO
-	var damage_per_tick: int = maxi(1, int(round((damage_base + float(unit.attack_damage) * attack_ratio) * _get_active_skill_damage_multiplier(unit))))
-	var field_id: int = _create_damage_field(unit, target.global_position, radius, duration, ACID_FIELD_TICK_INTERVAL, damage_per_tick)
+	var stacks_per_tick: int = ACID_FIELD_VENOM_STACKS_PER_TICK_STAR_3 if _is_star_3(unit) else ACID_FIELD_VENOM_STACKS_PER_TICK
+	var status_data: Dictionary = {
+		"effect_id": VENOM_STACK_EFFECT,
+		"effect_type": StatusEffectFactory.EFFECT_TYPE_DAMAGE_OVER_TIME,
+		"duration": VENOM_STACK_DURATION,
+		"tick_interval": STATUS_EFFECT_TICK_INTERVAL,
+		"value": VENOM_STACK_DAMAGE,
+		"options": {
+			"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+			"polarity": StatusEffectFactory.POLARITY_NEGATIVE,
+			"category": StatusEffectFactory.CATEGORY_DOT,
+			"stack_count": stacks_per_tick,
+			"stack_decay_after_duration": true,
+			"stack_decay_per_tick": VENOM_STACK_DECAY_PER_TICK,
+		},
+	}
+	var field_id: int = _create_status_field(unit, target.global_position, radius, duration, ACID_FIELD_TICK_INTERVAL, status_data, VENOM_SLIME_VISUAL_COLOR)
 	if field_id < 0:
 		return false
 
@@ -2698,18 +2723,21 @@ func _cast_vine_snare(unit: Variant) -> bool:
 	var dmg_mult: float = VINE_SNARE_DAMAGE_MULTIPLIER * _get_active_skill_damage_multiplier(unit)
 	var skill_damage: int = maxi(1, int(round(float(unit.attack_damage) * dmg_mult)))
 	combat_resolver.resolve_skill_damage(unit, target, skill_damage)
-	var root_dur: float = VINE_SNARE_ROOT_DURATION_2STAR if int(unit.star) >= 2 else VINE_SNARE_ROOT_DURATION
+	var root_dur: float = VINE_SNARE_ROOT_DURATION_STAR_3 if _is_star_3(unit) else VINE_SNARE_ROOT_DURATION
+	var venom_stacks: int = VINE_SNARE_VENOM_STACKS_STAR_3 if _is_star_3(unit) else VINE_SNARE_VENOM_STACKS
 	status_effect_factory.apply_control_effect(target, "ROOT", unit, root_dur, {
 		"effect_id": "vine_snare_root", "stack_group_key": "root", "source_key": "vine_snare",
 	})
+	_apply_venom_stacks_with_duration(unit, target, venom_stacks, VENOM_STACK_DURATION)
 	if _is_star_3(unit):
 		var aoe_units: Array = aoe_resolver.get_enemy_units_in_radius(unit, target.global_position, VINE_SNARE_AOE_RADIUS)
 		var secondary_count: int = 0
 		for enemy: Variant in aoe_units:
 			if enemy != target and secondary_count < 1:
-				status_effect_factory.apply_control_effect(enemy, "ROOT", unit, VINE_SNARE_AOE_DURATION, {
+				status_effect_factory.apply_control_effect(enemy, "ROOT", unit, root_dur, {
 					"effect_id": "vine_snare_root_secondary", "stack_group_key": "root", "source_key": "vine_snare_aoe",
 				})
+				_apply_venom_stacks_with_duration(unit, enemy, venom_stacks, VENOM_STACK_DURATION)
 				secondary_count += 1
 	_apply_tangled_growth(unit)
 	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Vine Snare", unit))

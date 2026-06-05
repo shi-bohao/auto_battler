@@ -54,7 +54,7 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 		"nature_touch":
 			return "自然触碰：每 3 次普攻为低生命友军施加 3 秒持续治疗，每秒 " + ("20" if safe_star >= 3 else "12") + "。"
 		"poison_blade":
-			return "毒刃：普攻使目标中毒 4 秒，每秒受到 " + ("14" if safe_star >= 3 else "8") + " 伤害。"
+			return "毒刃：普攻命中施加 " + ("3" if safe_star >= 3 else "2") + " 层剧毒，持续 6 秒。"
 		"defensive_command":
 			return "防御指令：战斗开始时前排友军获得 +" + ("30" if safe_star >= 3 else "16") + " 防御。"
 		"wind_rhythm":
@@ -66,7 +66,7 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 		"healing_aura":
 			return "疗愈光环：每 " + ("3" if safe_star >= 3 else "4") + " 秒治疗自身周围半径 " + ("120" if safe_star >= 3 else "100") + " 内所有友军，治疗量 " + ("12 + 40% 攻击力。" if safe_star >= 3 else "8 + 30% 攻击力。")
 		"corrosive_flask":
-			return "腐蚀药剂：普攻使目标腐蚀 " + ("4" if safe_star >= 3 else "3") + " 秒，每秒受到 " + ("7" if safe_star >= 3 else "4") + " 伤害，重复施加刷新持续时间。"
+			return "腐蚀药剂：普攻命中后对目标周围半径 " + ("70" if safe_star >= 3 else "55") + " 内所有敌人施加 " + ("2" if safe_star >= 3 else "1") + " 层剧毒。"
 		"grave_command":
 			return "坟场号令：召唤物存活整场战斗；自身召唤上限 +" + ("5。" if safe_star >= 3 else "3。" if safe_star >= 2 else "1。")
 		"puppet_contract":
@@ -211,7 +211,7 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 		"regrowth":
 			return "再生：为低生命友军施加 5 秒持续治疗，每秒 " + ("28 + 90% 攻击力，影响 2 个目标。" if safe_star >= 3 else "18 + 65% 攻击力。")
 		"toxic_cloud":
-			return "毒云：使目标中毒 " + ("6" if safe_star >= 3 else "5") + " 秒，每秒受到 " + ("24 + 60% 攻击力" if safe_star >= 3 else "15 + 45% 攻击力") + " 伤害。"
+			return "毒云：若目标身上有剧毒，扩散 " + ("50%" if safe_star >= 3 else "25%") + " 层数（向上取整，至少 1 层）给周围半径 " + ("140" if safe_star >= 3 else "110") + " 内其他敌人；目标无剧毒时无法释放。"
 		"iron_order":
 			return "钢铁号令：全队获得 +" + ("50" if safe_star >= 3 else "30") + " 防御，持续 " + ("6" if safe_star >= 3 else "5") + " 秒；3 星额外提供护盾。"
 		"haste_song":
@@ -223,7 +223,7 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 		"sanctuary":
 			return "圣域：以生命比例最低友军为中心，治疗半径 " + ("140" if safe_star >= 3 else "120") + " 内所有友军，3 秒内每秒治疗一次，总治疗量 " + ("55 + 150% 攻击力，并提供 15 护盾。" if safe_star >= 3 else "35 + 120% 攻击力。")
 		"acid_field":
-			return "酸液领域：在当前目标位置生成固定酸液区域，持续 " + ("6" if safe_star >= 3 else "5") + " 秒，半径 " + ("120" if safe_star >= 3 else "100") + "，每秒对区域内所有敌人造成 " + ("16 + 45% 攻击力" if safe_star >= 3 else "10 + 35% 攻击力") + " 伤害。"
+			return "酸液领域：在当前目标位置生成剧毒场地，持续 " + ("6" if safe_star >= 3 else "5") + " 秒，半径 " + ("120" if safe_star >= 3 else "100") + "，每秒对区域内所有敌人施加 " + ("3" if safe_star >= 3 else "2") + " 层剧毒。"
 		"raise_skeletons":
 			return "亡灵召唤：在自身身边召唤 " + ("4" if safe_star >= 3 else "2") + " 个骷髅，受自身召唤上限限制。"
 		"lesser_raise_bones":
@@ -307,7 +307,7 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 		"pinning_frost":
 			return "钉霜箭：对当前目标造成 160% 攻击力的技能伤害，并使目标迟缓，行动速率降至 45%，持续 3 秒。" + (" 3 星额外对目标周围 80 内敌人施加 2 秒 70% 迟缓。" if safe_star >= 3 else "")
 		"vine_snare":
-			return "藤蔓禁锢：对当前目标造成 120% 攻击力的技能伤害，并禁锢 " + ("3 秒。" if safe_star >= 2 else "2.5 秒。") + (" 3 星额外禁锢目标周围 70 内最近敌人 1.5 秒。" if safe_star >= 3 else "")
+			return "藤蔓禁锢：对当前目标造成 120% 攻击力的技能伤害，禁锢 " + ("5" if safe_star >= 3 else "3") + " 秒并施加 " + ("10" if safe_star >= 3 else "6") + " 层剧毒。" + (" 3 星额外禁锢目标周围 70 内最近敌人 5 秒并施加等量剧毒。" if safe_star >= 3 else "")
 		"hammer_stun":
 			return "震锤重击：对当前目标造成 150% 攻击力的技能伤害，并眩晕 " + ("1.5 秒。" if safe_star >= 2 else "1.25 秒。") + (" 3 星额外对目标周围 60 内最近敌人造成 80% 攻击力伤害并眩晕 0.75 秒。" if safe_star >= 3 else "")
 		"frost_prison":
