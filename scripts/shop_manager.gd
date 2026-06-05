@@ -18,11 +18,16 @@ const SHOP_CATEGORY_UNLOCKED_UNIT: String = "已解锁单位"
 const SHOP_CATEGORY_NEW_UNIT: String = "新单位解锁"
 const SHOP_CATEGORY_RELIC: String = "遗物"
 
+const RARITY_ROLL_SERVICE_SCRIPT: Script = preload("res://scripts/game/rarity_roll_service.gd")
+
 var relic_manager: RelicManager = null
 var roster_manager: Variant = null
+var run_modifier_manager: Variant = null
 var unit_catalog: Variant = UNIT_CATALOG_SCRIPT.new()
 var unit_text_formatter: Variant = UNIT_TEXT_FORMATTER_SCRIPT.new()
 var current_shop_items: Array[Dictionary] = []
+var rarity_roll_service: Variant = RARITY_ROLL_SERVICE_SCRIPT.new()
+var current_round: int = 1
 
 
 func setup(
@@ -44,7 +49,8 @@ func setup(
 	configured_necromancer_data: Resource = null,
 	configured_puppet_warlock_data: Resource = null,
 	configured_relic_manager: RelicManager = null,
-	configured_roster_manager: Variant = null
+	configured_roster_manager: Variant = null,
+	configured_run_modifier_manager: Variant = null
 ) -> void:
 	unit_catalog.setup(
 		configured_warrior_data,
@@ -67,9 +73,11 @@ func setup(
 	)
 	relic_manager = configured_relic_manager
 	roster_manager = configured_roster_manager
+	run_modifier_manager = configured_run_modifier_manager
 
 
-func roll_shop_items() -> void:
+func roll_shop_items(round_value: int = 1) -> void:
+	current_round = maxi(1, round_value)
 	current_shop_items.clear()
 
 	for _slot_index: int in range(UNLOCKED_UNIT_SHOP_SLOT_COUNT):
@@ -157,8 +165,16 @@ func _create_random_unit_shop_item(
 	if available_pool.is_empty():
 		return _create_empty_shop_item(empty_name, empty_description, category)
 
-	var random_index: int = randi_range(0, available_pool.size() - 1)
-	var unit_data: Resource = available_pool[random_index]
+	var target_rarity: String = rarity_roll_service.roll_rarity(current_round, "SHOP", _get_luck())
+	var unit_data: Resource = rarity_roll_service.pick_by_rarity(
+		available_pool,
+		target_rarity,
+		Callable(self, "_get_unit_rarity")
+	) as Resource
+
+	if unit_data == null:
+		return _create_empty_shop_item(empty_name, empty_description, category)
+
 	var rarity: String = _get_unit_rarity(unit_data)
 	return {
 		"type": SHOP_ITEM_TYPE_UNIT,
@@ -214,8 +230,16 @@ func _create_random_relic_shop_item() -> Dictionary:
 	if relic_pool.is_empty():
 		return _create_empty_shop_item("暂无可购买遗物", "已拥有的遗物不会重复出现在商店。", SHOP_CATEGORY_RELIC)
 
-	var random_index: int = randi_range(0, relic_pool.size() - 1)
-	var relic_reward: Dictionary = relic_pool[random_index]
+	var target_rarity: String = rarity_roll_service.roll_rarity(current_round, "SHOP", _get_luck())
+	var relic_reward: Dictionary = rarity_roll_service.pick_by_rarity(
+		relic_pool,
+		target_rarity,
+		Callable(self, "_get_relic_reward_rarity")
+	)
+
+	if relic_reward == null:
+		return _create_empty_shop_item("暂无可购买遗物", "遗物数据缺失。", SHOP_CATEGORY_RELIC)
+
 	var relic_data: Resource = relic_reward.get("relic_data", null) as Resource
 	if relic_data == null:
 		return _create_empty_shop_item("暂无可购买遗物", "遗物数据缺失。", SHOP_CATEGORY_RELIC)
@@ -232,6 +256,16 @@ func _create_random_relic_shop_item() -> Dictionary:
 		"rarity": rarity,
 		"is_sold": false,
 	}
+
+
+func _get_luck() -> float:
+	if run_modifier_manager != null and run_modifier_manager.has_method("get_luck"):
+		return run_modifier_manager.get_luck()
+	return 0.0
+
+
+func _get_relic_reward_rarity(relic_reward: Dictionary) -> String:
+	return str(relic_reward.get("rarity", "COMMON"))
 
 
 func _get_available_relic_shop_pool() -> Array[Dictionary]:

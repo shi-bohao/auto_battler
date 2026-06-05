@@ -1,8 +1,10 @@
 class_name ControlStatusView
 extends RefCounted
 
-const BADGE_SIZE: Vector2 = Vector2(22.0, 18.0)
+const BADGE_SIZE: Vector2 = Vector2(22.0, 20.0)
 const BADGE_FONT_SIZE: int = 12
+const BADGE_CHAR_WIDTH: float = 10.5
+const BADGE_H_PADDING: float = 8.0
 
 var row: HBoxContainer = null
 var badges_by_type: Dictionary = {}
@@ -29,8 +31,13 @@ func refresh(tags: Array[Dictionary]) -> void:
 		if badge != null and is_instance_valid(badge):
 			badge.visible = false
 
+	var sorted_tags: Array[Dictionary] = tags.duplicate()
+	sorted_tags.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return int(a.get("priority", 0)) > int(b.get("priority", 0))
+	)
+
 	var index: int = 0
-	for tag: Dictionary in tags:
+	for tag: Dictionary in sorted_tags:
 		var control_type: String = str(tag.get("type", tag.get("text", "")))
 		if control_type.strip_edges() == "":
 			continue
@@ -102,9 +109,14 @@ func _update_badge(badge: Control, tag: Dictionary) -> void:
 		return
 
 	var label: Label = badge.get_node_or_null("Label") as Label
+	var label_text: String = str(tag.get("label", tag.get("text", "")))
 	if label != null:
-		label.text = str(tag.get("label", tag.get("text", "")))
+		label.text = label_text
 		label.add_theme_color_override("font_color", Color(1.0, 1.0, 1.0, 1.0))
+
+	var text_width: float = float(label_text.length()) * BADGE_CHAR_WIDTH
+	var min_width: float = maxf(BADGE_SIZE.x, text_width + BADGE_H_PADDING)
+	badge.custom_minimum_size = Vector2(min_width, BADGE_SIZE.y)
 
 	var color: Color = tag.get("color", Color.WHITE) as Color
 	var background: Color = Color(

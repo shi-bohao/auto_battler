@@ -17,7 +17,7 @@ const HERO_IRON_LINE_ECHO_COOLDOWN_META: String = "hero_iron_line_echo_cooldown"
 const HERO_IRON_LINE_ECHO_LAST_TIME_META: String = "hero_iron_line_echo_last_time"
 
 
-func take_damage(unit: Variant, amount: int, attacker: Variant, can_crit: bool = true) -> int:
+func take_damage(unit: Variant, amount: int, attacker: Variant, can_crit: bool = true, floating_style: String = "damage") -> int:
 	if not _is_valid_unit(unit):
 		return 0
 
@@ -66,7 +66,7 @@ func take_damage(unit: Variant, amount: int, attacker: Variant, can_crit: bool =
 
 	unit._update_hp_bar()
 	unit.update_info_display()
-	unit.unit_feedback.play_damage_feedback(unit, unit.body, effective_damage, is_critical)
+	unit.unit_feedback.play_damage_feedback(unit, unit.body, effective_damage, is_critical, floating_style)
 
 	if unit.hp > 0 and unit.mana_on_hit_taken > 0.0:
 		unit.restore_mana(unit.mana_on_hit_taken, unit)

@@ -64,10 +64,13 @@ func apply_effect(target_unit: Variant, effect_data: Dictionary) -> StatusEffect
 			_:
 				applied_effect = _apply_refresh_only(effect_data)
 
-	if applied_effect != null and applied_effect.effect_type == StatusEffect.EFFECT_CONTROL:
-		_notify_control_state_changed(target_unit)
-		if target_unit.has_method("notify_control_effect_applied"):
-			target_unit.notify_control_effect_applied(applied_effect, not was_control_type_active)
+	if applied_effect != null:
+		if applied_effect.effect_type == StatusEffect.EFFECT_CONTROL:
+			_notify_control_state_changed(target_unit)
+			if target_unit.has_method("notify_control_effect_applied"):
+				target_unit.notify_control_effect_applied(applied_effect, not was_control_type_active)
+		elif applied_effect.effect_id == BURNING_EFFECT_ID or applied_effect.effect_id == VENOM_STACK_EFFECT_ID:
+			_refresh_status_display(target_unit)
 
 	return applied_effect
 
@@ -106,6 +109,7 @@ func clear_effects(target_unit: Variant, should_update_display: bool = true, sho
 func remove_effects_by_id(effect_id: String) -> int:
 	var removed_count: int = 0
 	var had_control: bool = false
+	var had_status: bool = false
 	var target_unit: Variant = null
 	for index: int in range(effects.size() - 1, -1, -1):
 		var effect: StatusEffect = effects[index]
@@ -118,32 +122,47 @@ func remove_effects_by_id(effect_id: String) -> int:
 
 		if effect.effect_type == StatusEffect.EFFECT_CONTROL:
 			had_control = true
-			target_unit = effect.target_unit
+		elif effect.effect_id == BURNING_EFFECT_ID or effect.effect_id == VENOM_STACK_EFFECT_ID:
+			had_status = true
+		target_unit = effect.target_unit
 		effect.expire()
 		effects.remove_at(index)
 		removed_count += 1
 
 	if had_control and _is_valid_unit(target_unit):
 		_notify_control_state_changed(target_unit)
+	if had_status and _is_valid_unit(target_unit):
+		_refresh_status_display(target_unit)
 
 	return removed_count
 
 
 func _remove_expired_effects(target_unit: Variant = null) -> void:
 	var had_control: bool = false
+	var had_status: bool = false
 	for index: int in range(effects.size() - 1, -1, -1):
 		var effect: StatusEffect = effects[index]
 		if effect == null or effect.is_expired:
-			if effect != null and effect.effect_type == StatusEffect.EFFECT_CONTROL:
-				had_control = true
+			if effect != null:
+				if effect.effect_type == StatusEffect.EFFECT_CONTROL:
+					had_control = true
+				elif effect.effect_id == BURNING_EFFECT_ID or effect.effect_id == VENOM_STACK_EFFECT_ID:
+					had_status = true
 			effects.remove_at(index)
 	if had_control and _is_valid_unit(target_unit):
 		_notify_control_state_changed(target_unit)
+	if had_status and _is_valid_unit(target_unit):
+		_refresh_status_display(target_unit)
 
 
 func _notify_control_state_changed(target_unit: Variant) -> void:
 	if _is_valid_unit(target_unit) and target_unit.has_method("rebuild_control_state"):
 		target_unit.rebuild_control_state()
+
+
+func _refresh_status_display(target_unit: Variant) -> void:
+	if _is_valid_unit(target_unit) and target_unit.has_method("_refresh_control_status_display"):
+		target_unit._refresh_control_status_display()
 
 
 func get_debug_lines() -> Array[String]:
@@ -169,6 +188,33 @@ func get_effect_count(effect_id: String) -> int:
 				count += 1
 
 	return count
+
+
+func get_status_ui_tags() -> Array[Dictionary]:
+	var tags: Array[Dictionary] = []
+
+	var burning_effect: StatusEffect = _find_effect_by_id(BURNING_EFFECT_ID)
+	if burning_effect != null and not burning_effect.is_expired:
+		tags.append({
+			"type": "burning",
+			"label": "燃",
+			"name": "燃烧",
+			"color": Color(1.0, 0.35, 0.08),
+			"priority": 20,
+		})
+
+	var venom_effect: StatusEffect = _find_effect_by_id(VENOM_STACK_EFFECT_ID)
+	if venom_effect != null and not venom_effect.is_expired:
+		var stack_count: int = maxi(1, int(venom_effect.stack_count))
+		tags.append({
+			"type": "venom_stack",
+			"label": "毒" + str(stack_count),
+			"name": "剧毒",
+			"color": Color(0.45, 1.0, 0.15),
+			"priority": 10,
+		})
+
+	return tags
 
 
 func _find_effect_by_id(effect_id: String) -> StatusEffect:
@@ -228,6 +274,7 @@ func _apply_venom_stack_effect(effect_data: Dictionary) -> StatusEffect:
 		existing_effect = _find_effect_by_id(VENOM_STACK_EFFECT_ID)
 	if existing_effect != null:
 		existing_effect.add_venom_stacks(effect_data)
+		_refresh_status_display(effect_data.get("target_unit", null))
 		return existing_effect
 
 	return _create_effect(effect_data)
@@ -240,6 +287,7 @@ func _apply_burning_effect(effect_data: Dictionary) -> StatusEffect:
 		existing_effect = _find_effect_by_id(BURNING_EFFECT_ID)
 	if existing_effect != null:
 		existing_effect.add_burning_damage(effect_data)
+		_refresh_status_display(effect_data.get("target_unit", null))
 		return existing_effect
 
 	return _create_effect(effect_data)

@@ -149,15 +149,15 @@ func has_hard_control() -> bool:
 func get_ui_tags() -> Array[Dictionary]:
 	var tags: Array[Dictionary] = []
 	if is_frozen:
-		tags.append(_make_ui_tag(StatusEffect.CONTROL_FREEZE, "冻", "冻结", Color(0.5, 0.8, 1.0), 50))
+		tags.append(_make_ui_tag(StatusEffect.CONTROL_FREEZE, "冻", "冻结", Color(0.5, 0.8, 1.0), 70))
 	if is_stunned:
-		tags.append(_make_ui_tag(StatusEffect.CONTROL_STUN, "晕", "眩晕", Color(1.0, 0.9, 0.2), 40))
+		tags.append(_make_ui_tag(StatusEffect.CONTROL_STUN, "晕", "眩晕", Color(1.0, 0.9, 0.2), 60))
 	if is_rooted:
-		tags.append(_make_ui_tag(StatusEffect.CONTROL_ROOT, "缚", "禁锢", Color(0.3, 0.9, 0.3), 30))
+		tags.append(_make_ui_tag(StatusEffect.CONTROL_ROOT, "禁", "禁锢", Color(0.3, 0.9, 0.3), 50))
 	if is_taunted:
-		tags.append(_make_ui_tag(StatusEffect.CONTROL_TAUNT, "嘲", "嘲讽", Color(1.0, 0.3, 0.3), 20))
+		tags.append(_make_ui_tag(StatusEffect.CONTROL_TAUNT, "嘲", "嘲讽", Color(1.0, 0.3, 0.3), 40))
 	if is_slowed:
-		tags.append(_make_ui_tag(StatusEffect.CONTROL_SLOW, "缓", "减速", Color(0.4, 0.6, 1.0), 10))
+		tags.append(_make_ui_tag(StatusEffect.CONTROL_SLOW, "缓", "迟缓", Color(0.4, 0.6, 1.0), 30))
 	return tags
 
 

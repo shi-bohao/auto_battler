@@ -341,7 +341,12 @@ func _apply_tick() -> void:
 		EFFECT_HEAL_OVER_TIME:
 			target_unit.heal(tick_value, _get_valid_source_or_target())
 		EFFECT_DAMAGE_OVER_TIME:
-			target_unit.take_damage(tick_value, _get_valid_source_or_null(), false)
+			if _is_venom_stack_effect():
+				target_unit.take_damage(tick_value, _get_valid_source_or_null(), false, "venom")
+			elif _is_burning_effect():
+				target_unit.take_damage(tick_value, _get_valid_source_or_null(), false, "burning")
+			else:
+				target_unit.take_damage(tick_value, _get_valid_source_or_null(), false)
 
 	_decay_stacks_after_tick()
 
@@ -372,6 +377,8 @@ func _decay_stacks_after_tick() -> void:
 		expire()
 	elif _is_valid_unit(target_unit):
 		target_unit.update_info_display()
+		if target_unit.has_method("_refresh_control_status_display"):
+			target_unit._refresh_control_status_display()
 
 
 func _get_tick_values(effect_data: Dictionary) -> Array[int]:

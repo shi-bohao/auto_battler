@@ -1,6 +1,6 @@
 # 自动对战 Demo 项目状态总览
 
-更新时间：2026-06-02（含新 BOSS、新精英敌人、史莱姆系列敌人、导出资源修复、玩家单位/遗物素材改为数据资源显式引用、图鉴导出资源扫描兼容）
+更新时间：2026-06-05（含通用稀有度抽取服务、商店幸运接入、状态徽标与飘字显示优化）
 
 > 文档导航见 `docs/README.md`。本文档作为当前项目进度入口；单位、英雄、敌人、召唤物和遗物的数值核对以 `docs/content_reference.md` 为准。各系统分别参考对应专题文档：`docs/systems/` 下为系统规则，`docs/content/` 下为设计意图，`docs/pipeline/` 下为素材与测试流程。历史设计记录和更早的更新日志见 `docs/archive/`。
 
@@ -8,13 +8,20 @@
 
 本项目是一个 Godot 4 + GDScript 制作的 2D 肉鸽自走棋 Demo。
 
-当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、运行时属性修饰器、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄与玩家单位静态美术资源、主菜单/战斗背景图库切换、中文文本、战斗统计、路径选择系统（6 种节点类型）和结束回主菜单流程的可玩原型。
+当前 Demo 已经从最初的单场自动战斗，扩展为包含主菜单、英雄选择、准备阶段、自动战斗、战斗加速、加时赛提示、30 波推进、奖励三选一、10 格分类商店、单位解锁与升星提醒、遗物系统、英雄系统、羁绊系统、召唤系统、Buff/Debuff 堆叠体系、燃烧/剧毒状态显示、运行时属性修饰器、图鉴、Boss 阵容快照、镜像挑战、远程普攻真实弹道、非圆形瞬时 AoE、常驻光环遗物、本局永久属性成长、英雄与玩家单位静态美术资源、主菜单/战斗背景图库切换、中文文本、战斗统计、路径选择系统（6 种节点类型）和结束回主菜单流程的可玩原型。
 
 当前项目仍然聚焦在自动战斗与局内成长循环验证，路线地图、装备背包、战斗回放和存档系统仍未纳入当前 Demo 范围。
 
 截至当前版本，早期 6 阶段结构重构已经完成：UI 控制器、流程/经济、阵容服务、遭遇生成、技能/遗物效果和 UI 子场景均已完成拆分。过期阶段总结和重构计划已从当前文档集中移除，目录和职责以本文档下方说明为准。
 
-当前统计：**30 个玩家单位、4 个英雄、32 个敌方单位、8 个召唤物、43 个遗物**。
+当前统计：**32 个玩家单位、4 个英雄、33 个敌方单位、8 个召唤物、43 个遗物**。
+
+## 2026-06-05 奖励/商店稀有度与状态显示
+
+- **通用稀有度抽取服务**：新增 `RarityRollService`，统一维护 COMMON/FINE/RARE/EPIC/LEGENDARY 的波次成长、遭遇加成、幸运修正和高到低截断规则。
+- **奖励/商店共用规则**：`RewardManager` 与 `ShopManager` 均使用 `RarityRollService`；准备阶段商店的单位与遗物刷新已接入当前波次和 `RunModifierManager.luck`，遭遇类型使用 `SHOP`（无额外遭遇加成）。
+- **状态徽标优化**：单位头顶状态行同时显示控制状态与持续状态；燃烧显示 `燃`，剧毒显示 `毒N`，剧毒层数变化和衰减会刷新显示。
+- **飘字优化**：直接伤害、暴击、燃烧、剧毒和治疗统一走 `UnitFeedback.play_floating_number()`，使用更醒目的颜色、字号和黑色描边。
 
 ## 2026-06-02 新 BOSS 与新精英敌人
 
@@ -57,7 +64,7 @@
 
 ## 2026-05-29 控制效果系统
 
-- **控制效果系统**：减速/禁锢/眩晕/冻结/嘲讽五类控制，通过 `StatusEffectFactory.apply_control_effect()` 统一施加，`UnitControlState` 聚合最终行动能力。
+- **控制效果系统**：迟缓/禁锢/眩晕/冻结/嘲讽五类控制，通过 `StatusEffectFactory.apply_control_effect()` 统一施加，`UnitControlState` 聚合最终行动能力。
 - **StatusEffect 扩展**：新增 `EFFECT_CONTROL`、`CATEGORY_CONTROL`、控制字段和新叠层策略。
 - **UnitControlState**（`scripts/combat/unit_control_state.gd`）：布尔聚合 can_move/attack/cast/retarget。
 - **UnitData / Unit 扩展**：新增 `control_duration_multiplier`、`hard_control_duration_multiplier`、`control_immunity_tags`。
@@ -131,6 +138,8 @@ res://
     ├── encounter/
     ├── formatters/
     ├── game/
+    │   ├── rarity_roll_service.gd
+    │   └── run_modifier_manager.gd / run_controller.gd / game_state.gd
     ├── relic/
     ├── roster/
     ├── ui/
@@ -152,7 +161,7 @@ res://
         ├── test_slime_enemies.gd
         ├── test_summon_system.gd
         ├── test_stat_modifier_system.gd
-        └── ...（共 22 个，完整清单见 `docs/pipeline/testing.md`）
+        └── ...（共 32 个，完整清单见 `docs/pipeline/testing.md`）
 ```
 
 ## 场景职责
@@ -176,10 +185,13 @@ res://
 单场战斗管理器。负责：清理战场、生成双方单位、分配队伍/位置/数据、连接单位信号、托管 `SummonManager`、启动/停止战斗、分配敌方列表、监听单位死亡、判断胜负、保存统计、转发事件给遗物系统。
 
 ### `reward_manager.gd`
-奖励生成与选择应用入口。区分 STAT/UNIT/RELIC 类型；按波次、遭遇类型和幸运值抽取稀有度；属性奖励覆盖 5 个稀有度；单位奖励从当前本局可获取单位池动态生成，并兼容英雄专属单位过滤。
+奖励生成与选择应用入口。区分 STAT/UNIT/RELIC 类型；通过 `RarityRollService` 按波次、遭遇类型和幸运值抽取稀有度；属性奖励覆盖 5 个稀有度；单位奖励从当前本局可获取单位池动态生成，并兼容英雄专属单位过滤。
+
+### `shop_manager.gd`
+准备阶段 10 格商店生成入口。已解锁单位、新单位解锁和遗物栏位均通过 `RarityRollService` 按当前波次与幸运值抽取目标稀有度，再从对应池中选择最接近的商品。
 
 ### `run_modifier_manager.gd`
-本局运行修正管理器。当前保存 `luck` 幸运值，供奖励稀有度概率计算使用；Restart 时清空，可通过快照接口保存/还原。
+本局运行修正管理器。当前保存 `luck` 幸运值，供奖励和商店稀有度概率计算使用；Restart 时清空，可通过快照接口保存/还原。
 
 ### `roster_manager.gd`
 玩家阵容与成长管理器。管理全队生命/攻击倍率、本局永久属性 `permanent_stat_bonuses`、攻速属性奖励、英雄专属单位池过滤、新增单位、升星、Restart 恢复。
@@ -200,7 +212,7 @@ res://
 单位索敌和追击。支持 `NEAREST` / `LOWEST_HP`，目标合法性检查、卡住检测、被控状态读取。
 
 ### `unit_feedback.gd` / `unit_drag_controller.gd` / `unit_data_applier.gd`
-战斗反馈（攻击缩放/受伤闪烁/伤害数字/死亡淡出）、准备阶段拖拽控制、UnitData 应用到单位实例。
+战斗反馈（攻击缩放/受伤闪烁/统一飘字/死亡淡出）、准备阶段拖拽控制、UnitData 应用到单位实例。
 
 ## 当前主流程
 
@@ -219,7 +231,7 @@ MIRROR_CHALLENGE (总波次相同，Boss 波用历史镜像替换)              
 - 远程真实弹道：发射飞行物→追踪目标→命中结算（快照机制）
 - 近战即时命中
 - 圆形/矩形/扇形瞬时 AoE 命中与范围视觉
-- 攻击冷却、死亡淡出、伤害数字、受伤闪烁、攻击反馈
+- 攻击冷却、死亡淡出、统一飘字（伤害/暴击/燃烧/剧毒/治疗）、受伤闪烁、攻击反馈
 
 ### 索敌
 - `NEAREST` / `LOWEST_HP` 策略
@@ -232,7 +244,7 @@ MIRROR_CHALLENGE (总波次相同，Boss 波用历史镜像替换)              
 - 30 个节点推进：Boss 固定 10/20/30；精英战由路径选择节点或强制精英节点触发
 - 敌方强度随波次/遭遇类型/星级递增
 - 路径选择系统（6 种节点类型：普通/精英/商人/训练/事件/宝箱）
-- 商人全局强化中的 `death_prevention` 当前保存为全局标记，致死拦截逻辑尚未接入战斗结算
+- 商人全局强化中的 `death_prevention` 已接入战斗结算：玩家单位每场每单位首次致死保留 1 HP
 - Restart 重置整局
 
 ### 英雄系统
@@ -246,7 +258,8 @@ MIRROR_CHALLENGE (总波次相同，Boss 波用历史镜像替换)              
 - 镜像挑战入口与基础替换流程已存在，但快照还原细节（永久属性还原、随机选择规则等）仍暂缓校准，剩余问题见 `docs/audit_issues_draft.md`
 
 ### 奖励/遗物/召唤/统计系统
-- 三选一奖励（属性/单位/遗物），悬停详情；稀有度受波次、遭遇类型和幸运值影响
+- 三选一奖励（属性/单位/遗物），悬停详情；稀有度由 `RarityRollService` 计算，受波次、遭遇类型和幸运值影响
+- 准备阶段商店使用同一套稀有度/幸运规则，`SHOP` 遭遇类型无额外遭遇加成
 - 属性奖励覆盖生命百分比、攻击百分比、攻速百分比、防御、幸运，COMMON/FINE/RARE/EPIC/LEGENDARY 数值为 5/10/15/20/25
 - 单位奖励从当前可获取玩家单位池动态生成，英雄专属单位只在选择对应英雄后出现
 - 43 件遗物，6 种触发类型
@@ -256,6 +269,7 @@ MIRROR_CHALLENGE (总波次相同，Boss 波用历史镜像替换)              
 ### UI 与交互
 - 像素风统一 UI、背景图库切换、代码渲染棋盤网格
 - 拖拽出售、单位详情、英雄选择预览确认、悬停缩放动画
+- 单位头顶状态徽标同时显示控制状态与燃烧/剧毒；战斗飘字统一描边和配色
 - 完整 UI 分层系统（`scripts/ui/ui_layer.gd`）
 
 ## 当前结构评价
@@ -302,6 +316,8 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_summon_system.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_stat_modifier_system.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_bond_manager.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_rarity_roll_service.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_shop_rarity_roll.gd
 
 # 刷新内容参考文档
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tools/generate_content_reference.gd

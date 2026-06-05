@@ -20,11 +20,13 @@ func play_attack_feedback(unit: Node2D) -> void:
 	attack_feedback_tween.tween_property(feedback_target, "scale", Vector2.ONE, _get_scaled_duration(unit, 0.08))
 
 
-func play_damage_feedback(unit: Node2D, body: ColorRect, amount: int, is_critical: bool = false) -> void:
+func play_damage_feedback(unit: Node2D, body: ColorRect, amount: int, is_critical: bool = false, floating_style: String = "damage") -> void:
 	if unit == null or not is_instance_valid(unit):
 		return
 
-	_show_damage_number(unit, amount, is_critical)
+	var style: String = "critical" if is_critical else floating_style
+	var text: String = _get_damage_text(amount, is_critical, floating_style)
+	play_floating_number(unit, text, style)
 
 	var flash_target: CanvasItem = _get_flash_target(unit, body)
 	if flash_target == null:
@@ -42,7 +44,35 @@ func play_heal_feedback(unit: Node2D, amount: int) -> void:
 	if unit == null or not is_instance_valid(unit):
 		return
 
-	_show_heal_number(unit, amount)
+	play_floating_number(unit, "+" + str(amount), "heal")
+
+
+func play_floating_number(unit: Node2D, text: String, style: String = "damage") -> void:
+	if unit == null or not is_instance_valid(unit):
+		return
+
+	var config: Dictionary = _get_floating_config(style)
+	var label: Label = Label.new()
+	label.text = text
+	label.z_index = 20
+	label.add_theme_font_size_override("font_size", config.font_size)
+	label.add_theme_color_override("font_color", config.color)
+	label.add_theme_color_override("font_outline_color", Color(0.0, 0.0, 0.0, 1.0))
+	label.add_theme_constant_override("outline_size", config.outline_size)
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+	var random_offset: float = randf_range(-10.0, 10.0)
+	label.position = Vector2(random_offset, -42.0)
+
+	unit.add_child(label)
+
+	var duration: float = _get_scaled_duration(unit, config.duration)
+	var label_tween: Tween = unit.create_tween()
+	label_tween.set_parallel(true)
+	label_tween.tween_property(label, "position", label.position + Vector2(0.0, -36.0), duration)
+	label_tween.tween_property(label, "modulate:a", 0.0, duration)
+	label_tween.set_parallel(false)
+	label_tween.tween_callback(Callable(label, "queue_free"))
 
 
 func play_death_feedback(unit: Node2D) -> void:
@@ -107,38 +137,39 @@ func play_control_feedback(unit: Node2D, control_name: String, color: Color) -> 
 
 
 func _show_damage_number(unit: Node2D, amount: int, is_critical: bool) -> void:
-	var damage_label: Label = Label.new()
-	if is_critical:
-		damage_label.text = "暴击 " + str(amount)
-	else:
-		damage_label.text = "-" + str(amount)
-	damage_label.position = Vector2(8.0, -34.0)
-	damage_label.modulate = Color(1.0, 0.35, 0.15) if is_critical else Color(1.0, 0.85, 0.15)
-	damage_label.add_theme_font_size_override("font_size", 18 if is_critical else 16)
-	unit.add_child(damage_label)
-
-	var label_tween: Tween = unit.create_tween()
-	label_tween.set_parallel(true)
-	label_tween.tween_property(damage_label, "position", damage_label.position + Vector2(0.0, -24.0), _get_scaled_duration(unit, 0.45))
-	label_tween.tween_property(damage_label, "modulate:a", 0.0, _get_scaled_duration(unit, 0.45))
-	label_tween.set_parallel(false)
-	label_tween.tween_callback(Callable(damage_label, "queue_free"))
+	var style: String = "critical" if is_critical else "damage"
+	var text: String = _get_damage_text(amount, is_critical, "damage")
+	play_floating_number(unit, text, style)
 
 
 func _show_heal_number(unit: Node2D, amount: int) -> void:
-	var heal_label: Label = Label.new()
-	heal_label.text = "+" + str(amount)
-	heal_label.position = Vector2(8.0, -44.0)
-	heal_label.modulate = Color(0.35, 1.0, 0.45)
-	heal_label.add_theme_font_size_override("font_size", 16)
-	unit.add_child(heal_label)
+	play_floating_number(unit, "+" + str(amount), "heal")
 
-	var label_tween: Tween = unit.create_tween()
-	label_tween.set_parallel(true)
-	label_tween.tween_property(heal_label, "position", heal_label.position + Vector2(0.0, -24.0), _get_scaled_duration(unit, 0.45))
-	label_tween.tween_property(heal_label, "modulate:a", 0.0, _get_scaled_duration(unit, 0.45))
-	label_tween.set_parallel(false)
-	label_tween.tween_callback(Callable(heal_label, "queue_free"))
+
+func _get_floating_config(style: String) -> Dictionary:
+	match style:
+		"critical":
+			return {"color": Color(1.0, 0.15, 0.05), "font_size": 24, "outline_size": 5, "duration": 0.65}
+		"burning":
+			return {"color": Color(1.0, 0.35, 0.08), "font_size": 19, "outline_size": 4, "duration": 0.6}
+		"venom":
+			return {"color": Color(0.45, 1.0, 0.15), "font_size": 19, "outline_size": 4, "duration": 0.6}
+		"heal":
+			return {"color": Color(0.35, 1.0, 0.45), "font_size": 20, "outline_size": 4, "duration": 0.6}
+		_:
+			return {"color": Color(1.0, 0.85, 0.15), "font_size": 20, "outline_size": 4, "duration": 0.6}
+
+
+func _get_damage_text(amount: int, is_critical: bool, floating_style: String) -> String:
+	if is_critical:
+		return "暴击 " + str(amount)
+	match floating_style:
+		"burning":
+			return "燃 -" + str(amount)
+		"venom":
+			return "毒 -" + str(amount)
+		_:
+			return "-" + str(amount)
 
 
 func _get_scaled_duration(unit: Node2D, duration: float) -> float:

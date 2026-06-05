@@ -4,6 +4,7 @@
 >
 > 已实现：波次过渡动画（全屏淡入/停留/淡出）、所有节点统一消耗 round、强制精英/Boss 节点选择（单选项）、非战斗节点退出回到路径选择。
 > 已修复：弹道路由、AoE 重复释放、商人遗物去重、人口可重复购买、高稀有度单位稀有度筛选、事件/宝箱过渡信息错误、round_label 非战斗状态不更新。
+> 当前奖励与准备阶段商店共用 `RarityRollService` 计算稀有度概率，幸运值由 `RunModifierManager` 保存。
 
 ## 1. 目标
 
@@ -72,7 +73,7 @@ const TREASURE: int = 12
 
 ### 3.7 战斗胜利奖励三选一
 
-战斗胜利后由 `RewardManager.roll_reward_options(3, encounter_type, current_round)` 生成三选一奖励。奖励池包含：
+战斗胜利后由 `RewardManager.roll_reward_options(3, encounter_type, current_round)` 生成三选一奖励。稀有度由 `RarityRollService` 根据当前波次、遭遇类型和幸运值计算。奖励池包含：
 
 - 属性奖励：生命百分比、攻击百分比、攻速百分比、防御、幸运。
 - 单位奖励：随机单位 + 当前本局可获取单位的指定单位奖励。
@@ -88,7 +89,7 @@ const TREASURE: int = 12
 | EPIC | 1% | +1% | 20 |
 | LEGENDARY | 0% | +0.5% | 25 |
 
-概率计算顺序：
+概率计算顺序（`scripts/game/rarity_roll_service.gd`）：
 
 1. `raw = 基础概率 + (current_round - 1) * 每波成长 + 遭遇加成`。
 2. 遭遇加成：普通 0%，精英 10%，Boss 20%。
@@ -96,6 +97,8 @@ const TREASURE: int = 12
 4. 最终概率从高稀有度到低稀有度截断填充，顺序为 LEGENDARY → EPIC → RARE → FINE → COMMON，直到总和达到 100%。
 
 例：第 1 波普通战斗、幸运 100 时，修正前为 70/20/9/1/0，幸运放大后为 100/40/18/2/0，最终概率为 COMMON 40%、FINE 40%、RARE 18%、EPIC 2%、LEGENDARY 0%。
+
+准备阶段商店也使用同一套概率服务，但遭遇类型传入 `SHOP`，不附加普通/精英/Boss 的遭遇加成。
 
 单位奖励规则：
 
@@ -173,7 +176,7 @@ Round 1-2：强制 3 个 NORMAL。
 | 不竭脉络 | 全队魔力回复 +15% | 11 | mana_regen_per_second | 0.15 | percent |
 | 永恒誓约 | 战斗内首次致死保留 1HP | 15 | death_prevention | 1.0 | special |
 
-全局强化通过 `roster_manager.global_stat_bonuses` 存储，在 `unit_scaling_service.create_scaled_unit_data()` 中应用到所有战斗单位。`death_prevention` 标记存储在 `roster_manager.has_death_prevention`（战斗中实际拦截逻辑待后续接入）。
+全局强化通过 `roster_manager.global_stat_bonuses` 存储，在 `unit_scaling_service.create_scaled_unit_data()` 中应用到所有战斗单位。`death_prevention` 标记存储在 `roster_manager.has_death_prevention`，战斗开始后接入玩家单位与玩家召唤物，每场每单位首次致死保留 1 HP。
 
 ### 6.5 流程
 
@@ -321,6 +324,7 @@ PATH_SELECT → TREASURE
 | `scripts/merchant_manager.gd` | **新建** 货架生成、刷新、购买、人口提升、全局强化应用 |
 | `scripts/training_manager.gd` | **新建** 木桩遭遇生成、计时、掉落池、升星券 |
 | `scripts/event_manager.gd` | **新建** 事件加载、抽取、效果解析、6 个硬编码事件 |
+| `scripts/game/rarity_roll_service.gd` | 奖励与准备阶段商店共用的稀有度/幸运抽取服务 |
 | `scripts/encounter/encounter_generator.gd` | create_random_encounter() 新增 forced_type 参数 |
 | `scripts/encounter_manager.gd` | 新增 forced_encounter_type / set_override_encounter() |
 | `scripts/roster_manager.gd` | max_active_units 改为实例变量；新增 apply_permanent_percent_bonus/flat_bonus、global_stat_bonuses、set_unit_star_by_roster_id()、has_death_prevention |

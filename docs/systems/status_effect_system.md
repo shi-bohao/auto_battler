@@ -1,6 +1,6 @@
 # 状态效果系统设计
 
-更新时间：2026-06-02
+更新时间：2026-06-05
 
 本文档覆盖 Buff/Debuff、DoT/HoT、属性修饰、燃烧、剧毒等状态效果，以及已实现的五类控制系统（Slow/Root/Stun/Freeze/Taunt）。
 
@@ -20,7 +20,7 @@ Unit._process() → update effects → update attack/target/skill/movement
 
 关键文件：
 - `scripts/status_effect.gd` — 状态效果数据结构，支持 HoT、DoT、属性加算/乘算、持续时间模式、正负性、分类、多种叠层策略
-- `scripts/unit_effect_controller.gd` — 状态效果生命周期管理
+- `scripts/unit_effect_controller.gd` — 状态效果生命周期管理，并向头顶状态栏提供燃烧/剧毒 UI 标签
 - `scripts/combat/status_effect_factory.gd` — 统一创建/施加状态效果入口
 - `scripts/combat/unit_stat_controller.gd` — 属性修饰器分层计算管道
 
@@ -31,9 +31,10 @@ Unit._process() → update effects → update attack/target/skill/movement
 | `EFFECT_HEAL_OVER_TIME` | 持续治疗 |
 | `EFFECT_DAMAGE_OVER_TIME` | 持续伤害（燃烧 burning、剧毒 venom_stack） |
 | `EFFECT_STAT_ADD` / `EFFECT_STAT_MULTIPLY` | 属性加成/乘算 |
-| `EFFECT_SHIELD` | 护盾 |
 | `EFFECT_CONTROL` | 控制效果（Slow/Root/Stun/Freeze/Taunt） |
 | MARK | `putrid_mark` 等标记类效果 |
+
+护盾不作为独立 `StatusEffect` 类型存在，当前由 `UnitCombat.add_shield()` 直接处理。
 
 ### 叠层策略
 
@@ -43,12 +44,25 @@ Unit._process() → update effects → update attack/target/skill/movement
 
 - 普攻、技能、死亡场地均可施加
 - 标准 DoT 生命周期，单位死亡时清理
+- 头顶徽标显示为 `燃`
+- 每跳伤害飘字显示为 `燃 -数值`
 
 ### 剧毒 / venom_stack
 
 - 单状态记录层数，每层 `5/s`
 - 刷新持续时间，过期后每秒衰减 5 层
 - 剧毒羁绊已通过 `StatusEffectFactory` 修改状态数据
+- 头顶徽标显示为 `毒N`，N 为当前层数
+- 每跳伤害飘字显示为 `毒 -数值`
+
+### 状态显示
+
+单位头顶状态栏复用 `ControlStatusView`，由 `Unit._refresh_control_status_display()` 合并两类标签：
+
+1. 控制状态：来自 `UnitControlState.get_ui_tags()`。
+2. 持续状态：来自 `UnitEffectController.get_status_ui_tags()`，当前包含 `burning` 与 `venom_stack`。
+
+控制状态与燃烧/剧毒可以同时显示，例如 `冻 燃 毒12`。显示顺序按 `priority` 从高到低排序。
 
 ### 叠层策略详解
 
@@ -98,7 +112,7 @@ Unit._process() → update effects → update attack/target/skill/movement
 
 | 控制 | 移动 | 普攻 | 施法 | 索敌 | 说明 |
 | --- | --- | --- | --- | --- | --- |
-| Slow / 减速 | 降速 | ✅ | ✅ | ✅ | `move_speed_multiplier` / `attack_cooldown_rate_multiplier` / `mana_regen_multiplier` 均取最小值，保底 0.20 |
+| Slow / 迟缓 | 降低整体速率 | ✅ | ✅ | ✅ | `move_speed_multiplier` / `attack_cooldown_rate_multiplier` / `mana_regen_multiplier` 均取最小值，保底 0.20 |
 | Root / 禁锢 | ❌ | ✅ | ✅ | ✅ | 范围内可攻击，不在范围原地等 |
 | Stun / 眩晕 | ❌ | ❌ | ❌ | - | 魔力保留，攻击冷却继续计时，不取消已发射弹道 |
 | Freeze / 冻结 | ❌ | ❌ | ❌ | - | 等同眩晕；`skill_damage_taken_multiplier` 只增强技能伤害 |
@@ -114,15 +128,15 @@ Unit._process() → update effects → update attack/target/skill/movement
 | TAUNT | `REPLACE_BY_LAST` | 后施加的嘲讽完全替换前一个（移除旧效果，新建替换）。确保同一时刻只有一个有效嘲讽目标。 |
 
 **分组规则**：控制效果的 `stack_group_key` 默认按 `control_type` 分组（如所有 `SLOW` 共享一个组）。这意味着：
-- 同一目标身上的多个减速效果按策略竞争/合并，最终由 `UnitControlState.rebuild()` 聚合为单一行动状态
+- 同一目标身上的多个迟缓效果按策略竞争/合并，最终由 `UnitControlState.rebuild()` 聚合为单一行动状态
 - 不同来源的同类控制（如两个单位的 SLOW）会根据策略决定是叠加实例还是互相覆盖
 
-**SLOW 的特殊聚合**：减速效果在 `UnitControlState` 中按字段分别聚合：
-- `move_speed_multiplier` = min(所有减速实例)
-- `attack_cooldown_rate_multiplier` = min(所有减速实例)
-- `mana_regen_multiplier` = min(所有减速实例)
+**SLOW 的特殊聚合**：迟缓效果在 `UnitControlState` 中按字段分别聚合：
+- `move_speed_multiplier` = min(所有迟缓实例)
+- `attack_cooldown_rate_multiplier` = min(所有迟缓实例)
+- `mana_regen_multiplier` = min(所有迟缓实例)
 
-即使多个 SLOW 效果共存（如 0.5× 和 0.7×），最终取最强的 0.5×。强减速过期后，若弱减速仍在，自动回落到 0.7×。
+即使多个 SLOW 效果共存（如 0.5× 和 0.7×），最终取最强的 0.5×。强迟缓过期后，若弱迟缓仍在，自动回落到 0.7×。
 
 ### 行动能力聚合
 
@@ -176,7 +190,7 @@ skill_damage_taken_multiplier = max(所有 freeze)，默认 1.0
 | 敌方技能目标 | `scripts/combat/active_skill_caster.gd` | `_get_offensive_skill_target()`，治疗/护盾不受嘲讽影响 |
 | 冻结增伤 | `scripts/combat/combat_resolver.gd` | `resolve_skill_damage()` 中读取 `skill_damage_taken_multiplier` |
 | 状态重建 | `scripts/unit_effect_controller.gd` | 效果创建/刷新/移除/过期后调用 `rebuild_control_state()` |
-| UI 标签 | `scripts/combat/unit_control_state.gd` | `get_ui_tags()` 返回中文标签（冻/晕/缚/嘲/缓） |
+| UI 标签 | `scripts/combat/unit_control_state.gd` + `scripts/unit_effect_controller.gd` | 控制标签（冻/晕/禁/嘲/缓）与持续状态标签（燃/毒N）合并显示 |
 
 ---
 
@@ -186,7 +200,7 @@ skill_damage_taken_multiplier = max(所有 freeze)，默认 1.0
 
 | 控制 | 单位 | ID | 稀有度 | 定位 | 主动技能 |
 | --- | --- | --- | --- | --- | --- |
-| 减速 | 霜箭哨手 / Frost Sentry | `frost_sentry` | FINE | 后排软控 | `pinning_frost` |
+| 迟缓 | 霜箭哨手 / Frost Sentry | `frost_sentry` | FINE | 后排软控 | `pinning_frost` |
 | 禁锢 | 藤缚卫士 / Vine Binder | `vine_binder` | RARE | 辅助控制 | `vine_snare` |
 | 眩晕 | 震锤先锋 / Thundermaul Vanguard | `thundermaul_vanguard` | RARE | 前排硬控 | `hammer_stun` |
 | 冻结 | 冰棱术士 / Frost Prism Mage | `frost_prism_mage` | EPIC | 法术硬控 | `frost_prison` |

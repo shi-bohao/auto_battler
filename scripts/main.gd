@@ -227,7 +227,7 @@ func _ready() -> void:
 	roster_manager.max_total_units = MAX_TOTAL_UNITS
 	encounter_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data)
 	encounter_manager.use_random_encounters = use_random_encounters
-	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager)
+	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager, run_modifier_manager)
 	reward_manager.setup(relic_manager, roster_manager, run_modifier_manager)
 	relic_manager.set_gold_callback(Callable(self, "_on_relic_gold_added"))
 	relic_manager.set_gold_query_callback(Callable(economy_manager, "get_gold"))
@@ -1163,7 +1163,7 @@ func _enter_prepare_state() -> void:
 	relic_manager.reset_battle_stats()
 	result_label.text = "准备阶段"
 	menu_button.visible = true
-	shop_manager.roll_shop_items()
+	shop_manager.roll_shop_items(run_controller.current_round)
 	_update_round_label()
 	_update_battle_speed_button()
 	_update_battle_speed_button_visibility()
@@ -2046,7 +2046,7 @@ func _restart_run(selected_game_mode: String = "") -> void:
 	roster_manager.reset_roster()
 	encounter_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data)
 	encounter_manager.use_random_encounters = use_random_encounters
-	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager)
+	shop_manager.setup(warrior_data, archer_data, assassin_data, tank_data, mage_data, priest_data, bard_data, forest_druid_data, plague_caster_data, guardian_captain_data, wind_chanter_data, greatsword_knight_data, bomb_thrower_data, cleric_data, alchemist_data, necromancer_data, puppet_warlock_data, relic_manager, roster_manager, run_modifier_manager)
 	reward_manager.setup(relic_manager, roster_manager, run_modifier_manager)
 	relic_manager.clear_relics()
 	hero_manager.reset_hero()
@@ -2564,7 +2564,7 @@ func _on_refresh_shop_button_pressed() -> void:
 		return
 
 	economy_manager.spend_gold(refresh_cost)
-	shop_manager.roll_shop_items()
+	shop_manager.roll_shop_items(run_controller.current_round)
 	if relic_panel_controller.is_showing_shop_relic_detail():
 		_hide_relic_detail_panel()
 	_update_gold_label()

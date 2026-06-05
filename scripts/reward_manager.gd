@@ -6,35 +6,12 @@ const REWARD_TYPE_STAT: String = "STAT"
 const REWARD_TYPE_UNIT: String = "UNIT"
 const REWARD_TYPE_RELIC: String = "RELIC"
 const ENCOUNTER_TYPE_ELITE: String = "ELITE"
+const RARITY_ROLL_SERVICE_SCRIPT: Script = preload("res://scripts/game/rarity_roll_service.gd")
 
 var relic_manager: RelicManager = null
 var roster_manager: Variant = null
 var run_modifier_manager: Variant = null
-
-const REWARD_RARITY_ORDER: Array[String] = ["COMMON", "FINE", "RARE", "EPIC", "LEGENDARY"]
-const REWARD_RARITY_ROLL_ORDER: Array[String] = ["LEGENDARY", "EPIC", "RARE", "FINE", "COMMON"]
-
-const BASE_RARITY_CHANCE: Dictionary = {
-	"COMMON": 70.0,
-	"FINE": 20.0,
-	"RARE": 9.0,
-	"EPIC": 1.0,
-	"LEGENDARY": 0.0,
-}
-
-const RARITY_CHANCE_PER_ROUND: Dictionary = {
-	"COMMON": 0.0,
-	"FINE": 5.0,
-	"RARE": 2.0,
-	"EPIC": 1.0,
-	"LEGENDARY": 0.5,
-}
-
-const ENCOUNTER_BONUS: Dictionary = {
-	"NORMAL": 0.0,
-	"ELITE": 10.0,
-	"BOSS": 20.0,
-}
+var rarity_roll_service: Variant = RARITY_ROLL_SERVICE_SCRIPT.new()
 
 
 func setup(
@@ -275,7 +252,7 @@ func _build_stat_rewards() -> Array[Dictionary]:
 	]
 
 	for stat_def: Dictionary in stat_definitions:
-		for rarity: String in REWARD_RARITY_ORDER:
+		for rarity: String in rarity_roll_service.RARITY_ORDER:
 			if not RARITY_VALUES.has(rarity):
 				continue
 			var value: int = int(RARITY_VALUES[rarity])
@@ -350,67 +327,18 @@ func _build_unit_rewards() -> Array[Dictionary]:
 
 
 func _roll_reward_rarity(encounter_type: String, current_round: int) -> String:
-	var round_index: int = maxi(0, current_round - 1)
-	var encounter_bonus: float = float(ENCOUNTER_BONUS.get(encounter_type, 0.0))
 	var luck_value: float = 0.0
 	if run_modifier_manager != null and run_modifier_manager.has_method("get_luck"):
 		luck_value = run_modifier_manager.get_luck()
 
-	var modified: Dictionary = {}
-	for rarity: String in REWARD_RARITY_ORDER:
-		var base: float = float(BASE_RARITY_CHANCE.get(rarity, 0.0))
-		var per_round: float = float(RARITY_CHANCE_PER_ROUND.get(rarity, 0.0))
-		var raw: float = base + round_index * per_round + encounter_bonus
-		modified[rarity] = minf(raw * (1.0 + luck_value / 100.0), 100.0)
-
-	var final_chances: Dictionary = {}
-	var remaining: float = 100.0
-	for rarity: String in REWARD_RARITY_ROLL_ORDER:
-		var chance: float = minf(float(modified.get(rarity, 0.0)), remaining)
-		final_chances[rarity] = chance
-		remaining -= chance
-
-	var roll: float = randf() * 100.0
-	var cumulative: float = 0.0
-	for rarity: String in REWARD_RARITY_ROLL_ORDER:
-		cumulative += float(final_chances.get(rarity, 0.0))
-		if roll < cumulative:
-			return rarity
-
-	return "COMMON"
+	return rarity_roll_service.roll_rarity(current_round, encounter_type, luck_value)
 
 
 func _pick_reward_by_rarity(pool: Array[Dictionary], rarity: String) -> Dictionary:
-	var candidates: Array[Dictionary] = []
-	for reward: Dictionary in pool:
-		if _get_reward_rarity(reward) == rarity:
-			candidates.append(reward)
-
-	if not candidates.is_empty():
-		return candidates[randi_range(0, candidates.size() - 1)]
-
-	# 空池兜底：先向低稀有度查找，再向高稀有度查找
-	var rarity_index: int = REWARD_RARITY_ORDER.find(rarity)
-
-	# 向低查找
-	for i: int in range(rarity_index - 1, -1, -1):
-		var lower_rarity: String = REWARD_RARITY_ORDER[i]
-		for reward: Dictionary in pool:
-			if _get_reward_rarity(reward) == lower_rarity:
-				candidates.append(reward)
-		if not candidates.is_empty():
-			return candidates[randi_range(0, candidates.size() - 1)]
-
-	# 向高查找
-	for i: int in range(rarity_index + 1, REWARD_RARITY_ORDER.size()):
-		var higher_rarity: String = REWARD_RARITY_ORDER[i]
-		for reward: Dictionary in pool:
-			if _get_reward_rarity(reward) == higher_rarity:
-				candidates.append(reward)
-		if not candidates.is_empty():
-			return candidates[randi_range(0, candidates.size() - 1)]
-
-	return {}
+	var result: Variant = rarity_roll_service.pick_by_rarity(pool, rarity, Callable(self, "_get_reward_rarity"))
+	if result == null:
+		return {}
+	return result as Dictionary
 
 
 func _get_reward_rarity(reward: Dictionary) -> String:

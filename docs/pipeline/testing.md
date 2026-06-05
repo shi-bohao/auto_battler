@@ -6,7 +6,7 @@
 
 ## 测试脚本清单
 
-当前 `scripts/tests/` 下共 **29 个 `.gd` 测试脚本**：
+当前 `scripts/tests/` 下共 **32 个 `.gd` 测试脚本**：
 
 ### 系统测试
 
@@ -16,17 +16,21 @@
 | `test_bond_manager.gd` | 羁绊统计、档位效果、战斗事件接入 |
 | `test_control_effect_system.gd` | 控制效果施加、状态聚合、边界情况 |
 | `test_status_effect_stack_policy.gd` | 叠层策略（堆叠/刷新/替换/延长） |
+| `test_control_passives.gd` | 控制相关单位被动 |
 | `test_summon_system.gd` | 召唤上限、分裂继承、胜负判定 |
 | `test_kill_relics.gd` | 击杀遗物触发、金币结算 |
+| `test_death_prevention.gd` | 致死拦截全局强化 |
 | `test_extended_unit_attributes.gd` | 扩展属性遗物（技能强度/治疗/护盾/穿透等） |
 | `test_hero_manager.gd` | 英雄选择、经验升级、强化池 |
 | `test_hero_battle_spawn.gd` | 英雄战斗生成、站位、属性 |
 | `test_hero_position_reservation.gd` | 英雄准备阶段站位调整 |
 | `test_hero_exclusive_unit_pool.gd` | 英雄专属单位池、开局阵容、可用单位过滤 |
+| `test_rarity_roll_service.gd` | 通用稀有度抽取服务、幸运/遭遇修正、兜底选择 |
 | `test_reward_rarity_roll.gd` | 奖励稀有度概率、波次成长、遭遇加成、幸运值修正 |
 | `test_reward_stat_rewards.gd` | 五类属性奖励、五档稀有度数值、幸运奖励应用 |
 | `test_reward_dynamic_unit_pool.gd` | 奖励单位池动态生成、随机单位、满阵容过滤 |
 | `test_reward_hero_exclusive_integration.gd` | 真实 `RosterManager`/`RewardManager` 下的英雄专属单位奖励过滤 |
+| `test_shop_rarity_roll.gd` | 准备阶段商店稀有度抽取、幸运修正、英雄专属过滤 |
 | `test_lineup_snapshot_manager.gd` | 快照保存/加载/还原 |
 | `test_mirror_challenge_manager.gd` | 镜像选择规则、阵容镜像 |
 | `test_battle_time_manager.gd` | 战斗时间缩放、加时赛 |
@@ -53,6 +57,7 @@
 
 | 脚本 | 覆盖范围 |
 | --- | --- |
+| `test_new_units.gd` | 近期新增玩家单位加载与关键技能 |
 | `test_high_rarity_units.gd` | 高稀有度单位加载、成长、关键主动/被动 |
 
 ## 常用验证命令
@@ -94,10 +99,12 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_hero_exclusive_unit_pool.gd
 
 # 奖励测试
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_rarity_roll_service.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_rarity_roll.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_stat_rewards.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_dynamic_unit_pool.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_reward_hero_exclusive_integration.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_shop_rarity_roll.gd
 ```
 
 ### 刷新内容参考文档

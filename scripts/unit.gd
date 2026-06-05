@@ -308,8 +308,8 @@ func finish_battle() -> void:
 	update_info_display()
 
 
-func take_damage(amount: int, attacker: Unit = null, can_crit: bool = true) -> int:
-	return unit_combat.take_damage(self, amount, attacker, can_crit)
+func take_damage(amount: int, attacker: Unit = null, can_crit: bool = true, floating_style: String = "damage") -> int:
+	return unit_combat.take_damage(self, amount, attacker, can_crit, floating_style)
 
 
 func record_damage_dealt(amount: int) -> void:
@@ -742,11 +742,16 @@ func notify_control_effect_applied(effect: StatusEffect, is_new_control_type: bo
 
 
 func _refresh_control_status_display() -> void:
-	if control_status_view == null or control_state == null:
+	if control_status_view == null:
 		return
 	if not control_status_view.has_method("refresh"):
 		return
-	control_status_view.refresh(control_state.get_ui_tags())
+	var tags: Array[Dictionary] = []
+	if control_state != null:
+		tags.append_array(control_state.get_ui_tags())
+	if effect_controller != null and effect_controller.has_method("get_status_ui_tags"):
+		tags.append_array(effect_controller.get_status_ui_tags())
+	control_status_view.refresh(tags)
 
 
 func update_info_display() -> void:
