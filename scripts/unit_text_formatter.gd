@@ -153,6 +153,10 @@ func get_passive_skill_text(passive_id: String, star: int = 1) -> String:
 			return "碎冰聚焦：对被冻结目标造成主动技能伤害提高 20%。" + (" 3 星若击杀被冻结目标，恢复 30 魔力。" if safe_star >= 3 else "")
 		"banner_guard":
 			return "护旗姿态：被至少 1 个敌人嘲讽锁定时获得 12% 伤害减免；每 1 个被自身嘲讽的敌人额外 +4 护盾强度，最多 4 个。" + (" 3 星被嘲讽敌人攻击自身时恢复 3 魔力。" if safe_star >= 3 else "")
+		"bone_familiarity":
+			return "残骨熟习：自身召唤的骷髅攻击力提高 " + ("18%。" if safe_star >= 3 else "10%。")
+		"grave_armor":
+			return "守墓骨甲：友方召唤物死亡时，自身获得 " + ("18 护盾，并为最低生命比例友军提供 9 护盾，每 2 秒最多触发一次。" if safe_star >= 3 else "12 护盾，每 2 秒最多触发一次。")
 		"slime_body":
 			return "胶质身躯：受到的普通攻击伤害降低 " + ("15%" if safe_star >= 3 else "8%") + "。"
 		"frost_burst":
@@ -222,6 +226,10 @@ func get_active_skill_text(active_skill_id: String, star: int = 1) -> String:
 			return "酸液领域：在当前目标位置生成固定酸液区域，持续 " + ("6" if safe_star >= 3 else "5") + " 秒，半径 " + ("120" if safe_star >= 3 else "100") + "，每秒对区域内所有敌人造成 " + ("16 + 45% 攻击力" if safe_star >= 3 else "10 + 35% 攻击力") + " 伤害。"
 		"raise_skeletons":
 			return "亡灵召唤：在自身身边召唤 " + ("4" if safe_star >= 3 else "2") + " 个骷髅，受自身召唤上限限制。"
+		"lesser_raise_bones":
+			return "初级唤骨：在自身附近召唤 " + ("2" if safe_star >= 3 else "1") + " 个骷髅。"
+		"bone_shield_command":
+			return "骨盾号令：自身获得 " + ("60 + 16% 最大生命护盾；周围 110 内友方召唤物获得 35 + 80% 攻击力护盾，并获得 15% 减伤，持续 4 秒。" if safe_star >= 3 else "40 + 12% 最大生命护盾；周围 110 内友方召唤物获得 25 + 60% 攻击力护盾。")
 		"puppet_mark":
 			return "傀儡标记：优先标记未被标记的当前敌人，否则选择低生命未标记敌人；目标死亡时召唤 1 个傀儡，并使其受到伤害提高 " + ("25%，持续 10 秒。" if safe_star >= 3 else "15%，持续 8 秒。")
 		"summoned_bone_slash":

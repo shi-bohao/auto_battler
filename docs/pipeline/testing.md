@@ -1,12 +1,12 @@
 # 测试与验证
 
-更新时间：2026-06-02
+更新时间：2026-06-05
 
 本文档记录项目测试策略、测试脚本清单和常用验证命令。
 
 ## 测试脚本清单
 
-当前 `scripts/tests/` 下共 **22 个测试脚本**：
+当前 `scripts/tests/` 下共 **23 个测试脚本**：
 
 ### 系统测试
 
@@ -22,6 +22,7 @@
 | `test_hero_manager.gd` | 英雄选择、经验升级、强化池 |
 | `test_hero_battle_spawn.gd` | 英雄战斗生成、站位、属性 |
 | `test_hero_position_reservation.gd` | 英雄准备阶段站位调整 |
+| `test_hero_exclusive_unit_pool.gd` | 英雄专属单位池、开局阵容、可用单位过滤 |
 | `test_lineup_snapshot_manager.gd` | 快照保存/加载/还原 |
 | `test_mirror_challenge_manager.gd` | 镜像选择规则、阵容镜像 |
 | `test_battle_time_manager.gd` | 战斗时间缩放、加时赛 |
@@ -52,6 +53,17 @@
 
 ## 常用验证命令
 
+### 日志路径约定
+
+Windows 下使用 Godot headless 命令时，`--log-file` 建议写入项目当前目录，或使用正斜杠相对路径，例如：
+
+```text
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file test_new_units.log --script res://scripts/tests/test_new_units.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file ./logs/test_new_units.log --script res://scripts/tests/test_new_units.gd
+```
+
+避免使用反斜杠子目录路径，例如 `--log-file logs\test_new_units.log`。该写法即使测试退出码为 0，也可能额外输出 `Could not create directory: 'user://C:'`。如果必须写入 `logs/`，先确保目录存在，并优先使用 `./logs/name.log`。
+
 ### 编译检查
 
 ```text
@@ -75,6 +87,7 @@ Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts
 # 英雄测试
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_hero_manager.gd
 Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_hero_battle_spawn.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --script res://scripts/tests/test_hero_exclusive_unit_pool.gd
 ```
 
 ### 刷新内容参考文档

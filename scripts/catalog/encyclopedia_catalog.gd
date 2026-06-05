@@ -25,10 +25,12 @@ const SUMMON_DATA_DIR: String = "res://data/summons"
 
 var entries_by_category: Dictionary = {}
 var bond_manager: Variant = null
+var hero_exclusive_unit_owner_cache: Dictionary = {}
 
 
 func refresh() -> void:
 	entries_by_category.clear()
+	_rebuild_hero_exclusive_unit_owner_cache()
 	for category: String in get_category_order():
 		entries_by_category[category] = []
 
@@ -267,7 +269,7 @@ func _create_unit_entry(unit_data: Resource, resource_path: String, category: St
 		unit_id = resource_path.get_file().get_basename()
 
 	var display_name: String = _get_unit_display_name(unit_data)
-	return {
+	var entry: Dictionary = {
 		"id": unit_id,
 		"name": display_name,
 		"sort_name": display_name.to_lower(),
@@ -277,6 +279,35 @@ func _create_unit_entry(unit_data: Resource, resource_path: String, category: St
 		"resource": unit_data,
 		"resource_path": resource_path,
 	}
+	if category == CATEGORY_PLAYER_UNITS and hero_exclusive_unit_owner_cache.has(unit_id):
+		var owner_info: Dictionary = hero_exclusive_unit_owner_cache.get(unit_id, {}) as Dictionary
+		entry["exclusive_hero_id"] = str(owner_info.get("hero_id", ""))
+		entry["exclusive_hero_name"] = str(owner_info.get("hero_name", ""))
+
+	return entry
+
+
+func _rebuild_hero_exclusive_unit_owner_cache() -> void:
+	hero_exclusive_unit_owner_cache.clear()
+	var hero_manager: Variant = HERO_MANAGER_SCRIPT.new()
+	if hero_manager == null or not hero_manager.has_method("get_available_heroes"):
+		return
+
+	for hero: Resource in hero_manager.get_available_heroes():
+		if hero == null:
+			continue
+		var hero_id: String = _get_string(hero, "hero_id")
+		if hero_id == "" or not hero_manager.has_method("get_hero_exclusive_unit_ids"):
+			continue
+
+		var hero_name: String = _get_hero_display_name(hero)
+		for unit_id: String in hero_manager.get_hero_exclusive_unit_ids(hero_id):
+			if unit_id == "":
+				continue
+			hero_exclusive_unit_owner_cache[unit_id] = {
+				"hero_id": hero_id,
+				"hero_name": hero_name,
+			}
 
 
 func _create_relic_entry(relic_data: Resource, resource_path: String) -> Dictionary:

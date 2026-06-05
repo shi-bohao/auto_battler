@@ -61,6 +61,8 @@ const PASSIVE_TANGLED_GROWTH: String = "tangled_growth"
 const PASSIVE_CONCUSSIVE_ARMOR: String = "concussive_armor"
 const PASSIVE_SHATTER_FOCUS: String = "shatter_focus"
 const PASSIVE_BANNER_GUARD: String = "banner_guard"
+const PASSIVE_GRAVE_ARMOR: String = "grave_armor"
+const PASSIVE_BONE_FAMILIARITY: String = "bone_familiarity"
 const PASSIVE_SLIME_BODY: String = "slime_body"
 const PASSIVE_FROST_BURST: String = "frost_burst"
 const PASSIVE_FLAME_BURST: String = "flame_burst"
@@ -140,6 +142,12 @@ const BANNER_GUARD_TAUNTED_DAMAGE_MULTIPLIER: float = 0.88
 const BANNER_GUARD_SHIELD_POWER_PER_TAUNT: int = 4
 const BANNER_GUARD_MAX_TAUNT_COUNT: int = 4
 const BANNER_GUARD_TAUNT_ATTACK_MANA_RESTORE_STAR_3: float = 3.0
+const GRAVE_ARMOR_SHIELD_BASE: int = 12
+const GRAVE_ARMOR_SHIELD_BASE_STAR_3: int = 18
+const GRAVE_ARMOR_COOLDOWN: float = 2.0
+const GRAVE_ARMOR_ALLY_SHIELD_STAR_3: int = 9
+const BONE_FAMILIARITY_ATTACK_BONUS: float = 0.10
+const BONE_FAMILIARITY_ATTACK_BONUS_STAR_3: float = 0.18
 const CORROSIVE_FLASK_DURATION_STAR_3: float = 4.0
 const CORROSIVE_FLASK_DAMAGE: float = 4.0
 const CORROSIVE_FLASK_DAMAGE_STAR_3: float = 7.0
@@ -841,22 +849,54 @@ func notify_damage_dealt(attacker: Variant, target: Variant, amount: int) -> voi
 func notify_ally_died(unit: Variant, dead_ally: Variant) -> void:
 	if not _is_valid_unit(unit) or not unit.is_alive or not _is_valid_unit(dead_ally):
 		return
-	if unit.passive_id != PASSIVE_SOUL_THREAD:
+
+	match unit.passive_id:
+		PASSIVE_SOUL_THREAD:
+			var is_summon: bool = bool(dead_ally.get_meta("is_summon", false))
+			if is_summon:
+				unit.restore_mana(SOUL_THREAD_SUMMON_MANA_STAR_3 if _is_star_3(unit) else SOUL_THREAD_SUMMON_MANA, unit)
+				return
+			unit.restore_mana(SOUL_THREAD_UNIT_MANA_STAR_3 if _is_star_3(unit) else SOUL_THREAD_UNIT_MANA, unit)
+			var shield_amount: int = SOUL_THREAD_UNIT_SHIELD_STAR_3 if _is_star_3(unit) else SOUL_THREAD_UNIT_SHIELD
+			var target_count: int = 2 if _is_star_3(unit) else 1
+			var targets: Array = _find_lowest_hp_ratio_allies(unit, target_count)
+			for target_value: Variant in targets:
+				var target: Variant = target_value
+				if _is_valid_unit(target) and target.is_alive:
+					target.add_shield(shield_amount, unit)
+		PASSIVE_GRAVE_ARMOR:
+			if not bool(dead_ally.get_meta("is_summon", false)):
+				return
+			var next_ready: float = float(unit.get_meta("grave_armor_next_ready_at", 0.0))
+			if unit.battle_elapsed_time < next_ready:
+				return
+			unit.set_meta("grave_armor_next_ready_at", unit.battle_elapsed_time + GRAVE_ARMOR_COOLDOWN)
+			var shield: int = GRAVE_ARMOR_SHIELD_BASE_STAR_3 if _is_star_3(unit) else GRAVE_ARMOR_SHIELD_BASE
+			unit.add_shield(shield, unit)
+			if _is_star_3(unit):
+				var lowest_allies: Array = _find_lowest_hp_ratio_allies(unit, 1)
+				if not lowest_allies.is_empty():
+					var lowest_ally: Variant = lowest_allies[0]
+					if _is_valid_unit(lowest_ally) and lowest_ally.is_alive:
+						lowest_ally.add_shield(GRAVE_ARMOR_ALLY_SHIELD_STAR_3, unit)
+			if unit.unit_feedback != null:
+				unit.unit_feedback.play_skill_feedback(unit, "Grave Armor")
+
+
+func notify_summon_created(summoner: Variant, summon: Variant) -> void:
+	if not _is_valid_unit(summoner) or not summoner.is_alive or not _is_valid_unit(summon):
 		return
 
-	var is_summon: bool = bool(dead_ally.get_meta("is_summon", false))
-	if is_summon:
-		unit.restore_mana(SOUL_THREAD_SUMMON_MANA_STAR_3 if _is_star_3(unit) else SOUL_THREAD_SUMMON_MANA, unit)
-		return
+	match summoner.passive_id:
+		PASSIVE_BONE_FAMILIARITY:
+			_apply_bone_familiarity_bonus(summoner, summon)
 
-	unit.restore_mana(SOUL_THREAD_UNIT_MANA_STAR_3 if _is_star_3(unit) else SOUL_THREAD_UNIT_MANA, unit)
-	var shield_amount: int = SOUL_THREAD_UNIT_SHIELD_STAR_3 if _is_star_3(unit) else SOUL_THREAD_UNIT_SHIELD
-	var target_count: int = 2 if _is_star_3(unit) else 1
-	var targets: Array = _find_lowest_hp_ratio_allies(unit, target_count)
-	for target_value: Variant in targets:
-		var target: Variant = target_value
-		if _is_valid_unit(target) and target.is_alive:
-			target.add_shield(shield_amount, unit)
+
+func _apply_bone_familiarity_bonus(summoner: Variant, summon: Variant) -> void:
+	if not summon.unit_type.begins_with("summoned_skeleton"):
+		return
+	var bonus: float = BONE_FAMILIARITY_ATTACK_BONUS_STAR_3 if _is_star_3(summoner) else BONE_FAMILIARITY_ATTACK_BONUS
+	summon.unit_combat.add_battle_attack_bonus_percent(summon, bonus)
 
 
 func notify_unit_died(unit: Variant, dead_unit: Variant) -> void:

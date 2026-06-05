@@ -1,6 +1,6 @@
 # 英雄系统
 
-更新时间：2026-06-02
+更新时间：2026-06-05
 
 本文档记录英雄系统的核心规则、经验成长、强化机制和实现入口。精确数值以 `docs/content_reference.md` 为准。
 
@@ -24,6 +24,23 @@
 | 奥术导师 / Arcane Mentor | `arcane_mentor` | 后排/法术 | 奥术 | `hero_arcane_storm` |
 | 血影猎手 / Bloodshadow Hunter | `bloodshadow_hunter` | 刺客/收割 | 猎手 | `hero_bloodshadow_assault` |
 | 织骨者 / Boneweaver | `boneweaver` | 后排/召唤 | 召唤 | `hero_bone_golem` |
+
+### 英雄专属单位池
+
+记录方式：当前没有在 `UnitData` 中新增专属字段。专属关系集中记录在 `scripts/hero_manager.gd` 的 `HERO_EXCLUSIVE_UNIT_IDS` 表中；英雄选择后，`Main` 将当前英雄专属列表和全量专属列表传给 `RosterManager`，由 `RosterManager` 在本局运行时过滤商店、奖励和随机单位池。图鉴同样从 `HeroManager` 反查该表，并在友方单位条目中标记“专属单位：对应英雄”。
+
+英雄选择后会配置本局专属单位池。专属单位只有选择对应英雄时才会进入本局可解锁/可刷新池；其他英雄的专属单位不会出现在商店新单位池、随机单位池、奖励指定单位池和商人高稀有单位池中。非专属单位作为通用池保留。
+
+当前专属池：
+
+| 英雄 | COMMON | FINE | RARE | EPIC |
+| --- | --- | --- | --- | --- |
+| 铁誓统帅 | `warrior` | `guardian_captain` | `taunt_banneret` | `starforged_vanguard` |
+| 奥术导师 | `mage` | `wind_chanter` | `prism_weaver` | `arcane_artillerist` |
+| 血影猎手 | `archer` | `assassin` | `bloodbound_berserker` | `nightblade_captain` |
+| 织骨者 | `bone_acolyte` | `grave_warden` | `necromancer` | `soul_binder` |
+
+开局阵容在英雄选择完成后生成：该英雄的 COMMON 专属单位 + FINE 专属单位 + 1 个随机通用 COMMON 单位。随机位不从任何英雄专属池中抽取，避免开局获得其他英雄路线的专属启动件。
 
 ### 经验与升级
 
@@ -54,6 +71,8 @@
 | 英雄管理 | `scripts/hero_manager.gd` |
 | 英雄数据 | `data/heroes/*.tres` |
 | 英雄单位配置 | `scripts/hero_data.gd`、`scripts/hero_upgrade_data.gd` |
+| 英雄专属单位池配置 | `scripts/hero_manager.gd` → `HERO_EXCLUSIVE_UNIT_IDS` |
+| 本局单位池过滤/开局阵容 | `scripts/roster_manager.gd` → `configure_hero_exclusive_unit_pool()`、`start_roster_for_hero()` |
 | 战斗生成 | `scripts/hero_manager.gd` → `create_hero_battle_unit_data()` |
 | 经验结算 | `scripts/hero_manager.gd` → `process_victory_encounter()` |
 | 强化选择 | `scripts/hero_manager.gd` → `generate_hero_upgrade_options()` |

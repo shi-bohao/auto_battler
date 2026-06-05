@@ -22,6 +22,9 @@ var global_stat_bonuses: Dictionary = {}
 var has_death_prevention: bool = false
 var next_roster_id: int = 1
 var unlocked_unit_ids: Array[String] = []
+var selected_hero_id: String = ""
+var selected_hero_exclusive_unit_ids: Array[String] = []
+var all_hero_exclusive_unit_ids: Array[String] = []
 var unit_catalog: Variant = UNIT_CATALOG_SCRIPT.new()
 var unit_scaling_service: Variant = UNIT_SCALING_SERVICE_SCRIPT.new()
 var roster_position_service: Variant = ROSTER_POSITION_SERVICE_SCRIPT.new()
@@ -69,23 +72,45 @@ func setup(
 
 
 func reset_roster() -> void:
-	active_roster.clear()
-	bench_roster.clear()
-	next_roster_id = 1
-	unlocked_unit_ids.clear()
+	clear_hero_exclusive_unit_pool()
+	_reset_roster_state()
 	var warrior_data: Resource = get_unit_data_by_id("warrior")
 	var archer_data: Resource = get_unit_data_by_id("archer")
 	var assassin_data: Resource = get_unit_data_by_id("assassin")
-	unlock_unit_data(warrior_data)
-	unlock_unit_data(archer_data)
-	unlock_unit_data(assassin_data)
-	active_roster.append(create_roster_item(warrior_data))
-	active_roster.append(create_roster_item(archer_data))
-	active_roster.append(create_roster_item(assassin_data))
-	player_hp_multiplier = 1.0
-	player_attack_multiplier = 1.0
-	global_stat_bonuses.clear()
-	has_death_prevention = false
+	_add_starter_unit_data(warrior_data)
+	_add_starter_unit_data(archer_data)
+	_add_starter_unit_data(assassin_data)
+
+
+func clear_hero_exclusive_unit_pool() -> void:
+	selected_hero_id = ""
+	selected_hero_exclusive_unit_ids.clear()
+	all_hero_exclusive_unit_ids.clear()
+
+
+func configure_hero_exclusive_unit_pool(hero_id: String, selected_exclusive_ids: Array[String], all_exclusive_ids: Array[String]) -> void:
+	selected_hero_id = hero_id
+	selected_hero_exclusive_unit_ids = _deduplicate_unit_ids(selected_exclusive_ids)
+	all_hero_exclusive_unit_ids = _deduplicate_unit_ids(all_exclusive_ids)
+
+
+func start_roster_for_hero(starter_exclusive_unit_ids: Array[String], random_common_count: int = 1) -> void:
+	_reset_roster_state()
+	for starter_unit_id: String in starter_exclusive_unit_ids:
+		_add_starter_unit_by_id(starter_unit_id)
+
+	var excluded_random_ids: Array[String] = []
+	for unit_id: String in starter_exclusive_unit_ids:
+		if not excluded_random_ids.has(unit_id):
+			excluded_random_ids.append(unit_id)
+	for _index: int in range(maxi(0, random_common_count)):
+		var random_common_data: Resource = _get_random_common_starter_unit(excluded_random_ids)
+		if random_common_data == null:
+			continue
+		var random_unit_id: String = get_unit_id(random_common_data)
+		if random_unit_id != "" and not excluded_random_ids.has(random_unit_id):
+			excluded_random_ids.append(random_unit_id)
+		_add_starter_unit_data(random_common_data)
 
 
 func apply_team_hp_bonus(percent: float) -> void:
@@ -127,6 +152,10 @@ func add_random_unit() -> bool:
 
 
 func add_unit_by_id(unit_id: String) -> bool:
+	if not is_unit_id_available_for_run(unit_id):
+		DEBUG_LOG_SCRIPT.info("Unit is not available for selected hero: " + unit_id)
+		return false
+
 	var unit_data: Resource = get_unit_data_by_id(unit_id)
 	if unit_data == null:
 		push_warning("Unknown unit id: " + unit_id)
@@ -137,6 +166,10 @@ func add_unit_by_id(unit_id: String) -> bool:
 
 func add_unit(unit_data: Resource, base_price: int = -1) -> bool:
 	if unit_data == null:
+		return false
+
+	if not is_unit_available_for_run(unit_data):
+		DEBUG_LOG_SCRIPT.info("Cannot add unit: not available for selected hero.")
 		return false
 
 	if not can_add_unit():
@@ -331,6 +364,9 @@ func unlock_unit_data(unit_data: Resource) -> void:
 	if unit_id == "" or unlocked_unit_ids.has(unit_id):
 		return
 
+	if not is_unit_id_available_for_run(unit_id):
+		return
+
 	unlocked_unit_ids.append(unit_id)
 
 
@@ -363,6 +399,20 @@ func get_locked_unit_pool() -> Array[Resource]:
 		if not is_unit_unlocked(unit_data):
 			unit_pool.append(unit_data)
 	return unit_pool
+
+
+func is_unit_available_for_run(unit_data: Resource) -> bool:
+	return is_unit_id_available_for_run(get_unit_id(unit_data))
+
+
+func is_unit_id_available_for_run(unit_id: String) -> bool:
+	if unit_id == "":
+		return false
+	if all_hero_exclusive_unit_ids.is_empty():
+		return true
+	if not all_hero_exclusive_unit_ids.has(unit_id):
+		return true
+	return selected_hero_exclusive_unit_ids.has(unit_id)
 
 
 func get_unit_data_by_id(unit_id: String) -> Resource:
@@ -639,6 +689,58 @@ func _unlock_roster_units(roster: Array[Dictionary]) -> void:
 		unlock_unit_data(unit_data)
 
 
+func _reset_roster_state() -> void:
+	active_roster.clear()
+	bench_roster.clear()
+	next_roster_id = 1
+	unlocked_unit_ids.clear()
+	player_hp_multiplier = 1.0
+	player_attack_multiplier = 1.0
+	global_stat_bonuses.clear()
+	has_death_prevention = false
+
+
+func _add_starter_unit_by_id(unit_id: String) -> bool:
+	return _add_starter_unit_data(get_unit_data_by_id(unit_id))
+
+
+func _add_starter_unit_data(unit_data: Resource) -> bool:
+	if unit_data == null:
+		return false
+	if not is_unit_available_for_run(unit_data):
+		return false
+	unlock_unit_data(unit_data)
+	active_roster.append(create_roster_item(unit_data))
+	return true
+
+
+func _get_random_common_starter_unit(excluded_unit_ids: Array[String]) -> Resource:
+	var common_pool: Array[Resource] = []
+	for unit_data: Resource in _get_unit_data_pool():
+		var unit_id: String = get_unit_id(unit_data)
+		if unit_id == "" or excluded_unit_ids.has(unit_id):
+			continue
+		if all_hero_exclusive_unit_ids.has(unit_id):
+			continue
+		if _get_unit_rarity(unit_data).strip_edges().to_upper() != "COMMON":
+			continue
+		common_pool.append(unit_data)
+
+	if common_pool.is_empty():
+		return null
+
+	return common_pool[randi_range(0, common_pool.size() - 1)]
+
+
+func _deduplicate_unit_ids(unit_ids: Array[String]) -> Array[String]:
+	var result: Array[String] = []
+	for unit_id_value: Variant in unit_ids:
+		var unit_id: String = str(unit_id_value).strip_edges()
+		if unit_id != "" and not result.has(unit_id):
+			result.append(unit_id)
+	return result
+
+
 func _add_permanent_stat_bonus_to_roster(roster: Array[Dictionary], roster_id: int, stat_name: String, amount: float) -> bool:
 	for roster_item: Dictionary in roster:
 		if int(roster_item.get("roster_id", -1)) != roster_id:
@@ -693,13 +795,13 @@ func _create_scaled_unit_data(roster_item: Dictionary, hp_multiplier: float, att
 
 
 func get_all_unit_pool() -> Array[Resource]:
-	return unit_catalog.get_unit_pool()
+	return _get_unit_data_pool()
 
 
 func get_high_rarity_unit_pool(min_rarity: String = "RARE") -> Array[Resource]:
 	var min_index: int = unit_catalog.get_rarity_index(min_rarity)
 	var pool: Array[Resource] = []
-	for unit_data: Resource in unit_catalog.get_unit_pool():
+	for unit_data: Resource in _get_unit_data_pool():
 		var rarity: String = str(unit_data.get("rarity"))
 		if unit_catalog.get_rarity_index(rarity) >= min_index:
 			pool.append(unit_data)
@@ -707,7 +809,11 @@ func get_high_rarity_unit_pool(min_rarity: String = "RARE") -> Array[Resource]:
 
 
 func _get_unit_data_pool() -> Array[Resource]:
-	return unit_catalog.get_unit_pool()
+	var available_pool: Array[Resource] = []
+	for unit_data: Resource in unit_catalog.get_unit_pool():
+		if is_unit_available_for_run(unit_data):
+			available_pool.append(unit_data)
+	return available_pool
 
 
 func _get_spawn_position_for_roster_item(roster_item: Dictionary, occupied_positions: Array[Vector2], fallback_index: int) -> Vector2:

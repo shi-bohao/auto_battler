@@ -15,6 +15,14 @@ const HERO_ID_ARCANE_MENTOR: String = "arcane_mentor"
 const HERO_ID_BLOODSHADOW_HUNTER: String = "bloodshadow_hunter"
 const HERO_ID_BONEWEAVER: String = "boneweaver"
 
+const HERO_EXCLUSIVE_UNIT_IDS: Dictionary = {
+	HERO_ID_IRON_OATH_COMMANDER: ["warrior", "guardian_captain", "taunt_banneret", "starforged_vanguard"],
+	HERO_ID_ARCANE_MENTOR: ["mage", "wind_chanter", "prism_weaver", "arcane_artillerist"],
+	HERO_ID_BLOODSHADOW_HUNTER: ["archer", "assassin", "bloodbound_berserker", "nightblade_captain"],
+	HERO_ID_BONEWEAVER: ["bone_acolyte", "grave_warden", "necromancer", "soul_binder"],
+}
+const HERO_STARTER_EXCLUSIVE_COUNT: int = 2
+
 const HERO_EXPERIENCE_TO_LEVEL: int = 50
 const ENCOUNTER_TYPE_NORMAL: String = "NORMAL"
 const ENCOUNTER_TYPE_ELITE: String = "ELITE"
@@ -119,6 +127,38 @@ func get_selected_hero_name() -> String:
 		return str(selected_hero.get_display_name())
 
 	return str(selected_hero.get("hero_name"))
+
+
+func get_selected_hero_exclusive_unit_ids() -> Array[String]:
+	return get_hero_exclusive_unit_ids(get_selected_hero_id())
+
+
+func get_selected_hero_starter_unit_ids() -> Array[String]:
+	var exclusive_ids: Array[String] = get_selected_hero_exclusive_unit_ids()
+	var starter_ids: Array[String] = []
+	for index: int in range(mini(HERO_STARTER_EXCLUSIVE_COUNT, exclusive_ids.size())):
+		starter_ids.append(exclusive_ids[index])
+	return starter_ids
+
+
+func get_hero_exclusive_unit_ids(hero_id: String) -> Array[String]:
+	var unit_ids: Array[String] = []
+	var configured_ids: Array = HERO_EXCLUSIVE_UNIT_IDS.get(hero_id, []) as Array
+	for unit_id_value: Variant in configured_ids:
+		var unit_id: String = str(unit_id_value).strip_edges()
+		if unit_id != "" and not unit_ids.has(unit_id):
+			unit_ids.append(unit_id)
+	return unit_ids
+
+
+func get_all_hero_exclusive_unit_ids() -> Array[String]:
+	var unit_ids: Array[String] = []
+	for hero_id_value: Variant in HERO_EXCLUSIVE_UNIT_IDS.keys():
+		var hero_ids: Array[String] = get_hero_exclusive_unit_ids(str(hero_id_value))
+		for unit_id: String in hero_ids:
+			if not unit_ids.has(unit_id):
+				unit_ids.append(unit_id)
+	return unit_ids
 
 
 func get_state_snapshot() -> Dictionary:

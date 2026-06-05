@@ -315,7 +315,7 @@ func _build_reward_pool() -> Array[Dictionary]:
 		for relic_reward in relic_rewards:
 			pool.append(relic_reward)
 
-	return pool
+	return _filter_unavailable_unit_rewards(pool)
 
 
 func _can_offer_unit_rewards() -> bool:
@@ -323,6 +323,23 @@ func _can_offer_unit_rewards() -> bool:
 		return true
 
 	return roster_manager.can_add_unit()
+
+
+func _filter_unavailable_unit_rewards(pool: Array[Dictionary]) -> Array[Dictionary]:
+	if roster_manager == null or not roster_manager.has_method("is_unit_id_available_for_run"):
+		return pool
+
+	var filtered_pool: Array[Dictionary] = []
+	for reward: Dictionary in pool:
+		if str(reward.get("type", "")) != REWARD_TYPE_UNIT:
+			filtered_pool.append(reward)
+			continue
+
+		var unit_id: String = str(reward.get("unit_id", ""))
+		if unit_id == "" or bool(roster_manager.is_unit_id_available_for_run(unit_id)):
+			filtered_pool.append(reward)
+
+	return filtered_pool
 
 
 func _get_reward_roll_index(pool: Array[Dictionary], encounter_type: String) -> int:

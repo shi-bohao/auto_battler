@@ -108,9 +108,18 @@ func summon_units(source_unit: Unit, summon_unit_data: Resource, count: int, con
 			continue
 
 		_register_summon(source_type, source_key, summoned_unit, source_unit, context)
+		_notify_summon_created(source_unit, summoned_unit)
 		summoned_units.append(summoned_unit)
 
 	return summoned_units
+
+
+func _notify_summon_created(source_unit: Unit, summoned_unit: Unit) -> void:
+	if source_unit == null or not is_instance_valid(source_unit):
+		return
+	if source_unit.unit_skill == null or not source_unit.unit_skill.has_method("notify_summon_created"):
+		return
+	source_unit.unit_skill.notify_summon_created(source_unit, summoned_unit)
 
 
 func handle_unit_death(unit: Unit) -> void:

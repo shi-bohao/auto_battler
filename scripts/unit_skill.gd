@@ -114,6 +114,11 @@ func notify_heal_overflow(target: Variant, overflow_amount: int, source: Variant
 		passive_resolver.notify_heal_overflow(target, overflow_amount, source)
 
 
+func notify_summon_created(summoner: Variant, summon: Variant) -> void:
+	if passive_resolver != null and passive_resolver.has_method("notify_summon_created"):
+		passive_resolver.notify_summon_created(summoner, summon)
+
+
 func apply_maggot_death_burst(unit: Variant) -> void:
 	if passive_resolver != null and passive_resolver.has_method("apply_maggot_death_burst"):
 		passive_resolver.apply_maggot_death_burst(unit)

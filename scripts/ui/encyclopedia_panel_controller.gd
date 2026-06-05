@@ -430,7 +430,10 @@ func _format_entry_button_text(entry: Dictionary) -> String:
 		"hero":
 			rarity = "MYTHIC"
 	if rarity != "":
-		return name + "  [" + _get_rarity_display_name(rarity) + "]"
+		var label: String = name + "  [" + _get_rarity_display_name(rarity) + "]"
+		if str(entry.get("kind", "")) == "unit" and _get_entry_exclusive_hero_name(entry) != "":
+			label += "  [专属]"
+		return label
 	return name
 
 
@@ -442,6 +445,7 @@ func _build_unit_detail(entry: Dictionary) -> String:
 	var lines: Array[String] = []
 	lines.append(str(entry.get("name", "")))
 	lines.append(_get_category_meta_text(str(entry.get("category", "")), unit_data))
+	_append_non_empty(lines, _get_entry_exclusive_meta_text(entry))
 	_append_non_empty(lines, _get_unit_description(unit_data))
 	lines.append("")
 	lines.append("基础属性")
@@ -522,6 +526,22 @@ func _get_category_meta_text(category: String, unit_data: Resource) -> String:
 	if unit_type != "":
 		parts.append(unit_type)
 	return _join_text(parts, " / ")
+
+
+func _get_entry_exclusive_meta_text(entry: Dictionary) -> String:
+	var hero_name: String = _get_entry_exclusive_hero_name(entry)
+	if hero_name == "":
+		return ""
+
+	return "专属单位：" + hero_name
+
+
+func _get_entry_exclusive_hero_name(entry: Dictionary) -> String:
+	var hero_name: String = str(entry.get("exclusive_hero_name", "")).strip_edges()
+	if hero_name != "":
+		return hero_name
+
+	return str(entry.get("exclusive_hero_id", "")).strip_edges()
 
 
 func _get_unit_stat_lines(unit_data: Resource) -> Array[String]:

@@ -23,6 +23,9 @@ func _run_tests() -> void:
 	_expect_entry_has_name(catalog.get_entries("player_units"), "warrior", "Warrior entry should have a display name.")
 	_expect_entry_has_name(catalog.get_entries("relics"), "battle_banner", "Battle Banner relic entry should have a display name.")
 	_expect_entry_has_name(catalog.get_entries("heroes"), "iron_oath_commander", "Iron Oath Commander hero entry should have a display name.")
+	_expect_entry_exclusive_hero(catalog.get_entries("player_units"), "warrior", "iron_oath_commander", "Warrior should be marked as Iron Oath Commander exclusive.")
+	_expect_entry_exclusive_hero(catalog.get_entries("player_units"), "mage", "arcane_mentor", "Mage should be marked as Arcane Mentor exclusive.")
+	_expect_entry_exclusive_hero(catalog.get_entries("player_units"), "bard", "", "Bard should remain a common non-exclusive unit.")
 
 
 func _expect_min_count(catalog: Variant, category: String, minimum: int, message: String) -> void:
@@ -37,6 +40,18 @@ func _expect_entry_has_name(entries: Array[Dictionary], entry_id: String, messag
 			continue
 		if str(entry.get("name", "")).strip_edges() == "":
 			failures.append(message + " Name is empty.")
+		return
+
+	failures.append(message + " Entry was not found.")
+
+
+func _expect_entry_exclusive_hero(entries: Array[Dictionary], entry_id: String, expected_hero_id: String, message: String) -> void:
+	for entry: Dictionary in entries:
+		if str(entry.get("id", "")) != entry_id:
+			continue
+		var actual_hero_id: String = str(entry.get("exclusive_hero_id", ""))
+		if actual_hero_id != expected_hero_id:
+			failures.append(message + " Expected '" + expected_hero_id + "', got '" + actual_hero_id + "'.")
 		return
 
 	failures.append(message + " Entry was not found.")

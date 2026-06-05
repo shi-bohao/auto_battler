@@ -1,0 +1,16 @@
+prism_weaver
+mage
+alchemist
+bomb_thrower
+priest
+plague_caster
+cleric
+soul_binder
+vine_binder
+bloodbound_berserker
+tank
+thundermaul_vanguard
+frost_sentry
+wind_chanter
+bone_acolyte
+grave_warden

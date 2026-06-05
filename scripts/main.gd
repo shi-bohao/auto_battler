@@ -442,6 +442,7 @@ func _on_hero_selected(hero_id: String) -> void:
 		result_label.text = "英雄选择失败"
 		return
 
+	_start_roster_for_selected_hero()
 	_hide_hero_selection_panel()
 	result_label.text = ""
 	_update_hero_exp_ui()
@@ -451,6 +452,17 @@ func _on_hero_selected(hero_id: String) -> void:
 
 func _on_hero_selection_cancelled() -> void:
 	_enter_main_menu()
+
+
+func _start_roster_for_selected_hero() -> void:
+	if not hero_manager.has_selected_hero():
+		return
+
+	var hero_id: String = hero_manager.get_selected_hero_id()
+	var selected_exclusive_ids: Array[String] = hero_manager.get_selected_hero_exclusive_unit_ids()
+	var all_exclusive_ids: Array[String] = hero_manager.get_all_hero_exclusive_unit_ids()
+	roster_manager.configure_hero_exclusive_unit_pool(hero_id, selected_exclusive_ids, all_exclusive_ids)
+	roster_manager.start_roster_for_hero(hero_manager.get_selected_hero_starter_unit_ids(), 1)
 
 
 func _on_game_end_confirm_pressed() -> void:

@@ -44,11 +44,11 @@ Godot_v4.6.2-stable_win64_console.exe --path .
 ## 常用检查
 
 ```text
-Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\main_check.log --check-only --script res://scripts/main.gd
-Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file .godot_user\content_reference.log --script res://scripts/tools/generate_content_reference.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file main_check.log --check-only --script res://scripts/main.gd
+Godot_v4.6.2-stable_win64_console.exe --headless --path . --log-file content_reference.log --script res://scripts/tools/generate_content_reference.gd
 ```
 
-部分 headless 检查在当前 Windows 路径下可能输出 `Could not create directory: 'user://C:'`，只要退出码为 0，通常不影响脚本检查结果。
+Windows 下 `--log-file` 建议写入当前目录，或使用 `./logs/name.log` 这类正斜杠相对路径。避免 `logs\name.log` 这类反斜杠子目录路径；该写法即使退出码为 0，也可能额外输出 `Could not create directory: 'user://C:'`。
 
 ## 文档入口
 

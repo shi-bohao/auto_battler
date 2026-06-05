@@ -1,0 +1,38 @@
+[gd_resource type="Resource" load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_data.gd" id="1_bone_acolyte"]
+[ext_resource type="Texture2D" path="res://assets/processed/player_units/bone_acolyte.png" id="2_art"]
+
+[resource]
+script = ExtResource("1_bone_acolyte")
+board_sprite = ExtResource("2_art")
+portrait_texture = ExtResource("2_art")
+icon_texture = ExtResource("2_art")
+unit_name = "Bone Acolyte"
+unit_name_cn = "白骨学徒"
+description_cn = "召唤流前期启动件，通过主动技能唤起骷髅协助作战，自身召唤的骷髅获得额外攻击力加成。"
+unit_type = "bone_acolyte"
+catalog_id = 31
+role = "support"
+bond_tags = Array[String](["summon"])
+rarity = "COMMON"
+price = 2
+max_hp = 95
+attack_damage = 12
+crit_chance = 0.0
+crit_damage_multiplier = 1.5
+defense = 4
+attack_interval = 1.45
+attack_range = 135.0
+search_range = 999.0
+move_speed = 75.0
+passive_id = "bone_familiarity"
+active_skill_id = "lesser_raise_bones"
+max_mana = 70
+mana_regen_per_second = 10.0
+target_mode = "NEAREST"
+retarget_interval = 0.4
+lowest_hp_switch_threshold = 0.1
+basic_attack_type = "projectile"
+projectile_speed = 430.0
+projectile_visual_type = "dark"

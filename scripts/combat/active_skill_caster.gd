@@ -81,6 +81,8 @@ const SKILL_ENEMY_FROST_THORN_BURST: String = "enemy_frost_thorn_burst"
 const SKILL_ENEMY_CRIMSON_BANNER: String = "enemy_crimson_banner"
 const SKILL_ENEMY_REFRACTION_SHELL: String = "enemy_refraction_shell"
 const SKILL_ENEMY_DIRTY_STAB: String = "enemy_dirty_stab"
+const SKILL_LESSER_RAISE_BONES: String = "lesser_raise_bones"
+const SKILL_BONE_SHIELD_COMMAND: String = "bone_shield_command"
 
 const REGROWTH_DURATION: float = 5.0
 const REGROWTH_HEAL_BASE: float = 18.0
@@ -389,6 +391,18 @@ const CHALLENGE_BANNER_DURATION_3STAR: float = 3.5
 const CHALLENGE_BANNER_SHIELD_BASE: float = 40.0
 const CHALLENGE_BANNER_SHIELD_HP_RATIO: float = 0.15
 const CHALLENGE_BANNER_DEFENSE_BONUS_3STAR: int = 20
+const LESSER_RAISE_BONES_COUNT: int = 1
+const LESSER_RAISE_BONES_COUNT_STAR_3: int = 2
+const BONE_SHIELD_COMMAND_RADIUS: float = 110.0
+const BONE_SHIELD_COMMAND_SELF_SHIELD_BASE: float = 40.0
+const BONE_SHIELD_COMMAND_SELF_SHIELD_HP_RATIO: float = 0.12
+const BONE_SHIELD_COMMAND_SELF_SHIELD_BASE_STAR_3: float = 60.0
+const BONE_SHIELD_COMMAND_SELF_SHIELD_HP_RATIO_STAR_3: float = 0.16
+const BONE_SHIELD_COMMAND_SUMMON_SHIELD_BASE: float = 25.0
+const BONE_SHIELD_COMMAND_SUMMON_SHIELD_ATK_RATIO: float = 0.60
+const BONE_SHIELD_COMMAND_SUMMON_SHIELD_BASE_STAR_3: float = 35.0
+const BONE_SHIELD_COMMAND_SUMMON_SHIELD_ATK_RATIO_STAR_3: float = 0.80
+const BONE_SHIELD_COMMAND_SUMMON_DAMAGE_REDUCTION_DURATION: float = 4.0
 const HERO_BLOODSHADOW_KILL_MANA: float = 50.0
 const HERO_BONE_GOLEM_HP_SCALING: float = 1.5
 const HERO_BONE_GOLEM_ATK_SCALING: float = 0.8
@@ -626,6 +640,10 @@ func try_cast_active_skill(unit: Variant) -> bool:
 			return _cast_frost_prison(unit)
 		SKILL_CHALLENGE_BANNER:
 			return _cast_challenge_banner(unit)
+		SKILL_LESSER_RAISE_BONES:
+			return _cast_lesser_raise_bones(unit)
+		SKILL_BONE_SHIELD_COMMAND:
+			return _cast_bone_shield_command(unit)
 		_:
 			return false
 
@@ -2793,3 +2811,42 @@ func _get_skill_feedback_name(skill_name: String, unit: Variant) -> String:
 		return "Enhanced " + skill_name
 
 	return skill_name
+
+
+func _cast_lesser_raise_bones(unit: Variant) -> bool:
+	var count: int = LESSER_RAISE_BONES_COUNT_STAR_3 if _is_star_3(unit) else LESSER_RAISE_BONES_COUNT
+	_summon_units(unit, SKELETON_SUMMON_DATA, count, {})
+	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Lesser Raise Bones", unit))
+	return true
+
+
+func _cast_bone_shield_command(unit: Variant) -> bool:
+	var is_star3: bool = _is_star_3(unit)
+	var self_base: float = BONE_SHIELD_COMMAND_SELF_SHIELD_BASE_STAR_3 if is_star3 else BONE_SHIELD_COMMAND_SELF_SHIELD_BASE
+	var self_ratio: float = BONE_SHIELD_COMMAND_SELF_SHIELD_HP_RATIO_STAR_3 if is_star3 else BONE_SHIELD_COMMAND_SELF_SHIELD_HP_RATIO
+	var self_shield: int = maxi(1, int(round(float(self_base) + float(unit.max_hp) * self_ratio)))
+	unit.add_shield(_scale_active_skill_shield(unit, self_shield), unit)
+
+	var summon_base: float = BONE_SHIELD_COMMAND_SUMMON_SHIELD_BASE_STAR_3 if is_star3 else BONE_SHIELD_COMMAND_SUMMON_SHIELD_BASE
+	var summon_ratio: float = BONE_SHIELD_COMMAND_SUMMON_SHIELD_ATK_RATIO_STAR_3 if is_star3 else BONE_SHIELD_COMMAND_SUMMON_SHIELD_ATK_RATIO
+	var summon_shield: int = maxi(1, int(round(float(summon_base) + float(unit.attack_damage) * summon_ratio)))
+	summon_shield = _scale_active_skill_shield(unit, summon_shield)
+
+	for ally_value: Variant in unit.ally_units:
+		var ally: Variant = ally_value
+		if not _is_valid_unit(ally) or not ally.is_alive:
+			continue
+		if not bool(ally.get_meta("is_summon", false)):
+			continue
+		if unit.global_position.distance_to(ally.global_position) > BONE_SHIELD_COMMAND_RADIUS:
+			continue
+		ally.add_shield(summon_shield, unit)
+		if is_star3:
+			status_effect_factory.apply_status_effect(ally, "bone_shield_command_reduction", StatusEffectFactory.EFFECT_TYPE_STAT_MULTIPLY, unit, BONE_SHIELD_COMMAND_SUMMON_DAMAGE_REDUCTION_DURATION, 0.0, 0.85, "damage_taken_multiplier", {
+				"stack_policy": StatusEffectFactory.STACK_POLICY_REFRESH_ONLY,
+				"polarity": StatusEffectFactory.POLARITY_POSITIVE,
+				"category": StatusEffectFactory.CATEGORY_AURA,
+			})
+
+	unit.unit_feedback.play_skill_feedback(unit, _get_skill_feedback_name("Bone Shield Command", unit))
+	return true

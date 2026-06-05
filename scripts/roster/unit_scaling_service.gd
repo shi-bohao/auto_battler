@@ -105,6 +105,10 @@ func get_star_growth(unit_type: String, star: int) -> Dictionary:
 			return _get_frost_prism_mage_star_growth(safe_star)
 		"taunt_banneret":
 			return _get_taunt_banneret_star_growth(safe_star)
+		"bone_acolyte":
+			return _get_bone_acolyte_star_growth(safe_star)
+		"grave_warden":
+			return _get_grave_warden_star_growth(safe_star)
 		"summoned_skeleton":
 			return _get_summoned_skeleton_star_growth(safe_star)
 		"summoned_skeleton_warrior":
@@ -477,6 +481,26 @@ func _get_taunt_banneret_star_growth(star: int) -> Dictionary:
 			return _create_star_growth(1.65, 1.18, 35, 1.0, 1.0, 0.0, 0.0)
 		3:
 			return _create_star_growth(2.50, 1.40, 80, 1.0, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_bone_acolyte_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.2, 1.15, 0, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(1.55, 1.45, 0, 0.9, 1.0, 0.0, 0.0)
+		_:
+			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
+
+
+func _get_grave_warden_star_growth(star: int) -> Dictionary:
+	match star:
+		2:
+			return _create_star_growth(1.5, 1.2, 20, 0.95, 1.0, 0.0, 0.0)
+		3:
+			return _create_star_growth(2.1, 1.4, 45, 0.9, 1.0, 0.0, 0.0)
 		_:
 			return _create_star_growth(1.0, 1.0, 0, 1.0, 1.0, 0.0, 0.0)
 
